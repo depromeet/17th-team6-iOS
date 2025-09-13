@@ -8,9 +8,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
-        let vc = UIViewController()
-        let nav = UINavigationController(rootViewController: vc)
-        window?.rootViewController = nav
+        window?.rootViewController = MainTabViewController()
         window?.makeKeyAndVisible()
     }
 
