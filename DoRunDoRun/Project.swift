@@ -7,7 +7,8 @@ let project = Project(
             name: "DoRunDoRun",
             destinations: .iOS,
             product: .app,
-            bundleId: "dev.tuist.DoRunDoRun",
+            bundleId: "depromeet.seventeen.six",
+            deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
@@ -22,24 +23,21 @@ let project = Project(
                             ]
                         ]
                     ],
+                    "UISupportedInterfaceOrientations": [
+                        "UIInterfaceOrientationPortrait"
+                    ],
+                    "NSLocationWhenInUseUsageDescription": "위치 기반 지도 기능을 위해 권한이 필요합니다.",
                 ]
             ),
             buildableFolders: [
                 "DoRunDoRun/Sources",
                 "DoRunDoRun/Resources",
             ],
-            dependencies: []
-        ),
-        .target(
-            name: "DoRunDoRunTests",
-            destinations: .iOS,
-            product: .unitTests,
-            bundleId: "dev.tuist.DoRunDoRunTests",
-            infoPlist: .default,
-            buildableFolders: [
-                "DoRunDoRun/Tests"
-            ],
-            dependencies: [.target(name: "DoRunDoRun")]
+            dependencies: [
+              .external(name: "Alamofire"),
+              .external(name: "NMapsMap")
+            ]
         ),
     ]
 )
+
