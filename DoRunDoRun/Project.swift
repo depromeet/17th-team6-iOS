@@ -30,8 +30,8 @@ let project = Project(
                 ]
             ),
             buildableFolders: [
-                "DoRunDoRun/Sources",
-                "DoRunDoRun/Resources",
+                "./Sources",
+                "./Resources",
             ],
             dependencies: [
               .external(name: "Alamofire"),
