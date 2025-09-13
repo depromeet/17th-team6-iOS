@@ -10,6 +10,7 @@
 //  see http://clean-swift.com
 //
 
+import NMapsMap
 import UIKit
 
 protocol RunningDisplayLogic: AnyObject {
@@ -18,6 +19,13 @@ protocol RunningDisplayLogic: AnyObject {
 final class RunningViewController: UIViewController {
     var interactor: RunningBusinessLogic?
     var router: (RunningRoutingLogic & RunningDataPassing)?
+    
+    // MARK: UI Object
+    private let naverMapView: NMFMapView = {
+        let mapView = NMFMapView()
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        return mapView
+    }()
     
     // MARK: Object lifecycle
     
@@ -42,6 +50,22 @@ final class RunningViewController: UIViewController {
         presenter.viewController = viewController
         router.viewController = viewController
         router.dataStore = interactor
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setUI()
+    }
+    
+    private func setUI() {
+        view.addSubviews(naverMapView)
+        
+        NSLayoutConstraint.activate([
+            naverMapView.topAnchor.constraint(equalTo: view.topAnchor),
+            naverMapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            naverMapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            naverMapView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
 }
 
