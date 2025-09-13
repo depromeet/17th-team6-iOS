@@ -27,6 +27,17 @@ let project = Project(
                         "UIInterfaceOrientationPortrait"
                     ],
                     "NSLocationWhenInUseUsageDescription": "위치 기반 지도 기능을 위해 권한이 필요합니다.",
+                    "UIAppFonts": .array([
+                        .string("Pretendard-Thin.ttf"),
+                        .string("Pretendard-SemiBold.ttf"),
+                        .string("Pretendard-Regular.ttf"),
+                        .string("Pretendard-Medium.ttf"),
+                        .string("Pretendard-Light.ttf"),
+                        .string("Pretendard-ExtraLight.ttf"),
+                        .string("Pretendard-ExtraBold.ttf"),
+                        .string("Pretendard-Bold.ttf"),
+                        .string("Pretendard-Black.ttf"),
+                    ])
                 ]
             ),
             buildableFolders: [
