@@ -8,10 +8,10 @@
 import UIKit
 
 extension UIFont {
-    static func pretendard(size: CGFloat, weight: Weight) -> UIFont? {
+    static func pretendard(size: CGFloat, weight: Weight) -> UIFont {
         let fontName: String = "Pretendard"
         
-        return switch weight {
+        let font: UIFont? = switch weight {
             case .black:
                 UIFont(name: "\(fontName)-Black", size: size)
             case .heavy:
@@ -33,5 +33,7 @@ extension UIFont {
             default:
                 nil
         }
+        
+        return font ?? UIFont.systemFont(ofSize: size, weight: weight)
     }
 }
