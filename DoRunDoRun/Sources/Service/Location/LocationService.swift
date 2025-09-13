@@ -18,6 +18,9 @@ final class LocationService: NSObject, LocationServiceProtocol {
         manager.pausesLocationUpdatesAutomatically = true
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 8 // 5~10m 권장
+        
+        // 인스턴스 생성 시점에 권한 설정
+        checkAuthorization()
     }
     
     func checkAuthorization() {
@@ -29,11 +32,11 @@ final class LocationService: NSObject, LocationServiceProtocol {
         }
     }
     
-    func start() {
+    func startUpdating() {
         manager.startUpdatingLocation()
     }
     
-    func stop() {
+    func stopUpdating() {
         manager.stopUpdatingLocation()
     }
 }
@@ -56,6 +59,7 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error.localizedDescription)
         onEvent?(.error(error))
     }
 }

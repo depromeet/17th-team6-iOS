@@ -16,6 +16,6 @@ enum LocationEvent {
 protocol LocationServiceProtocol: AnyObject {
     var onEvent: ((LocationEvent) -> Void)? { get set }
     func checkAuthorization()
-    func start()
-    func stop()
+    func startUpdating()
+    func stopUpdating()
 }
