@@ -13,17 +13,28 @@
 import UIKit
 
 protocol HomeDisplayLogic: AnyObject {
+    
 }
 
 final class HomeViewController: UIViewController {
     var interactor: HomeBusinessLogic?
     var router: (HomeRoutingLogic & HomeDataPassing)?
+        
+    // MARK: UI
+    
+    private let overallGoalView = OverallGoalView()
+    
+    private let sessionGoalView = SessionGoalView()
+    
+    private let retryGoalView = RetryGoalView()
     
     // MARK: Object lifecycle
-    
+
     init() {
         super.init(nibName: nil, bundle: nil)
         setup()
+        setupNavigationBar()
+        setupView()
     }
     
     @available(*, unavailable)
@@ -43,8 +54,428 @@ final class HomeViewController: UIViewController {
         router.viewController = viewController
         router.dataStore = interactor
     }
+    
+    private func setupNavigationBar() {
+ 
+        
+        let homeLabel = UILabel()
+        homeLabel.attributedText = .withLetterSpacing(
+            text: "홈",
+            font: .pretendard(size: 20, weight: .bold),
+            px: 0.5,
+            color: .init(hex: 0x000000)
+        )
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: homeLabel)
+        
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "bell.badge"), for: .normal)
+        button.tintColor = .init(hex: 0x1C1B1F)
+        button.addTarget(self, action: #selector(didTapNotification), for: .touchUpInside)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+    }
+    
+    private func setupView() {
+        view.backgroundColor = .init(hex: 0xF0F3F8)
+        
+        view.addSubview(overallGoalView)
+        view.addSubview(sessionGoalView)
+        view.addSubview(retryGoalView)
+        
+        overallGoalView.translatesAutoresizingMaskIntoConstraints = false
+        sessionGoalView.translatesAutoresizingMaskIntoConstraints = false
+        retryGoalView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            overallGoalView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            overallGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
+            overallGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
+            
+            sessionGoalView.topAnchor.constraint(equalTo: overallGoalView.bottomAnchor, constant: 24),
+            sessionGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            sessionGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            retryGoalView.topAnchor.constraint(equalTo: sessionGoalView.bottomAnchor, constant: 24),
+            retryGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            retryGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+        ])
+    }
+    
+    @objc private func didTapNotification() {
+        print("알림 버튼 눌림")
+    }
 }
 
 extension HomeViewController:  HomeDisplayLogic {
     
+}
+
+final class OverallGoalView: UIView {
+    private let iconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.backgroundColor = .init(hex: 0xD7DBE3)
+        imageView.layer.cornerRadius = 16
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "10km 마라톤 완주하자",
+            font: .pretendard(size: 18, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x232529)
+        )
+        return label
+    }()
+    
+    private let editButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setAttributedTitle(.withLetterSpacing(
+            text: "수정",
+            font: .pretendard(size: 14, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x585D64)
+        ), for: .normal)
+        return button
+    }()
+    
+    private let distanceTitleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "목표 거리",
+            font: .pretendard(size: 12, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x82878F)
+        )
+        return label
+    }()
+    
+    private let distanceValueLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "10.00 km",
+            font: .pretendard(size: 28, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x3B3E43)
+        )
+        return label
+    }()
+    
+    private let timeTitleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "목표 시간",
+            font: .pretendard(size: 12, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x82878F)
+        )
+        return label
+    }()
+    
+    private let timeValueLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "1:00:00",
+            font: .pretendard(size: 28, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x3B3E43)
+        )
+        return label
+    }()
+    
+    private let currentLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "9회차",
+            font: .pretendard(size: 16, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x3E4FFF)
+        )
+        return label
+    }()
+    
+    private let totalLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "/ 총 12회",
+            font: .pretendard(size: 12, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x82878F)
+        )
+        return label
+    }()
+    
+    private lazy var progressStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [currentLabel, totalLabel])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        return stack
+    }()
+    
+    private let progressView: UIProgressView = {
+        let progress = UIProgressView(progressViewStyle: .default)
+        progress.trackTintColor = .init(hex: 0xD7DBE3)
+        progress.progressTintColor = .init(hex: 0x3E4FFF)
+        progress.setProgress(0.75, animated: false)
+        progress.layer.cornerRadius = 5
+        progress.clipsToBounds = true
+        return progress
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    private func setupView() {
+        backgroundColor = .init(hex: 0xFFFFFF)
+
+        addSubview(iconImageView)
+        addSubview(titleLabel)
+        addSubview(editButton)
+        addSubview(distanceTitleLabel)
+        addSubview(distanceValueLabel)
+        addSubview(timeTitleLabel)
+        addSubview(timeValueLabel)
+        addSubview(progressStack)
+        addSubview(progressView)
+
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        editButton.translatesAutoresizingMaskIntoConstraints = false
+        distanceTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        distanceValueLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeValueLabel.translatesAutoresizingMaskIntoConstraints = false
+        progressStack.translatesAutoresizingMaskIntoConstraints = false
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 32),
+            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            iconImageView.widthAnchor.constraint(equalToConstant: 32),
+            iconImageView.heightAnchor.constraint(equalToConstant: 32),
+
+            titleLabel.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
+
+            editButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            editButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+
+            distanceTitleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
+            distanceTitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+
+            distanceValueLabel.topAnchor.constraint(equalTo: distanceTitleLabel.bottomAnchor, constant: 2),
+            distanceValueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+
+            timeTitleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
+            timeTitleLabel.leadingAnchor.constraint(equalTo: distanceValueLabel.trailingAnchor, constant: 40),
+
+            timeValueLabel.topAnchor.constraint(equalTo: timeTitleLabel.bottomAnchor, constant: 2),
+            timeValueLabel.leadingAnchor.constraint(equalTo: timeTitleLabel.leadingAnchor),
+
+            progressStack.topAnchor.constraint(equalTo: distanceValueLabel.bottomAnchor, constant: 16),
+            progressStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            progressStack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -20),
+
+            progressView.topAnchor.constraint(equalTo: progressStack.bottomAnchor, constant: 6),
+            progressView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            progressView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            progressView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -32),
+            progressView.heightAnchor.constraint(equalToConstant: 10)
+        ])
+    }}
+
+final class SessionGoalView: UIView {
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "12회차 목표",
+            font: .pretendard(size: 18, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x232529)
+        )
+        return label
+    }()
+    
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "벌써 절반이상 왔어요! 힘차게 달려볼까요?",
+            font: .pretendard(size: 14, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x585D64)
+        )
+        label.numberOfLines = 0
+        return label
+    }()
+    
+    private let distanceMetric = MetricStackView(icon: "mappin.and.ellipse", value: "5km", title: "목표 거리")
+    private let timeMetric = MetricStackView(icon: "clock", value: "1:00:00", title: "목표 시간")
+    private let paceMetric = MetricStackView(icon: "figure.run", value: "6'00\"", title: "권장 페이스")
+    
+    private lazy var metricsStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [distanceMetric, timeMetric, paceMetric])
+        stack.axis = .horizontal
+        stack.distribution = .fillEqually
+        stack.alignment = .top
+        stack.spacing = 8
+        return stack
+    }()
+    
+    private let startButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setAttributedTitle(.withLetterSpacing(
+            text: "러닝 시작",
+            font: .preferredFont(forTextStyle: .headline),
+            px: -0.2,
+            color: .white
+        ), for: .normal)
+        button.backgroundColor = .init(hex: 0x3E4FFF)
+        button.layer.cornerRadius = 12
+        return button
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    private func setupView() {
+        backgroundColor = .init(hex: 0xFFFFFF)
+        layer.cornerRadius = 20
+        
+        [titleLabel, subtitleLabel, metricsStack, startButton].forEach {
+            addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
+            subtitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            subtitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            
+            metricsStack.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
+            metricsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            metricsStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            
+            startButton.topAnchor.constraint(equalTo: metricsStack.bottomAnchor, constant: 24),
+            startButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            startButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            startButton.heightAnchor.constraint(equalToConstant: 56),
+            startButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
+        ])
+    }
+}
+
+final class MetricStackView: UIStackView {
+    init(icon: String, value: String, title: String) {
+        super.init(frame: .zero)
+        axis = .vertical
+        alignment = .center
+        spacing = 4
+        
+        let imageView = UIImageView(image: UIImage(systemName: icon))
+        imageView.tintColor = .init(hex: 0x9FA3A9)
+        
+        let valueLabel = UILabel()
+        valueLabel.attributedText = .withLetterSpacing(
+            text: value,
+            font: .preferredFont(forTextStyle: .body),
+            px: -0.2,
+        )
+        
+        let titleLabel = UILabel()
+        titleLabel.attributedText = .withLetterSpacing(
+            text: title,
+            font: .pretendard(size: 14, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x82878F)
+        )
+        
+        [imageView, valueLabel, titleLabel].forEach { addArrangedSubview($0) }
+    }
+    
+    @available(*, unavailable)
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+final class RetryGoalView: UIView {
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "한 번 더 연습이 필요하다면",
+            font: .pretendard(size: 14, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x585D64)
+        )
+        return label
+    }()
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.attributedText = .withLetterSpacing(
+            text: "이전 목표로 다시 달리기",
+            font: .pretendard(size: 18, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x232529)
+        )
+        return label
+    }()
+    
+    private let playButton: UIButton = {
+        let button = UIButton(type: .system)
+        let image = UIImage(systemName: "play.fill")
+        button.setImage(image, for: .normal)
+        button.tintColor = UIColor(hex: 0xFFFFFF)
+        button.backgroundColor = UIColor(hex: 0x494D54)
+        button.layer.cornerRadius = 16
+        button.clipsToBounds = true
+        return button
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    private func setupView() {
+        backgroundColor = .init(hex: 0xFFFFFF)
+        layer.cornerRadius = 20
+        
+        [subtitleLabel, titleLabel, playButton].forEach {
+            addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        NSLayoutConstraint.activate([
+            subtitleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            subtitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            
+            titleLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 2),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
+            
+            playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            playButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            playButton.widthAnchor.constraint(equalToConstant: 32),
+            playButton.heightAnchor.constraint(equalToConstant: 32)
+        ])
+    }
 }
