@@ -13,14 +13,47 @@
 import UIKit
 
 enum Home {
-    // MARK: Use cases
-    
-    enum Something {
-        struct Request {
-        }
-        struct Response {
-        }
-        struct ViewModel {
-        }
+  
+  // MARK: - Use cases
+  
+  enum LoadOverallGoal {
+    struct Request { }
+    struct Response {
+      let overallGoal: OverallGoal
     }
+    struct ViewModel {
+      struct DisplayedGoal {
+        let iconName: String
+        let title: String
+        let distance: String
+        let time: String
+        let currentSession: String
+        let totalSession: String
+        let progress: Float
+      }
+      let displayedGoal: DisplayedGoal
+    }
+  }
+  
+  enum LoadSessionGoal {
+    struct Request { }
+    struct Response {
+      let sessionGoal: SessionGoal
+    }
+    struct ViewModel {
+      struct DisplayedSessionGoal {
+        let title: String
+        let subtitle: String
+        let metrics: [DisplayedMetric]
+      }
+      struct DisplayedMetric {
+        let icon: String
+        let title: String
+        let value: String
+      }
+      let displayedSessionGoal: DisplayedSessionGoal
+    }
+  }
 }
+
+

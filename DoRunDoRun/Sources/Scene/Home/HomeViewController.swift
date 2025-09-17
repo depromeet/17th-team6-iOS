@@ -13,7 +13,8 @@
 import UIKit
 
 protocol HomeDisplayLogic: AnyObject {
-    
+    func displayOverallGoal(viewModel: Home.LoadOverallGoal.ViewModel)
+    func displaySessionGoal(viewModel: Home.LoadSessionGoal.ViewModel)
 }
 
 final class HomeViewController: UIViewController {
@@ -44,6 +45,8 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupView()
+        
+        fetchGoalData()
     }
     
     // MARK: Setup
@@ -91,14 +94,11 @@ final class HomeViewController: UIViewController {
     private func setupView() {
         view.backgroundColor = .init(hex: 0xF0F3F8)
         
-        view.addSubview(overallGoalView)
-        view.addSubview(sessionGoalView)
-        view.addSubview(retryGoalView)
-        
-        overallGoalView.translatesAutoresizingMaskIntoConstraints = false
-        sessionGoalView.translatesAutoresizingMaskIntoConstraints = false
-        retryGoalView.translatesAutoresizingMaskIntoConstraints = false
-        
+        [overallGoalView, sessionGoalView, retryGoalView].forEach {
+            view.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
         NSLayoutConstraint.activate([
             overallGoalView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             overallGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -114,16 +114,34 @@ final class HomeViewController: UIViewController {
         ])
     }
     
+    // MARK: Actions
+    
+    private func fetchGoalData() {
+        interactor?.loadOverallGoal(request: .init())
+        interactor?.loadSessionGoal(request: .init())
+    }
+    
     @objc private func didTapNotification() {
         print("알림 버튼 눌림")
     }
 }
 
-extension HomeViewController:  HomeDisplayLogic {
+extension HomeViewController: HomeDisplayLogic {
+    func displayOverallGoal(viewModel: Home.LoadOverallGoal.ViewModel) {
+        overallGoalView.configure(with: viewModel.displayedGoal)
+    }
     
+    func displaySessionGoal(viewModel: Home.LoadSessionGoal.ViewModel) {
+        sessionGoalView.configure(with: viewModel.displayedSessionGoal)
+    }
 }
 
+// MARK: - OverallGaol
+
 final class OverallGoalView: UIView {
+    
+    // MARK: UI
+    
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .init(hex: 0xD7DBE3)
@@ -132,16 +150,7 @@ final class OverallGoalView: UIView {
         return imageView
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "10km 마라톤 완주하자",
-            font: .pretendard(size: 18, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x232529)
-        )
-        return label
-    }()
+    private let titleLabel = UILabel()
     
     private let editButton: UIButton = {
         let button = UIButton(type: .system)
@@ -165,16 +174,7 @@ final class OverallGoalView: UIView {
         return label
     }()
     
-    private let distanceValueLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "10.00 km",
-            font: .pretendard(size: 28, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x3B3E43)
-        )
-        return label
-    }()
+    private let distanceValueLabel = UILabel()
     
     private let timeTitleLabel: UILabel = {
         let label = UILabel()
@@ -187,38 +187,11 @@ final class OverallGoalView: UIView {
         return label
     }()
     
-    private let timeValueLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "1:00:00",
-            font: .pretendard(size: 28, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x3B3E43)
-        )
-        return label
-    }()
+    private let timeValueLabel = UILabel()
     
-    private let currentLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "9회차",
-            font: .pretendard(size: 16, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x3E4FFF)
-        )
-        return label
-    }()
+    private let currentLabel = UILabel()
     
-    private let totalLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "/ 총 12회",
-            font: .pretendard(size: 12, weight: .regular),
-            px: -0.2,
-            color: .init(hex: 0x82878F)
-        )
-        return label
-    }()
+    private let totalLabel = UILabel()
     
     private lazy var progressStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [currentLabel, totalLabel])
@@ -231,11 +204,12 @@ final class OverallGoalView: UIView {
         let progress = UIProgressView(progressViewStyle: .default)
         progress.trackTintColor = .init(hex: 0xD7DBE3)
         progress.progressTintColor = .init(hex: 0x3E4FFF)
-        progress.setProgress(0.75, animated: false)
         progress.layer.cornerRadius = 5
         progress.clipsToBounds = true
         return progress
     }()
+    
+    // MARK: Object lifecycle
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -245,28 +219,15 @@ final class OverallGoalView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    // MARK: Setup
+    
     private func setupView() {
         backgroundColor = .init(hex: 0xFFFFFF)
 
-        addSubview(iconImageView)
-        addSubview(titleLabel)
-        addSubview(editButton)
-        addSubview(distanceTitleLabel)
-        addSubview(distanceValueLabel)
-        addSubview(timeTitleLabel)
-        addSubview(timeValueLabel)
-        addSubview(progressStack)
-        addSubview(progressView)
-
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        editButton.translatesAutoresizingMaskIntoConstraints = false
-        distanceTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        distanceValueLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeValueLabel.translatesAutoresizingMaskIntoConstraints = false
-        progressStack.translatesAutoresizingMaskIntoConstraints = false
-        progressView.translatesAutoresizingMaskIntoConstraints = false
+        [iconImageView, titleLabel, editButton, distanceTitleLabel, distanceValueLabel, timeTitleLabel, timeValueLabel, progressStack, progressView].forEach {
+            addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
 
         NSLayoutConstraint.activate([
             iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 24),
@@ -302,57 +263,73 @@ final class OverallGoalView: UIView {
             progressView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24),
             progressView.heightAnchor.constraint(equalToConstant: 10)
         ])
-    }}
-
-final class SessionGoalView: UIView {
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "12회차 목표",
+    }
+    
+    // MARK: Configure
+    
+    func configure(with data: Home.LoadOverallGoal.ViewModel.DisplayedGoal) {
+        // TODO: 디자인 확정 후 URL 기반 이미지로 교체 (Kingfisher 등 라이브러리 활용 예정)
+        iconImageView.image = UIImage(systemName: data.iconName)
+        
+        titleLabel.attributedText = .withLetterSpacing(
+            text: data.title,
             font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
-        return label
-    }()
-    
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "벌써 절반이상 왔어요! 힘차게 달려볼까요?",
-            font: .pretendard(size: 14, weight: .regular),
+        
+        distanceValueLabel.attributedText = .withLetterSpacing(
+            text: data.distance,
+            font: .pretendard(size: 28, weight: .bold),
             px: -0.2,
-            color: .init(hex: 0x585D64)
+            color: .init(hex: 0x3B3E43)
         )
-        label.numberOfLines = 0
-        return label
-    }()
+        
+        timeValueLabel.attributedText = .withLetterSpacing(
+            text: data.time,
+            font: .pretendard(size: 28, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x3B3E43)
+        )
+        
+        currentLabel.attributedText = .withLetterSpacing(
+            text: data.currentSession,
+            font: .pretendard(size: 16, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x3E4FFF)
+        )
+        totalLabel.attributedText = .withLetterSpacing(
+            text: data.totalSession,
+            font: .pretendard(size: 12, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x82878F)
+        )
+        
+        // TODO: 애니메이션 관련 디자이너와 상의 필요
+        progressView.setProgress(data.progress, animated: false)
+    }
+}
+
+// MARK: - SessionGoal
+
+final class SessionGoalView: UIView {
     
-    private let distanceMetric = MetricStackView(icon: "mappin.and.ellipse", value: "5km", title: "목표 거리")
-    private let timeMetric = MetricStackView(icon: "clock", value: "1:00:00", title: "목표 시간")
-    private let paceMetric = MetricStackView(icon: "figure.run", value: "6'00\"", title: "권장 페이스")
+    // MARK: UI
     
-    private lazy var metricsStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [distanceMetric, timeMetric, paceMetric])
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.alignment = .top
-        stack.spacing = 8
-        return stack
-    }()
+    private let titleLabel = UILabel()
+    
+    private let subtitleLabel = UILabel()
+    
+    private let metricView = MetricView()
     
     private let startButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setAttributedTitle(.withLetterSpacing(
-            text: "러닝 시작",
-            font: .preferredFont(forTextStyle: .headline),
-            px: -0.2,
-            color: .white
-        ), for: .normal)
-        button.backgroundColor = .init(hex: 0x3E4FFF)
         button.layer.cornerRadius = 12
+        button.backgroundColor = .init(hex: 0x3E4FFF)
         return button
     }()
+    
+    // MARK: Object lifecycle
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -362,11 +339,13 @@ final class SessionGoalView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    // MARK: Setup
+    
     private func setupView() {
         backgroundColor = .init(hex: 0xFFFFFF)
         layer.cornerRadius = 20
         
-        [titleLabel, subtitleLabel, metricsStack, startButton].forEach {
+        [titleLabel, subtitleLabel, metricView, startButton].forEach {
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -380,52 +359,194 @@ final class SessionGoalView: UIView {
             subtitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             subtitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             
-            metricsStack.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
-            metricsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            metricsStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            metricView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
+            metricView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            metricView.trailingAnchor.constraint(equalTo: trailingAnchor),
             
-            startButton.topAnchor.constraint(equalTo: metricsStack.bottomAnchor, constant: 24),
+            startButton.topAnchor.constraint(equalTo: metricView.bottomAnchor, constant: 24),
             startButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             startButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             startButton.heightAnchor.constraint(equalToConstant: 56),
             startButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
         ])
     }
-}
-
-final class MetricStackView: UIStackView {
-    init(icon: String, value: String, title: String) {
-        super.init(frame: .zero)
-        axis = .vertical
-        alignment = .center
-        spacing = 4
-        
-        let imageView = UIImageView(image: UIImage(systemName: icon))
-        imageView.tintColor = .init(hex: 0x9FA3A9)
-        
-        let valueLabel = UILabel()
-        valueLabel.attributedText = .withLetterSpacing(
-            text: value,
-            font: .preferredFont(forTextStyle: .body),
+    
+    // MARK: Configure
+    
+    func configure(with data: Home.LoadSessionGoal.ViewModel.DisplayedSessionGoal) {
+        titleLabel.attributedText = .withLetterSpacing(
+            text: data.title,
+            font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
+            color: .init(hex: 0x232529)
         )
         
-        let titleLabel = UILabel()
-        titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+        subtitleLabel.attributedText = .withLetterSpacing(
+            text: data.subtitle,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
-            color: .init(hex: 0x82878F)
+            color: .init(hex: 0x585D64)
         )
         
-        [imageView, valueLabel, titleLabel].forEach { addArrangedSubview($0) }
+        startButton.setAttributedTitle(.withLetterSpacing(
+            text: "러닝하러 가기",
+            font: .pretendard(size: 16, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0xFFFFFF)
+        ), for: .normal)
+        
+        metricView.configure(with: data.metrics)
+    }
+}
+
+
+final class MetricView: UIView {
+    
+    // MARK: UI
+    
+    private let metricsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.spacing = 0
+        stackView.distribution = .fill
+        return stackView
+    }()
+    
+    // MARK: Properties
+
+    private var metricViews: [MetricItemView] = []
+
+    // MARK: Object lifecycle
+
+    override init(frame: CGRect) {
+        super.init(frame: .zero)
+        setupView()
     }
     
     @available(*, unavailable)
-    required init(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    // MARK: Setup
+    
+    private func setupView() {
+        addSubview(metricsStackView)
+        metricsStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            metricsStackView.topAnchor.constraint(equalTo: topAnchor),
+            metricsStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            metricsStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            metricsStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+    
+    // MARK: Configure
+    
+    func configure(with metrics: [Home.LoadSessionGoal.ViewModel.DisplayedMetric]) {
+        metricsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metricViews.removeAll()
+        
+        var firstMetricView: MetricItemView?
+        for (index, data) in metrics.enumerated() {
+            let metricView = MetricItemView()
+            metricView.configure(with: data)
+            metricsStackView.addArrangedSubview(metricView)
+            metricViews.append(metricView)
+            
+            if let first = firstMetricView {
+                metricView.widthAnchor.constraint(equalTo: first.widthAnchor).isActive = true
+            } else {
+                firstMetricView = metricView
+            }
+            
+            if index < metrics.count - 1 {
+                let separator = makeSeparator()
+                metricsStackView.addArrangedSubview(separator)
+                NSLayoutConstraint.activate([
+                    separator.widthAnchor.constraint(equalToConstant: 1),
+                    separator.heightAnchor.constraint(equalToConstant: 40)
+                ])
+            }
+        }
+    }
+    
+    private func makeSeparator() -> UIView {
+        let separator = UIView()
+        separator.backgroundColor = .init(hex: 0xDFE4EC)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        return separator
     }
 }
+
+
+final class MetricItemView: UIView {
+    
+    // MARK: UI
+    
+    private let imageView: UIImageView = {
+       let imageView = UIImageView()
+        imageView.tintColor = .init(hex: 0xB5B9C0)
+        return imageView
+    }()
+    
+    private let valueLabel = UILabel()
+    
+    private let titleLabel = UILabel()
+    
+    // MARK: Object lifecycle
+
+    override init(frame: CGRect) {
+        super.init(frame: .zero)
+        setupView()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    // MARK: Setup
+
+    private func setupView() {
+        [imageView, valueLabel, titleLabel].forEach {
+            addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            valueLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
+            valueLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 2),
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+    
+    // MARK: Configure
+    
+    func configure(with data: Home.LoadSessionGoal.ViewModel.DisplayedMetric) {
+        imageView.image = UIImage(systemName: data.icon)
+        
+        valueLabel.attributedText = .withLetterSpacing(
+            text: data.value,
+            font: .pretendard(size: 20, weight: .bold),
+            px: -0.2,
+            color: .init(hex: 0x232529)
+        )
+        
+        titleLabel.attributedText = .withLetterSpacing(
+            text: data.title,
+            font: .pretendard(size: 14, weight: .regular),
+            px: -0.2,
+            color: .init(hex: 0x585D64)
+        )
+    }
+}
+
+// MARK: - RetryGoal
 
 final class RetryGoalView: UIView {
     private let subtitleLabel: UILabel = {
@@ -454,8 +575,8 @@ final class RetryGoalView: UIView {
         let button = UIButton(type: .system)
         let image = UIImage(systemName: "play.fill")
         button.setImage(image, for: .normal)
-        button.tintColor = UIColor(hex: 0xFFFFFF)
-        button.backgroundColor = UIColor(hex: 0x494D54)
+        button.tintColor = .init(hex: 0xEDF2FF)
+        button.backgroundColor = .init(hex: 0x3E4FFF)
         button.layer.cornerRadius = 16
         button.clipsToBounds = true
         return button

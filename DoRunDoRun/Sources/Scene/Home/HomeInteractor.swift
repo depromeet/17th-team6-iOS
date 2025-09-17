@@ -13,20 +13,79 @@
 import UIKit
 
 protocol HomeBusinessLogic {
+    func loadOverallGoal(request: Home.LoadOverallGoal.Request)
+    func loadSessionGoal(request: Home.LoadSessionGoal.Request)
 }
 
 protocol HomeDataStore {
-    //var name: String { get set }
+    // 나중에 서버 통신되면 여기에 데이터 보관
 }
 
 final class HomeInteractor: HomeDataStore {
     var presenter: HomePresentationLogic?
-    //var name: String = ""
-    
-    // MARK: Do something
-    
 }
 
 extension HomeInteractor: HomeBusinessLogic {
+    func loadOverallGoal(request: Home.LoadOverallGoal.Request) {
+        // 서버 없으니 Mock 데이터 생성
+        let mockOverallGoal = OverallGoal(
+            iconName: "flag",
+            title: "10km 마라톤 완주하자",
+            distance: 10.0,
+            time: 3600,
+            currentSession: 9,
+            totalSession: 12,
+            progress: 0.75
+        )
+        let response = Home.LoadOverallGoal.Response(overallGoal: mockOverallGoal)
+        presenter?.presentOverallGoal(response: response)
+    }
     
+    func loadSessionGoal(request: Home.LoadSessionGoal.Request) {
+        // 서버 없으니 Mock 데이터 생성
+        let mockSessionGoal = SessionGoal(
+            title: "12회차 목표",
+            subtitle: "벌써 절반이상 왔어요! 힘차게 달려볼까요?",
+            metrics: [
+                Metric(icon: "mappin.and.ellipse", title: "목표 거리", value: "5km"),
+                Metric(icon: "clock", title: "목표 시간", value: "1:00:00"),
+                Metric(icon: "figure.run", title: "권장 페이스", value: "6'00\"")
+            ]
+        )
+        let response = Home.LoadSessionGoal.Response(sessionGoal: mockSessionGoal)
+        presenter?.presentSessionGoal(response: response)
+    }
+}
+
+// MARK: - Domain Entities
+//
+// 현재는 HomeInteractor.swift 안에 임시로 정의해둔 Domain Entity 모델들입니다.
+// 이유: 서버 연동 전, 빠른 Mock 데이터 생성을 위해 사용하기 위함
+// 또한, 협업 시 모델 전용 파일(Model/Entity.swift 등)이 아직 존재하지 않아
+// 파일 충돌(conflict) 방지를 위해 임시 위치로 관리 중입니다.
+//
+// 추후 서버 연동 및 Repository/Worker 계층이 붙을 때,
+// 별도의 모델 파일(예: Domain/Entities/Goal.swift)로 이동할 예정입니다.
+//
+
+struct OverallGoal {
+    let iconName: String
+    let title: String
+    let distance: Double
+    let time: TimeInterval
+    let currentSession: Int
+    let totalSession: Int
+    let progress: Float
+}
+
+struct SessionGoal {
+    let title: String
+    let subtitle: String
+    let metrics: [Metric]
+}
+
+struct Metric {
+    let icon: String
+    let title: String
+    let value: String
 }

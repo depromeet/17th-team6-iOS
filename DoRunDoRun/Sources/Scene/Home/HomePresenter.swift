@@ -13,13 +13,52 @@
 import UIKit
 
 protocol HomePresentationLogic {
-    
+    func presentOverallGoal(response: Home.LoadOverallGoal.Response)
+    func presentSessionGoal(response: Home.LoadSessionGoal.Response)
 }
 
 final class HomePresenter {
     weak var viewController: HomeDisplayLogic?
+    
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = .pad
+        return formatter.string(from: seconds) ?? "00:00:00"
+    }
 }
 
 extension HomePresenter: HomePresentationLogic {
+    func presentOverallGoal(response: Home.LoadOverallGoal.Response) {
+        let overallGoal = response.overallGoal
+        let displayed = Home.LoadOverallGoal.ViewModel.DisplayedGoal(
+            iconName: overallGoal.iconName,
+            title: overallGoal.title,
+            distance: String(format: "%.2f km", overallGoal.distance),
+            time: formatTime(overallGoal.time),
+            currentSession: "\(overallGoal.currentSession)회차",
+            totalSession: "/ 총 \(overallGoal.totalSession)회",
+            progress: overallGoal.progress
+        )
+        let viewModel = Home.LoadOverallGoal.ViewModel(displayedGoal: displayed)
+        viewController?.displayOverallGoal(viewModel: viewModel)
+    }
     
+    func presentSessionGoal(response: Home.LoadSessionGoal.Response) {
+        let sessionGoal = response.sessionGoal
+        let displayed = Home.LoadSessionGoal.ViewModel.DisplayedSessionGoal(
+            title: sessionGoal.title,
+            subtitle: sessionGoal.subtitle,
+            metrics: sessionGoal.metrics.map {
+                Home.LoadSessionGoal.ViewModel.DisplayedMetric(
+                    icon: $0.icon,
+                    title: $0.title,
+                    value: $0.value
+                )
+            }
+        )
+        let viewModel = Home.LoadSessionGoal.ViewModel(displayedSessionGoal: displayed)
+        viewController?.displaySessionGoal(viewModel: viewModel)
+    }
 }
