@@ -152,17 +152,30 @@ final class OverallGoalView: UIView {
     
     private let titleLabel = UILabel()
     
-    private let editButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setAttributedTitle(.withLetterSpacing(
-            text: "수정",
+    //TODO: 버튼 이미지 사이즈 관련 디자이너와 상의 필요
+    private let viewAllButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        let attributedTitle = NSAttributedString.withLetterSpacing(
+            text: "전체보기",
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)
-        ), for: .normal)
+        )
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let image = UIImage(systemName: "chevron.forward", withConfiguration: imageConfig)
+        
+        config.attributedTitle = AttributedString(attributedTitle)
+        config.contentInsets = .zero
+        config.image = image
+        config.imagePadding = 2
+        config.imagePlacement = .trailing
+        config.baseForegroundColor = .init(hex: 0x585D64)
+        config.baseBackgroundColor = .red
+        
+        let button = UIButton(configuration: config)
         return button
     }()
-    
+
     private let distanceTitleLabel: UILabel = {
         let label = UILabel()
         label.attributedText = .withLetterSpacing(
@@ -224,7 +237,7 @@ final class OverallGoalView: UIView {
     private func setupView() {
         backgroundColor = .init(hex: 0xFFFFFF)
 
-        [iconImageView, titleLabel, editButton, distanceTitleLabel, distanceValueLabel, timeTitleLabel, timeValueLabel, progressStack, progressView].forEach {
+        [iconImageView, titleLabel, viewAllButton, distanceTitleLabel, distanceValueLabel, timeTitleLabel, timeValueLabel, progressStack, progressView].forEach {
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -238,8 +251,8 @@ final class OverallGoalView: UIView {
             titleLabel.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
 
-            editButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            editButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            viewAllButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            viewAllButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
 
             distanceTitleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
             distanceTitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
@@ -323,9 +336,19 @@ final class SessionGoalView: UIView {
     private let metricView = MetricView()
     
     private let startButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.layer.cornerRadius = 12
-        button.backgroundColor = .init(hex: 0x3E4FFF)
+        var config = UIButton.Configuration.filled()
+        let attributedTitle = NSAttributedString.withLetterSpacing(
+            text: "러닝하러 가기",
+            font: .pretendard(size: 16, weight: .bold),
+            px: -0.2,
+            color: UIColor(hex: 0xFFFFFF)
+        )
+        
+        config.attributedTitle = AttributedString(attributedTitle)
+        config.background.cornerRadius = 12
+        config.baseBackgroundColor = UIColor(hex: 0x3E4FFF)
+        
+        let button = UIButton(configuration: config)
         return button
     }()
     
@@ -387,14 +410,7 @@ final class SessionGoalView: UIView {
             px: -0.2,
             color: .init(hex: 0x585D64)
         )
-        
-        startButton.setAttributedTitle(.withLetterSpacing(
-            text: "러닝하러 가기",
-            font: .pretendard(size: 16, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0xFFFFFF)
-        ), for: .normal)
-        
+
         metricView.configure(with: data.metrics)
     }
 }
@@ -571,14 +587,19 @@ final class RetryGoalView: UIView {
         return label
     }()
     
+    //TODO: 버튼 이미지 사이즈 관련 디자이너와 상의 필요
     private let playButton: UIButton = {
-        let button = UIButton(type: .system)
-        let image = UIImage(systemName: "play.fill")
-        button.setImage(image, for: .normal)
-        button.tintColor = .init(hex: 0xEDF2FF)
-        button.backgroundColor = .init(hex: 0x3E4FFF)
-        button.layer.cornerRadius = 16
-        button.clipsToBounds = true
+        var config = UIButton.Configuration.filled()
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
+        let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)
+        
+        config.image = image
+        config.imagePadding = 0
+        config.baseForegroundColor = UIColor(hex: 0x3E4FFF)
+        config.baseBackgroundColor = UIColor(hex: 0xEDF2FF)
+        config.background.cornerRadius = 16
+        
+        let button = UIButton(configuration: config)
         return button
     }()
 
