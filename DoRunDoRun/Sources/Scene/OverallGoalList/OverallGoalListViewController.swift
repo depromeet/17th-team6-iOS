@@ -20,6 +20,8 @@ final class OverallGoalListViewController: UIViewController {
     private let headerView = GoalHeaderView()
     private let tableView = UITableView(frame: .zero, style: .plain)
     
+    // MARK: Properties
+    
     private var expandedIndexPath: IndexPath?
     
     // MARK: Object lifecycle
@@ -110,31 +112,41 @@ extension OverallGoalListViewController: UITableViewDataSource, UITableViewDeleg
             return UITableViewCell()
         }
         cell.selectionStyle = .none
+        
         // FIXME: 이후 Display에서 처리할 예정
+        let isChecked = (indexPath.row <= 3)
         cell.configure(
             round: "\(indexPath.row + 1)회차",
             distance: "1km",
             time: "1:12:03",
             pace: "6'74''",
-            isChecked: false
+            isChecked: isChecked
         )
-        cell.showRetryButton(indexPath == expandedIndexPath)
+        
+        let shouldShowRetry = (indexPath == expandedIndexPath) && isChecked
+        cell.showRetryButton(shouldShowRetry)
+        
         return cell
     }
 
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let previousExpandedIndexPath = expandedIndexPath
-        expandedIndexPath = (expandedIndexPath == indexPath) ? nil : indexPath
+        let isChecked = (indexPath.row <= 3)
         
-        tableView.beginUpdates()
-        if let previous = previousExpandedIndexPath {
-            tableView.reloadRows(at: [previous], with: .automatic)
+        if isChecked {
+            let previousExpandedIndexPath = expandedIndexPath
+            expandedIndexPath = (expandedIndexPath == indexPath) ? nil : indexPath
+            
+            tableView.beginUpdates()
+            if let previous = previousExpandedIndexPath {
+                tableView.reloadRows(at: [previous], with: .automatic)
+            }
+            if let current = expandedIndexPath {
+                tableView.reloadRows(at: [current], with: .automatic)
+            }
+            tableView.endUpdates()
+        } else {
+            showToast(message: "이전 회차를 끝내야 도전할 수 있어요.", style: .error)
         }
-        if let current = expandedIndexPath {
-            tableView.reloadRows(at: [current], with: .automatic)
-        }
-        tableView.endUpdates()
     }
 }
 
@@ -216,7 +228,6 @@ final class GoalHeaderView: UIView {
         }
         
         NSLayoutConstraint.activate([
-            // 전체 패딩
             iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 20),
             iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             iconImageView.widthAnchor.constraint(equalToConstant: 32),
@@ -273,6 +284,7 @@ final class GoalHeaderView: UIView {
     }
 }
 
+// MARK: - GoalSessionCell
 final class GoalSessionCell: UITableViewCell {
     static let identifier = String(describing: GoalSessionCell.self)
     
@@ -330,11 +342,15 @@ final class GoalSessionCell: UITableViewCell {
         return button
     }()
     
+    // MARK: Properties
+    
     // 텍스트 그룹 레이아웃 가이드
     private let textGroupGuide = UILayoutGuide()
-    private var retryButtonHeightConstraint: NSLayoutConstraint!
-    private var retryButtonTopConstraint: NSLayoutConstraint!
     
+    // Retry 버튼 상단/높이 여백 제약
+    private var retryButtonTopConstraint: NSLayoutConstraint!
+    private var retryButtonHeightConstraint: NSLayoutConstraint!
+
     
     // MARK: Object lifecyle
     
@@ -367,10 +383,12 @@ final class GoalSessionCell: UITableViewCell {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         
-        // 레이아웃 가이드 추가
+        // 텍스트 그룹 레이아웃 가이드 추가
         containerView.addLayoutGuide(textGroupGuide)
-        retryButtonHeightConstraint = retryButton.heightAnchor.constraint(equalToConstant: 0)
+        
+        // Retry 버튼 상단/높이 여백 제약 설정
         retryButtonTopConstraint = retryButton.topAnchor.constraint(greaterThanOrEqualTo: paceLabel.bottomAnchor, constant: 0)
+        retryButtonHeightConstraint = retryButton.heightAnchor.constraint(equalToConstant: 0)
         
         NSLayoutConstraint.activate([
             // 회차 라벨
@@ -462,6 +480,74 @@ final class GoalSessionCell: UITableViewCell {
     }
 }
 
+final class ToastView: UIView {
+    private let iconView = UIImageView()
+    private let messageLabel = UILabel()
+    
+    init(message: String, style: ToastStyle) {
+        super.init(frame: .zero)
+        setupView(message: message, style: style)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    private func setupView(message: String, style: ToastStyle) {
+        backgroundColor = style.backgroundColor
+        layer.cornerRadius = 12
+        clipsToBounds = true
+        
+        iconView.image = style.icon
+        iconView.tintColor = style.tintColor
+        iconView.contentMode = .scaleAspectFit
+        
+        messageLabel.attributedText = .withLetterSpacing(
+            text: message,
+            font: .pretendard(size: 16, weight: .medium),
+            px: -0.2,
+            color: .init(hex: 0xFFFFFF)
+        )
+        
+        [iconView, messageLabel].forEach {
+            addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        NSLayoutConstraint.activate([
+            iconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            iconView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 20),
+            iconView.heightAnchor.constraint(equalToConstant: 20),
+            
+            messageLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
+            messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            messageLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            messageLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+        ])
+    }
+}
+
+enum ToastStyle {
+    case error
+    
+    var icon: UIImage? {
+        switch self {
+        case .error: return UIImage(systemName: "exclamationmark.circle.fill")
+        }
+    }
+    
+    var tintColor: UIColor {
+        switch self {
+        case .error: return .init(hex: 0xFF443B)
+        }
+    }
+    
+    var backgroundColor: UIColor {
+        switch self {
+        case .error: return .init(hex: 0x232529, alpha: 0.6)
+        }
+    }
+}
 
 extension UIImage {
     func rotate(radians: CGFloat) -> UIImage {
@@ -511,5 +597,30 @@ extension UIButton.Configuration {
             config.baseBackgroundColor = UIColor(hex: 0xDFE4EC)
         }
         return config
+    }
+}
+
+extension UIViewController {
+    func showToast(message: String, style: ToastStyle = .error, delay: TimeInterval = 1.0) {
+        let toast = ToastView(message: message, style: style)
+        toast.alpha = 0
+        
+        view.addSubview(toast)
+        toast.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            toast.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            toast.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -32),
+            toast.heightAnchor.constraint(greaterThanOrEqualToConstant: 48)
+        ])
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            toast.alpha = 1
+        }) { _ in
+            UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut, animations: {
+                toast.alpha = 0
+            }, completion: { _ in
+                toast.removeFromSuperview()
+            })
+        }
     }
 }
