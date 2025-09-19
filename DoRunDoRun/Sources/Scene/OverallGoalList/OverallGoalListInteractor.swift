@@ -12,12 +12,13 @@ protocol OverallGoalListBusinessLogic {
 }
 
 protocol OverallGoalListDataStore {
+    var overallGoal: OverallGoal? { get set }
     var sessionGoals: [SessionGoal] { get set }
-
 }
 
 final class OverallGoalListInteractor: OverallGoalListDataStore {
     var presenter: OverallGoalListPresentationLogic?
+    var overallGoal: OverallGoal?
     var sessionGoals: [SessionGoal] = []
 }
 

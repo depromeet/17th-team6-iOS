@@ -45,6 +45,7 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupView()
+        setupActions()
         
         fetchGoalData()
     }
@@ -114,6 +115,10 @@ final class HomeViewController: UIViewController {
         ])
     }
     
+    private func setupActions() {
+        overallGoalView.viewAllButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
+    }
+    
     // MARK: Actions
     
     private func fetchGoalData() {
@@ -123,6 +128,10 @@ final class HomeViewController: UIViewController {
     
     @objc private func didTapNotification() {
         print("알림 버튼 눌림")
+    }
+    
+    @objc private func didTapOverallGoal() {
+        router?.routeToOverallGoalList()
     }
 }
 

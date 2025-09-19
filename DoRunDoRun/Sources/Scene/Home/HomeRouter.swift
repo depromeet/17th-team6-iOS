@@ -13,6 +13,7 @@
 import UIKit
 
 protocol HomeRoutingLogic {
+    func routeToOverallGoalList()
 }
 
 protocol HomeDataPassing {
@@ -24,33 +25,20 @@ final class HomeRouter: HomeRoutingLogic, HomeDataPassing {
     var dataStore: HomeDataStore?
     
     // MARK: Routing
-    
-    //func routeToSomewhere(segue: UIStoryboardSegue?)
-    //{
-    //  if let segue = segue {
-    //    let destinationVC = segue.destination as! SomewhereViewController
-    //    var destinationDS = destinationVC.router!.dataStore!
-    //    passDataToSomewhere(source: dataStore!, destination: &destinationDS)
-    //  } else {
-    //    let storyboard = UIStoryboard(name: "Main", bundle: nil)
-    //    let destinationVC = storyboard.instantiateViewController(withIdentifier: "SomewhereViewController") as! SomewhereViewController
-    //    var destinationDS = destinationVC.router!.dataStore!
-    //    passDataToSomewhere(source: dataStore!, destination: &destinationDS)
-    //    navigateToSomewhere(source: viewController!, destination: destinationVC)
-    //  }
-    //}
+    func routeToOverallGoalList() {
+        let destinationVC = OverallGoalListViewController()
+        var destinationDS = destinationVC.router!.dataStore!
+        passDataToOverallGoalList(source: dataStore!, destination: &destinationDS)
+        navigateToOverallGoalList(source: viewController!, destination: destinationVC)
+    }
     
     // MARK: Navigation
-    
-    //func navigateToSomewhere(source: HomeViewController, destination: SomewhereViewController)
-    //{
-    //  source.show(destination, sender: nil)
-    //}
+    private func navigateToOverallGoalList(source: HomeViewController, destination: OverallGoalListViewController) {
+        source.navigationController?.pushViewController(destination, animated: true)
+    }
     
     // MARK: Passing data
-    
-    //func passDataToSomewhere(source: HomeDataStore, destination: inout SomewhereDataStore)
-    //{
-    //  destination.name = source.name
-    //}
+    private func passDataToOverallGoalList(source: HomeDataStore, destination: inout OverallGoalListDataStore) {
+        destination.overallGoal = source.overallGoal
+    }
 }
