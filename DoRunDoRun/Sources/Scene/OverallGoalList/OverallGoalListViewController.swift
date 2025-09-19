@@ -8,7 +8,7 @@
 import UIKit
 
 protocol OverallGoalListDisplayLogic: AnyObject {
-    
+    func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel)
 }
 
 final class OverallGoalListViewController: UIViewController {
@@ -22,6 +22,7 @@ final class OverallGoalListViewController: UIViewController {
     
     // MARK: Properties
     
+    private var displayedSessionGoals: [OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal] = []
     private var expandedIndexPath: IndexPath?
     
     // MARK: Object lifecycle
@@ -41,6 +42,8 @@ final class OverallGoalListViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
+        
+        fetchGoalData()
         
         // FIXME: 이후 Display에서 처리할 예정
         headerView.configure(
@@ -99,12 +102,17 @@ final class OverallGoalListViewController: UIViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 80
     }
-
+    
+    // MARK: Action
+    
+    private func fetchGoalData() {
+        interactor?.loadSessionGoals(request: OverallGoalList.LoadSessionGoals.Request())
+    }
 }
 
 extension OverallGoalListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        10
+        return displayedSessionGoals.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -113,26 +121,19 @@ extension OverallGoalListViewController: UITableViewDataSource, UITableViewDeleg
         }
         cell.selectionStyle = .none
         
-        // FIXME: 이후 Display에서 처리할 예정
-        let isChecked = (indexPath.row <= 3)
-        cell.configure(
-            round: "\(indexPath.row + 1)회차",
-            distance: "1km",
-            time: "1:12:03",
-            pace: "6'74''",
-            isChecked: isChecked
-        )
+        let session = displayedSessionGoals[indexPath.row]
+        cell.configure(with: session)
         
-        let shouldShowRetry = (indexPath == expandedIndexPath) && isChecked
+        let shouldShowRetry = (indexPath == expandedIndexPath) && session.isCompleted
         cell.showRetryButton(shouldShowRetry)
         
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let isChecked = (indexPath.row <= 3)
+        let session = displayedSessionGoals[indexPath.row]
         
-        if isChecked {
+        if session.isCompleted {
             let previousExpandedIndexPath = expandedIndexPath
             expandedIndexPath = (expandedIndexPath == indexPath) ? nil : indexPath
             
@@ -151,7 +152,10 @@ extension OverallGoalListViewController: UITableViewDataSource, UITableViewDeleg
 }
 
 extension OverallGoalListViewController: OverallGoalListDisplayLogic {
-    
+    func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel) {
+        displayedSessionGoals = viewModel.displayedSessionGoals
+        tableView.reloadData()
+    }
 }
 
 // MARK: - GoalHeaderView
@@ -440,36 +444,36 @@ final class GoalSessionCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(round: String, distance: String, time: String, pace: String, isChecked: Bool) {
+    func configure(with viewModel: OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal) {
         roundLabel.attributedText = .withLetterSpacing(
-            text: round,
+            text: viewModel.round,
             font: .pretendard(size: 16, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         distanceLabel.attributedText = .withLetterSpacing(
-            text: distance,
+            text: viewModel.distance,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x82878F)
         )
         
         timeLabel.attributedText = .withLetterSpacing(
-            text: time,
+            text: viewModel.time,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         paceLabel.attributedText = .withLetterSpacing(
-            text: pace,
+            text: viewModel.pace,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
-        checkButton.configuration = .checkmark(isChecked: isChecked)
+        checkButton.configuration = .checkmark(isChecked: viewModel.isCompleted)
     }
     
     func showRetryButton(_ isVisible: Bool) {

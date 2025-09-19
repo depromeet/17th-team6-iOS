@@ -24,7 +24,7 @@ final class MainTabViewController: UITabBarController {
     
     private func createViewControllers() -> [UIViewController] {
         let homeVC = createNavigationController(
-            rootViewController: HomeViewController(),
+            rootViewController: OverallGoalListViewController(),
             title: "홈",
             image: UIImage(systemName: "house"),
             selectedImage: UIImage(systemName: "house.fill")
