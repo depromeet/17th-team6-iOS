@@ -48,15 +48,12 @@ extension HomePresenter: HomePresentationLogic {
     func presentSessionGoal(response: Home.LoadSessionGoal.Response) {
         let sessionGoal = response.sessionGoal
         let displayed = Home.LoadSessionGoal.ViewModel.DisplayedSessionGoal(
-            title: sessionGoal.title,
+            title: "\(sessionGoal.round)회차 목표",
             subtitle: sessionGoal.subtitle,
-            metrics: sessionGoal.metrics.map {
-                Home.LoadSessionGoal.ViewModel.DisplayedMetric(
-                    icon: $0.icon,
-                    title: $0.title,
-                    value: $0.value
-                )
-            }
+            distance: String(format: "%.1f km", sessionGoal.distance),
+            time: formatTime(sessionGoal.time),
+            pace: sessionGoal.pace,
+            isCompleted: sessionGoal.isCompleted
         )
         let viewModel = Home.LoadSessionGoal.ViewModel(displayedSessionGoal: displayed)
         viewController?.displaySessionGoal(viewModel: viewModel)

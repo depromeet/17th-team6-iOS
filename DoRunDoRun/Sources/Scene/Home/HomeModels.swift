@@ -41,17 +41,15 @@ enum Home {
       let sessionGoal: SessionGoal
     }
     struct ViewModel {
-      struct DisplayedSessionGoal {
-        let title: String
-        let subtitle: String
-        let metrics: [DisplayedMetric]
-      }
-      struct DisplayedMetric {
-        let icon: String
-        let title: String
-        let value: String
-      }
-      let displayedSessionGoal: DisplayedSessionGoal
+        struct DisplayedSessionGoal {
+          let title: String
+          let subtitle: String
+          let distance: String
+          let time: String
+          let pace: String
+          let isCompleted: Bool
+        }
+        let displayedSessionGoal: DisplayedSessionGoal
     }
   }
 }

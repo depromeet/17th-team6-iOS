@@ -95,7 +95,11 @@ final class SessionGoalView: UIView {
             color: .init(hex: 0x585D64)
         )
 
-        metricView.configure(with: data.metrics)
+        metricView.configure(metrics: [
+            ("mappin.and.ellipse", "목표 거리", data.distance),
+            ("clock", "권장 러닝 시간", data.time),
+            ("figure.run", "권장 페이스", data.pace)
+        ])
     }
 }
 
@@ -143,14 +147,14 @@ final class MetricView: UIView {
     
     // MARK: Configure
     
-    func configure(with metrics: [Home.LoadSessionGoal.ViewModel.DisplayedMetric]) {
+    func configure(metrics: [(icon: String, title: String, value: String)]) {
         metricsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         metricViews.removeAll()
         
         var firstMetricView: MetricItemView?
-        for (index, data) in metrics.enumerated() {
+        for (index, metric) in metrics.enumerated() {
             let metricView = MetricItemView()
-            metricView.configure(with: data)
+            metricView.configure(icon: metric.icon, title: metric.title, value: metric.value)
             metricsStackView.addArrangedSubview(metricView)
             metricViews.append(metricView)
             
@@ -227,18 +231,18 @@ final class MetricItemView: UIView {
     
     // MARK: Configure
     
-    func configure(with data: Home.LoadSessionGoal.ViewModel.DisplayedMetric) {
-        imageView.image = UIImage(systemName: data.icon)
+    func configure(icon: String, title: String, value: String) {
+        imageView.image = UIImage(systemName: icon)
         
         valueLabel.attributedText = .withLetterSpacing(
-            text: data.value,
+            text: value,
             font: .pretendard(size: 20, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         titleLabel.attributedText = .withLetterSpacing(
-            text: data.title,
+            text: title,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)

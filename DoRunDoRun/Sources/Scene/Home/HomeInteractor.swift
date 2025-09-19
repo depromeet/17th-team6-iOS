@@ -42,15 +42,13 @@ extension HomeInteractor: HomeBusinessLogic {
     }
     
     func loadSessionGoal(request: Home.LoadSessionGoal.Request) {
-        // 서버 없으니 Mock 데이터 생성
         let mockSessionGoal = SessionGoal(
-            title: "12회차 목표",
+            round: 12,
             subtitle: "벌써 절반이상 왔어요! 힘차게 달려볼까요?",
-            metrics: [
-                Metric(icon: "mappin.and.ellipse", title: "목표 거리", value: "5km"),
-                Metric(icon: "clock", title: "목표 시간", value: "1:00:00"),
-                Metric(icon: "figure.run", title: "권장 페이스", value: "6'00\"")
-            ]
+            distance: 5.0,
+            time: 3600,
+            pace: "6'00\"",
+            isCompleted: false
         )
         let response = Home.LoadSessionGoal.Response(sessionGoal: mockSessionGoal)
         presenter?.presentSessionGoal(response: response)
@@ -79,13 +77,11 @@ struct OverallGoal {
 }
 
 struct SessionGoal {
-    let title: String
+    let round: Int
     let subtitle: String
-    let metrics: [Metric]
+    let distance: Double
+    let time: TimeInterval
+    let pace: String
+    let isCompleted: Bool
 }
 
-struct Metric {
-    let icon: String
-    let title: String
-    let value: String
-}
