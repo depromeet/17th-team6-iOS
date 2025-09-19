@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OverallGoalListBusinessLogic {
+    func getOverallGoal(request: OverallGoalList.GetOverallGoal.Request)
     func loadSessionGoals(request: OverallGoalList.LoadSessionGoals.Request)
 }
 
@@ -23,6 +24,11 @@ final class OverallGoalListInteractor: OverallGoalListDataStore {
 }
 
 extension OverallGoalListInteractor: OverallGoalListBusinessLogic {
+    func getOverallGoal(request: OverallGoalList.GetOverallGoal.Request) {
+        guard let overallGoal = overallGoal else { return }
+        presenter?.presentOverallGoal(response: .init(overallGoal: overallGoal))
+    }
+    
     func loadSessionGoals(request: OverallGoalList.LoadSessionGoals.Request) {
         // 서버 없으니 Mock 데이터 생성
         sessionGoals = (1...10).map { index in

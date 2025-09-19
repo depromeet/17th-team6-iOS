@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OverallGoalListDisplayLogic: AnyObject {
+    func displayOverallGoal(viewModel: OverallGoalList.GetOverallGoal.ViewModel)
     func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel)
 }
 
@@ -44,15 +45,6 @@ final class OverallGoalListViewController: UIViewController {
         setupTableView()
         
         fetchGoalData()
-        
-        // FIXME: 이후 Display에서 처리할 예정
-        headerView.configure(
-            iconName: "flag.fill",
-            title: "10km 마라톤 완주",
-            currentSession: "12회차",
-            totalSession: "/ 총 20회",
-            progress: 0.6
-        )
     }
     
     // MARK: Setup
@@ -106,6 +98,7 @@ final class OverallGoalListViewController: UIViewController {
     // MARK: Action
     
     private func fetchGoalData() {
+        interactor?.getOverallGoal(request: OverallGoalList.GetOverallGoal.Request())
         interactor?.loadSessionGoals(request: OverallGoalList.LoadSessionGoals.Request())
     }
 }
@@ -152,6 +145,11 @@ extension OverallGoalListViewController: UITableViewDataSource, UITableViewDeleg
 }
 
 extension OverallGoalListViewController: OverallGoalListDisplayLogic {
+    func displayOverallGoal(viewModel: OverallGoalList.GetOverallGoal.ViewModel) {
+        let displayed = viewModel.displayedOverallGoal
+        headerView.configure(with: displayed)
+    }
+    
     func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel) {
         displayedSessionGoals = viewModel.displayedSessionGoals
         tableView.reloadData()
@@ -259,32 +257,31 @@ final class GoalHeaderView: UIView {
     
     // MARK: Configure
     
-    // TODO: 현재는 각각 항목을 전달 받고 있으나, 이후 ViewModel로 교체 예정
-    func configure(iconName: String, title: String, currentSession: String, totalSession: String, progress: Float) {
-        iconImageView.image = UIImage(systemName: iconName)
+    func configure(with viewModel: OverallGoalList.GetOverallGoal.ViewModel.DisplayedOverallGoal) {
+        iconImageView.image = UIImage(systemName: viewModel.iconName)
         
         titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+            text: viewModel.title,
             font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         currentLabel.attributedText = .withLetterSpacing(
-            text: currentSession,
+            text: viewModel.currentSession,
             font: .pretendard(size: 16, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x3E4FFF)
         )
         
         totalLabel.attributedText = .withLetterSpacing(
-            text: totalSession,
+            text: viewModel.totalSession,
             font: .pretendard(size: 12, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x82878F)
         )
         
-        progressView.setProgress(progress, animated: false)
+        progressView.setProgress(viewModel.progress, animated: false)
     }
 }
 

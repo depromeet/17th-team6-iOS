@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OverallGoalListPresentationLogic {
+    func presentOverallGoal(response: OverallGoalList.GetOverallGoal.Response)
     func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response)
 }
 
@@ -24,6 +25,20 @@ final class OverallGoalListPresenter {
 }
 
 extension OverallGoalListPresenter: OverallGoalListPresentationLogic {
+    func presentOverallGoal(response: OverallGoalList.GetOverallGoal.Response) {
+        let goal = response.overallGoal
+        let displayedOverallGoal = OverallGoalList.GetOverallGoal.ViewModel.DisplayedOverallGoal(
+            iconName: goal.iconName,
+            title: goal.title,
+            currentSession: "\(goal.currentSession)회차",
+            totalSession: "/ 총 \(goal.totalSession)회",
+            progress: goal.progress
+        )
+        
+        let viewModel = OverallGoalList.GetOverallGoal.ViewModel(displayedOverallGoal: displayedOverallGoal)
+        viewController?.displayOverallGoal(viewModel: viewModel)
+    }
+    
     func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response) {
         let displayedSessionGoals = response.sessionGoals.map {
             OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal(
