@@ -37,7 +37,7 @@ final class MotionService: MotionServiceProtocol {
                     return
                 }
                 if let data {
-                    _ = continuation.yield(data)
+                    continuation.yield(data)
                 }
             }
             
