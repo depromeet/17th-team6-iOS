@@ -15,6 +15,6 @@ struct RunningProgress {
     var elapsed: TimeInterval
     /// 평균 페이스 (1km를 달리는 데 걸린 시간, 초/킬로미터)
     var averagePace: Double
-    /// 현재 케이던스 (SPM: 분당 걸음 수)
-    var currentCadence: Double?
+    /// 누적 걸음 수
+    var totalSteps: Int
 }
