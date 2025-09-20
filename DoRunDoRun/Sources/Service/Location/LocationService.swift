@@ -54,7 +54,7 @@ final class LocationService: NSObject, LocationServiceProtocol {
             return
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
-            throw LocationServiceError.notAuthorized
+            return
         default:
             throw LocationServiceError.notAuthorized
         }
