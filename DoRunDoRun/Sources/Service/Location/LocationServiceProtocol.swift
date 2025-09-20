@@ -8,7 +8,6 @@
 import CoreLocation
 
 enum LocationServiceError: Error {
-    case unavailable
     case notAuthorized
     case alreadyStreaming
     case runtimeError(Error)

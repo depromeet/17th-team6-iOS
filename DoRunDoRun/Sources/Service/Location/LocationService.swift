@@ -25,7 +25,6 @@ final class LocationService: NSObject, LocationServiceProtocol {
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error> {
         if isStreaming { throw LocationServiceError.alreadyStreaming }
         
-        try ensureServicesEnabled()
         try ensureAuthorized()
         
         return AsyncThrowingStream<CLLocation, Error> { [weak self] continuation in
@@ -49,12 +48,6 @@ final class LocationService: NSObject, LocationServiceProtocol {
         continuation?.finish()
     }
     
-    private func ensureServicesEnabled() throws(LocationServiceError) {
-        guard CLLocationManager.locationServicesEnabled() else {
-            throw LocationServiceError.unavailable
-        }
-    }
-    
     private func ensureAuthorized() throws(LocationServiceError) {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
@@ -74,13 +67,17 @@ final class LocationService: NSObject, LocationServiceProtocol {
 
 extension LocationService: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        if manager.authorizationStatus == .notDetermined {
-            manager.requestWhenInUseAuthorization()
-        } else if case .denied = manager.authorizationStatus {
-            continuation?.finish(throwing: LocationServiceError.notAuthorized)
+        switch manager.authorizationStatus {
+        case .denied, .restricted:
+            if isStreaming {
+                continuation?.finish(throwing: LocationServiceError.notAuthorized)
+            }
+        case .authorizedAlways, .authorizedWhenInUse:
+            break
+        default:
+            break
         }
     }
-    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         for location in locations {
             // 정확도 필터: 0...40m 만 통과
