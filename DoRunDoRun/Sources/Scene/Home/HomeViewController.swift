@@ -90,6 +90,8 @@ final class HomeViewController: UIViewController {
         button.tintColor = .init(hex: 0x1C1B1F)
         button.addTarget(self, action: #selector(didTapNotification), for: .touchUpInside)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+        
+        navigationItem.backButtonTitle = ""
     }
     
     private func setupView() {

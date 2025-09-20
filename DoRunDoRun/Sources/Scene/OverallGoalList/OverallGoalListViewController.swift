@@ -63,7 +63,8 @@ final class OverallGoalListViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        
+        navigationItem.title = "목표 목록"
+        navigationController?.navigationBar.tintColor = .init(hex: 0x1C1B1F)
     }
     
     private func setupView() {
