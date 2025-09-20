@@ -26,6 +26,7 @@ let project = Project(
                     "UISupportedInterfaceOrientations": [
                         "UIInterfaceOrientationPortrait"
                     ],
+                    "NSMotionUsageDescription": "사용자의 움직임 데이터를 측정하기 위해 권한이 필요합니다.",
                     "NSLocationWhenInUseUsageDescription": "위치 기반 지도 기능을 위해 권한이 필요합니다.",
                 ]
             ),
