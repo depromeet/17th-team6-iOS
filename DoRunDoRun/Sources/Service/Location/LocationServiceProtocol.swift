@@ -7,15 +7,15 @@
 
 import CoreLocation
 
-enum LocationEvent {
-    case didChangeAuth(CLAuthorizationStatus)
-    case update(CLLocation)
-    case error(Error)
+enum LocationServiceError: Error {
+    case unavailable
+    case notAuthorized
+    case alreadyStreaming
+    case runtimeError(Error)
 }
 
 protocol LocationServiceProtocol: AnyObject {
-    var onEvent: ((LocationEvent) -> Void)? { get set }
-    func checkAuthorization()
-    func startUpdating()
-    func stopUpdating()
+    /// CoreLocation 업데이트 스트림을 시작하고 비동기 시퀀스를 반환
+    func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error>
+    func stopTracking()
 }

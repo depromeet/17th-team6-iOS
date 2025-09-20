@@ -8,8 +8,10 @@
 import CoreLocation
 
 final class LocationService: NSObject, LocationServiceProtocol {
-    var onEvent: ((LocationEvent) -> Void)?
+    // 해당 객체를 만들 스레드에서 델리게이트 메서드가 실행된다.
     private let manager = CLLocationManager()
+    private var continuation: AsyncThrowingStream<CLLocation, Error>.Continuation?
+    private var isStreaming: Bool = false
     
     override init() {
         super.init()
@@ -18,26 +20,55 @@ final class LocationService: NSObject, LocationServiceProtocol {
         manager.pausesLocationUpdatesAutomatically = true
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 8 // 5~10m 권장
-        
-        // 인스턴스 생성 시점에 권한 설정
-        checkAuthorization()
     }
     
-    func checkAuthorization() {
-        let status = manager.authorizationStatus
-        if status == .notDetermined {
-            manager.requestWhenInUseAuthorization()
-        } else {
-            onEvent?(.didChangeAuth(status))
+    func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error> {
+        if isStreaming { throw LocationServiceError.alreadyStreaming }
+        
+        try ensureServicesEnabled()
+        try ensureAuthorized()
+        
+        return AsyncThrowingStream<CLLocation, Error> { [weak self] continuation in
+            guard let self else { return }
+            
+            self.continuation = continuation
+            self.isStreaming = true
+            self.manager.startUpdatingLocation()
+            
+            continuation.onTermination = { [weak self] _ in
+                guard let self else { return }
+                
+                self.manager.stopUpdatingLocation()
+                self.continuation = nil
+                self.isStreaming = false
+            }
         }
     }
     
-    func startUpdating() {
-        manager.startUpdatingLocation()
+    func stopTracking() {
+        continuation?.finish()
     }
     
-    func stopUpdating() {
-        manager.stopUpdatingLocation()
+    private func ensureServicesEnabled() throws(LocationServiceError) {
+        guard CLLocationManager.locationServicesEnabled() else {
+            throw LocationServiceError.unavailable
+        }
+    }
+    
+    private func ensureAuthorized() throws(LocationServiceError) {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+            throw LocationServiceError.notAuthorized
+        default:
+            throw LocationServiceError.notAuthorized
+        }
+    }
+    
+    deinit {
+        stopTracking()
     }
 }
 
@@ -45,21 +76,20 @@ extension LocationService: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         if manager.authorizationStatus == .notDetermined {
             manager.requestWhenInUseAuthorization()
-        } else {
-            let status = manager.authorizationStatus
-            onEvent?(.didChangeAuth(status))
+        } else if case .denied = manager.authorizationStatus {
+            continuation?.finish(throwing: LocationServiceError.notAuthorized)
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        for cl in locations {
-            // 정확도
-            if cl.horizontalAccuracy >= 0, cl.horizontalAccuracy <= 40 { continue }
-            onEvent?(.update(cl))
+        for location in locations {
+            // 정확도 필터: 0...40m 만 통과
+            let acc = location.horizontalAccuracy
+            guard acc >= 0, acc <= 40 else { continue }
+            continuation?.yield(location)
         }
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print(error.localizedDescription)
-        onEvent?(.error(error))
+        continuation?.finish(throwing: LocationServiceError.runtimeError(error))
     }
 }
