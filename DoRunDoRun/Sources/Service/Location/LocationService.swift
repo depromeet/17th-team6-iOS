@@ -87,6 +87,16 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if let clError = error as? CLError {
+            switch clError.code {
+            case .locationUnknown, .headingFailure:
+                return
+            case .denied: // 사용자 위치 권한 거부
+                continuation?.finish(throwing: LocationServiceError.notAuthorized)
+            default:
+                continuation?.finish(throwing: LocationServiceError.runtimeError(clError))
+            }
+        }
         continuation?.finish(throwing: LocationServiceError.runtimeError(error))
     }
 }
