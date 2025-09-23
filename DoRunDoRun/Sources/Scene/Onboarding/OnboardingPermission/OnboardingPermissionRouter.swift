@@ -23,12 +23,12 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     func routeToLevelCheck() {
         let destinationVC = OnboardingLevelCheckViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToOverallGoalList(&destinationDS, frome: dataStore!)
-        navigateToOverallGoalList(destinationVC, from: viewController!)
+        passDataToLevelCheck(&destinationDS, frome: dataStore!)
+        navigateToLevelCheck(destinationVC, from: viewController!)
     }
     
     // MARK: Navigation
-    private func navigateToOverallGoalList(
+    private func navigateToLevelCheck(
         _ destination: OnboardingLevelCheckViewController,
         from source: OnboardingPermissionViewController
     ) {
@@ -36,7 +36,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     }
     
     // MARK: Passing data
-    private func passDataToOverallGoalList(
+    private func passDataToLevelCheck(
         _ destination: inout OnboardingLevelCheckDataStore,
         frome source: OnboardingPermissionDataStore
     ) {

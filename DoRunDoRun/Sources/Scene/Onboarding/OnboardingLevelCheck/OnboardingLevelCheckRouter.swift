@@ -23,12 +23,12 @@ final class OnboardingLevelCheckRouter: OnboardingLevelCheckRoutingLogic, Onboar
     func routeToGoalSetting() {
         let destinationVC = OnboardingGoalSettingViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToOverallGoalList(&destinationDS, frome: dataStore!)
-        navigateToOverallGoalList(destinationVC, from: viewController!)
+        passDataToGoalSetting(&destinationDS, frome: dataStore!)
+        navigateToGoalSetting(destinationVC, from: viewController!)
     }
     
     // MARK: Navigation
-    private func navigateToOverallGoalList(
+    private func navigateToGoalSetting(
         _ destination: OnboardingGoalSettingViewController,
         from source: OnboardingLevelCheckViewController
     ) {
@@ -36,7 +36,7 @@ final class OnboardingLevelCheckRouter: OnboardingLevelCheckRoutingLogic, Onboar
     }
     
     // MARK: Passing data
-    private func passDataToOverallGoalList(
+    private func passDataToGoalSetting(
         _ destination: inout OnboardingGoalSettingDataStore,
         frome source: OnboardingLevelCheckDataStore
     ) {
