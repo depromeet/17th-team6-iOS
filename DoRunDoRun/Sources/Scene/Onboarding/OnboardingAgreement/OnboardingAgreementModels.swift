@@ -1,5 +1,5 @@
 //
-//  OnboardingPermissionModels.swift
+//  OnboardingAgreementModels.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum OnboardingPermission {
+enum OnboardingAgreement {
     // MARK: Use cases
     
     enum LoadAgreements {

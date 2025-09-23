@@ -1,5 +1,5 @@
 //
-//  OnboardingPermissionViewController.swift
+//  OnboardingAgreementViewController.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -13,15 +13,15 @@ struct Agreement {
     var isChecked: Bool
 }
 
-protocol OnboardingPermissionDisplayLogic: AnyObject {
-    func displayAgreements(viewModel: OnboardingPermission.LoadAgreements.ViewModel)
-    func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel)
-    func displayToggleOne(viewModel: OnboardingPermission.ToggleOne.ViewModel)
+protocol OnboardingAgreementDisplayLogic: AnyObject {
+    func displayAgreements(viewModel: OnboardingAgreement.LoadAgreements.ViewModel)
+    func displayToggleAll(viewModel: OnboardingAgreement.ToggleAll.ViewModel)
+    func displayToggleOne(viewModel: OnboardingAgreement.ToggleOne.ViewModel)
 }
 
-final class OnboardingPermissionViewController: UIViewController {
-    var interactor: OnboardingPermissionBusinessLogic?
-    var router: (OnboardingPermissionRoutingLogic & OnboardingPermissionDataPassing)?
+final class OnboardingAgreementViewController: UIViewController {
+    var interactor: OnboardingAgreementBusinessLogic?
+    var router: (OnboardingAgreementRoutingLogic & OnboardingAgreementDataPassing)?
     
     // MARK: UI
     
@@ -137,9 +137,9 @@ final class OnboardingPermissionViewController: UIViewController {
     
     private func setup() {
         let viewController = self
-        let interactor = OnboardingPermissionInteractor()
-        let presenter = OnboardingPermissionPresenter()
-        let router = OnboardingPermissionRouter()
+        let interactor = OnboardingAgreementInteractor()
+        let presenter = OnboardingAgreementPresenter()
+        let router = OnboardingAgreementRouter()
         viewController.interactor = interactor
         viewController.router = router
         interactor.presenter = presenter
@@ -235,7 +235,7 @@ final class OnboardingPermissionViewController: UIViewController {
     }
 }
 
-extension OnboardingPermissionViewController: UITableViewDataSource, UITableViewDelegate {
+extension OnboardingAgreementViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return displayedAgreements.count
     }
@@ -254,20 +254,20 @@ extension OnboardingPermissionViewController: UITableViewDataSource, UITableView
     }
 }
 
-extension OnboardingPermissionViewController: OnboardingPermissionDisplayLogic {
-    func displayAgreements(viewModel: OnboardingPermission.LoadAgreements.ViewModel) {
+extension OnboardingAgreementViewController: OnboardingAgreementDisplayLogic {
+    func displayAgreements(viewModel: OnboardingAgreement.LoadAgreements.ViewModel) {
         displayedAgreements = viewModel.displayedAgreements
         tableView.reloadData()
     }
     
-    func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel) {
+    func displayToggleAll(viewModel: OnboardingAgreement.ToggleAll.ViewModel) {
         displayedAgreements = viewModel.displayedAgreements
         allCheckButton.configuration = .miniCheckmark(isChecked: viewModel.isAllChecked)
         nextButton.isEnabled = viewModel.isNextEnabled
         tableView.reloadData()
     }
     
-    func displayToggleOne(viewModel: OnboardingPermission.ToggleOne.ViewModel) {
+    func displayToggleOne(viewModel: OnboardingAgreement.ToggleOne.ViewModel) {
         displayedAgreements[viewModel.index] = viewModel.displayedAgreement
         allCheckButton.configuration = .miniCheckmark(isChecked: viewModel.isAllChecked)
         nextButton.isEnabled = viewModel.isNextEnabled

@@ -1,5 +1,5 @@
 //
-//  OnboardingPermissionRouter.swift
+//  OnboardingAgreementRouter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingPermissionRoutingLogic {
+protocol OnboardingAgreementRoutingLogic {
     func routeToLevelCheck()
 }
 
-protocol OnboardingPermissionDataPassing {
-    var dataStore: OnboardingPermissionDataStore? { get }
+protocol OnboardingAgreementDataPassing {
+    var dataStore: OnboardingAgreementDataStore? { get }
 }
 
-final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, OnboardingPermissionDataPassing {
-    weak var viewController: OnboardingPermissionViewController?
-    var dataStore: OnboardingPermissionDataStore?
+final class OnboardingAgreementRouter: OnboardingAgreementRoutingLogic, OnboardingAgreementDataPassing {
+    weak var viewController: OnboardingAgreementViewController?
+    var dataStore: OnboardingAgreementDataStore?
     
     // MARK: Routing
     func routeToLevelCheck() {
@@ -30,7 +30,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     // MARK: Navigation
     private func navigateToLevelCheck(
         _ destination: RunningLevelCheckViewController,
-        from source: OnboardingPermissionViewController
+        from source: OnboardingAgreementViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
     }
@@ -38,7 +38,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     // MARK: Passing data
     private func passDataToLevelCheck(
         _ destination: inout RunningLevelCheckDataStore,
-        frome source: OnboardingPermissionDataStore
+        frome source: OnboardingAgreementDataStore
     ) {
         // 데이터 전달
     }

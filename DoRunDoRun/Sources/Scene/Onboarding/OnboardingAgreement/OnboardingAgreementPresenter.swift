@@ -1,5 +1,5 @@
 //
-//  OnboardingPermissionPresenter.swift
+//  OnboardingAgreementPresenter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,32 +7,32 @@
 
 import UIKit
 
-protocol OnboardingPermissionPresentationLogic {
-    func presentAgreements(response: OnboardingPermission.LoadAgreements.Response)
-    func presentToggleAll(response: OnboardingPermission.ToggleAll.Response)
-    func presentToggleOne(response: OnboardingPermission.ToggleOne.Response)
+protocol OnboardingAgreementPresentationLogic {
+    func presentAgreements(response: OnboardingAgreement.LoadAgreements.Response)
+    func presentToggleAll(response: OnboardingAgreement.ToggleAll.Response)
+    func presentToggleOne(response: OnboardingAgreement.ToggleOne.Response)
 }
 
-final class OnboardingPermissionPresenter {
-    weak var viewController: OnboardingPermissionDisplayLogic?
+final class OnboardingAgreementPresenter {
+    weak var viewController: OnboardingAgreementDisplayLogic?
 }
 
-extension OnboardingPermissionPresenter: OnboardingPermissionPresentationLogic {
-    func presentAgreements(response: OnboardingPermission.LoadAgreements.Response) {
+extension OnboardingAgreementPresenter: OnboardingAgreementPresentationLogic {
+    func presentAgreements(response: OnboardingAgreement.LoadAgreements.Response) {
         let displayed = response.agreements.map {
             DisplayedAgreement(title: $0.title, isChecked: $0.isChecked)
         }
         viewController?.displayAgreements(viewModel: .init(displayedAgreements: displayed))
     }
     
-    func presentToggleAll(response: OnboardingPermission.ToggleAll.Response) {
+    func presentToggleAll(response: OnboardingAgreement.ToggleAll.Response) {
         let displayed = response.agreements.map {
             DisplayedAgreement(title: $0.title, isChecked: $0.isChecked)
         }
         let isAllChecked = response.agreements.allSatisfy { $0.isChecked }
         let isNextEnabled = response.agreements.filter { $0.isRequired }.allSatisfy { $0.isChecked }
         
-        let viewModel = OnboardingPermission.ToggleAll.ViewModel(
+        let viewModel = OnboardingAgreement.ToggleAll.ViewModel(
             displayedAgreements: displayed,
             isAllChecked: isAllChecked,
             isNextEnabled: isNextEnabled
@@ -40,13 +40,13 @@ extension OnboardingPermissionPresenter: OnboardingPermissionPresentationLogic {
         viewController?.displayToggleAll(viewModel: viewModel)
     }
     
-    func presentToggleOne(response: OnboardingPermission.ToggleOne.Response) {
+    func presentToggleOne(response: OnboardingAgreement.ToggleOne.Response) {
         let agreement = response.agreements[response.index]
         let displayed = DisplayedAgreement(title: agreement.title, isChecked: agreement.isChecked)
         let isAllChecked = response.agreements.allSatisfy { $0.isChecked }
         let isNextEnabled = response.agreements.filter { $0.isRequired }.allSatisfy { $0.isChecked }
         
-        let viewModel = OnboardingPermission.ToggleOne.ViewModel(
+        let viewModel = OnboardingAgreement.ToggleOne.ViewModel(
             displayedAgreement: displayed,
             index: response.index,
             isAllChecked: isAllChecked,
