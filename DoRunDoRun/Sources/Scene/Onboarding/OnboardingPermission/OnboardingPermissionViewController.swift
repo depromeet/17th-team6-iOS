@@ -14,6 +14,8 @@ struct Agreement {
 }
 
 protocol OnboardingPermissionDisplayLogic: AnyObject {
+    func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel)
+    func displayToggleOne(viewModel: OnboardingPermission.ToggleOne.ViewModel)
 }
 
 final class OnboardingPermissionViewController: UIViewController {
@@ -105,17 +107,18 @@ final class OnboardingPermissionViewController: UIViewController {
         config.baseBackgroundColor = UIColor(hex: 0x3E4FFF)
         
         let button = UIButton(configuration: config)
+        button.isEnabled = false
         return button
     }()
     
     // MARK: Properties
     
-    private var agreements: [Agreement] = [
-        Agreement(title: "[필수] 위치기반 정보 수집 동의", isRequired: true, isChecked: false),
-        Agreement(title: "[필수] 개인정보 수집/이용 동의", isRequired: true, isChecked: false),
-        Agreement(title: "[선택] 마케팅 정보 수신 동의", isRequired: false, isChecked: false)
+    private var displayedAgreements: [DisplayedAgreement] = [
+        .init(title: "[필수] 위치기반 정보 수집 동의", isChecked: false),
+        .init(title: "[필수] 개인정보 수집/이용 동의", isChecked: false),
+        .init(title: "[선택] 마케팅 정보 수신 동의", isChecked: false)
     ]
-    
+
     // MARK: Object lifecycle
     
     init() {
@@ -134,7 +137,6 @@ final class OnboardingPermissionViewController: UIViewController {
         setupView()
         setupTableView()
         setupActions()
-        updateNextButtonState()
     }
     
     // MARK: Setup
@@ -228,55 +230,50 @@ final class OnboardingPermissionViewController: UIViewController {
     // MARK: Actions
     
     @objc private func didTapAllCheck() {
-        let isAllChecked = agreements.allSatisfy { $0.isChecked }
-        agreements = agreements.map { Agreement(title: $0.title, isRequired: $0.isRequired, isChecked: !isAllChecked) }
-        
-        allCheckButton.configuration = .miniCheckmark(isChecked: !isAllChecked)
-        tableView.reloadData()
-        
-        updateNextButtonState()
+        interactor?.toggleAll(request: .init())
     }
     
     @objc private func didTapNext() {
         print("다음 버튼 눌림")
         // router?.routeToNext()
     }
-    
-    private func updateNextButtonState() {
-        let allRequiredChecked = agreements.filter { $0.isRequired }.allSatisfy { $0.isChecked }
-        nextButton.isEnabled = allRequiredChecked
-    }
 }
 
 extension OnboardingPermissionViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return agreements.count
+        return displayedAgreements.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: AgrementCell.identifier, for: indexPath) as? AgrementCell else {
             return UITableViewCell()
         }
-        let agreement = agreements[indexPath.row]
+        let agreement = displayedAgreements[indexPath.row]
         cell.configure(title: agreement.title, isChecked: agreement.isChecked)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        agreements[indexPath.row].isChecked.toggle()
-        tableView.reloadRows(at: [indexPath], with: .automatic)
-        
-        // 전체 동의 버튼 상태 갱신
-        let isAllChecked = agreements.allSatisfy { $0.isChecked }
-        allCheckButton.configuration = .miniCheckmark(isChecked: isAllChecked)
-        
-        // 다음 버튼 상태 갱신
-        updateNextButtonState()
+        interactor?.toggleOne(request: .init(index: indexPath.row))
     }
 }
 
 extension OnboardingPermissionViewController: OnboardingPermissionDisplayLogic {
+    func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel) {
+        displayedAgreements = viewModel.displayedAgreements
+        allCheckButton.configuration = .miniCheckmark(isChecked: viewModel.isAllChecked)
+        nextButton.isEnabled = viewModel.isNextEnabled
+        tableView.reloadData()
+    }
+    
+    func displayToggleOne(viewModel: OnboardingPermission.ToggleOne.ViewModel) {
+        displayedAgreements[viewModel.index] = viewModel.displayedAgreement
+        allCheckButton.configuration = .miniCheckmark(isChecked: viewModel.isAllChecked)
+        nextButton.isEnabled = viewModel.isNextEnabled
+        tableView.reloadRows(at: [IndexPath(row: viewModel.index, section: 0)], with: .automatic)
+    }
 }
+
 
 // MARK: Agreement
 
