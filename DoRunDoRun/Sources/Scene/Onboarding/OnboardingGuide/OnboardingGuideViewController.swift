@@ -18,6 +18,8 @@ struct RecommendedGoal {
 }
 
 protocol OnboardingGuideDisplayLogic: AnyObject {
+    func displayRecommendedGoals(viewModel: OnboardingGuide.LoadRecommendedGoals.ViewModel)
+    func displaySelectedRecommendedGoal(viewModel: OnboardingGuide.SelectRecommendedGoal.ViewModel)
 }
 
 final class OnboardingGuideViewController: UIViewController {
@@ -50,13 +52,7 @@ final class OnboardingGuideViewController: UIViewController {
 
     // MARK: Properties
     
-    private var selectedIndex: Int = 0
-    
-    private let goals: [RecommendedGoal] = [
-        .init(icon: "flag", title: "10km 마라톤 완주", subTitle: "초보 러너도 안정적으로 완주할 수 있어요!", count: "32", time: "01:00:00", pace: "6'30''", isRecommended: true),
-        .init(icon: "flag", title: "21km 마라톤 완주", subTitle: "한계를 넘어서는 도전, 함께 성장해봐요!", count: "32", time: "02:20:00", pace: "7'00''", isRecommended: false),
-        .init(icon: "flag", title: "42km 마라톤 완주", subTitle: "러너라면 한 번쯤 꿈꾸는 목표에 도전해보세요!", count: "32", time: "4:40:00", pace: "7'00''", isRecommended: false)
-    ]
+    private var displayedGoals: [DisplayedRecommendedGoal] = []
     
     // MARK: Object lifecycle
     
@@ -75,7 +71,9 @@ final class OnboardingGuideViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
-        setupActions()        
+        setupActions()
+        
+        interactor?.loadRecommendedGoals(request: .init())
     }
     
     // MARK: Setup
@@ -147,14 +145,14 @@ final class OnboardingGuideViewController: UIViewController {
 
 extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return goals.count
+        return displayedGoals.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: RecommendedGoalCell.identifier, for: indexPath) as? RecommendedGoalCell else {
             return UITableViewCell()
         }
-        let goal = goals[indexPath.row]
+        let goal = displayedGoals[indexPath.row]
         cell.configure(
             iconName: goal.icon,
             title: goal.title,
@@ -163,20 +161,30 @@ extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDeleg
             time: goal.time,
             pace: goal.pace,
             isRecommended: goal.isRecommended,
-            isSelected: indexPath.row == selectedIndex
+            isSelected: goal.isSelected
         )
         return cell
     }
     
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let previousIndexPath = IndexPath(row: selectedIndex, section: 0)
-        selectedIndex = indexPath.row
-        tableView.reloadRows(at: [previousIndexPath, indexPath], with: .none)
+        interactor?.selectRecommendedGoal(request: .init(index: indexPath.row))
     }
 }
 
 extension OnboardingGuideViewController: OnboardingGuideDisplayLogic {
+    func displayRecommendedGoals(viewModel: OnboardingGuide.LoadRecommendedGoals.ViewModel) {
+        displayedGoals = viewModel.displayedRecommendedGoals
+        tableView.reloadData()
+    }
+    
+    func displaySelectedRecommendedGoal(viewModel: OnboardingGuide.SelectRecommendedGoal.ViewModel) {
+        displayedGoals = viewModel.displayedGoals
+        let indexPaths = [
+            IndexPath(row: viewModel.previousIndex, section: 0),
+            IndexPath(row: viewModel.selectedIndex, section: 0)
+        ]
+        tableView.reloadRows(at: indexPaths, with: .none)
+    }
 }
 
 // MARK: - HeaderView
