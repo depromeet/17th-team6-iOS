@@ -1,5 +1,5 @@
 //
-//  OnboardingLevelCheckPresenter.swift
+//  RunningLevelCheckPresenter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingLevelCheckPresentationLogic {
-    func presentRunningLevels(response: OnboardingLevelCheck.LoadRunningLevels.Response)
-    func presentSelectedRunningLevel(response: OnboardingLevelCheck.SelectRunningLevel.Response)
+protocol RunningLevelCheckPresentationLogic {
+    func presentRunningLevels(response: RunningLevelCheck.LoadRunningLevels.Response)
+    func presentSelectedRunningLevel(response: RunningLevelCheck.SelectRunningLevel.Response)
 }
 
-final class OnboardingLevelCheckPresenter {
-    weak var viewController: OnboardingLevelCheckDisplayLogic?
+final class RunningLevelCheckPresenter {
+    weak var viewController: RunningLevelCheckDisplayLogic?
 }
 
-extension OnboardingLevelCheckPresenter: OnboardingLevelCheckPresentationLogic {
-    func presentRunningLevels(response: OnboardingLevelCheck.LoadRunningLevels.Response) {
+extension RunningLevelCheckPresenter: RunningLevelCheckPresentationLogic {
+    func presentRunningLevels(response: RunningLevelCheck.LoadRunningLevels.Response) {
         let displayed = response.runningLevels.enumerated().map { index, level in
             DisplayedRunningLevel(
                 image: level.image,
@@ -31,7 +31,7 @@ extension OnboardingLevelCheckPresenter: OnboardingLevelCheckPresentationLogic {
         )
     }
     
-    func presentSelectedRunningLevel(response: OnboardingLevelCheck.SelectRunningLevel.Response) {
+    func presentSelectedRunningLevel(response: RunningLevelCheck.SelectRunningLevel.Response) {
         let displayed = response.runningLevels.enumerated().map { index, level in
             DisplayedRunningLevel(
                 image: level.image,

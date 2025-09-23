@@ -1,5 +1,5 @@
 //
-//  OnboardingLevelCheckInteractor.swift
+//  RunningLevelCheckInteractor.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,18 +7,18 @@
 
 import UIKit
 
-protocol OnboardingLevelCheckBusinessLogic {
-    func loadRunningLevels(request: OnboardingLevelCheck.LoadRunningLevels.Request)
-    func selectRunningLevel(request: OnboardingLevelCheck.SelectRunningLevel.Request)
+protocol RunningLevelCheckBusinessLogic {
+    func loadRunningLevels(request: RunningLevelCheck.LoadRunningLevels.Request)
+    func selectRunningLevel(request: RunningLevelCheck.SelectRunningLevel.Request)
 }
 
-protocol OnboardingLevelCheckDataStore {
+protocol RunningLevelCheckDataStore {
     var runningLevels: [RunningLevel] { get set }
     var selectedIndex: Int { get set }
 }
 
-final class OnboardingLevelCheckInteractor: OnboardingLevelCheckDataStore {
-    var presenter: OnboardingLevelCheckPresentationLogic?
+final class RunningLevelCheckInteractor: RunningLevelCheckDataStore {
+    var presenter: RunningLevelCheckPresentationLogic?
     var runningLevels: [RunningLevel] = [
         RunningLevel(image: "shoe", title: "이제 막 시작했어요", subtitle: "최근 달린 경험이 없어요."),
         RunningLevel(image: "shoe", title: "가끔 달려요", subtitle: "주 1-2회 이하로 가볍게 달려요."),
@@ -27,14 +27,14 @@ final class OnboardingLevelCheckInteractor: OnboardingLevelCheckDataStore {
     var selectedIndex: Int = 0
 }
 
-extension OnboardingLevelCheckInteractor: OnboardingLevelCheckBusinessLogic {
-    func loadRunningLevels(request: OnboardingLevelCheck.LoadRunningLevels.Request) {
+extension RunningLevelCheckInteractor: RunningLevelCheckBusinessLogic {
+    func loadRunningLevels(request: RunningLevelCheck.LoadRunningLevels.Request) {
         presenter?.presentRunningLevels(
             response: .init(runningLevels: runningLevels, selectedIndex: selectedIndex)
         )
     }
     
-    func selectRunningLevel(request: OnboardingLevelCheck.SelectRunningLevel.Request) {
+    func selectRunningLevel(request: RunningLevelCheck.SelectRunningLevel.Request) {
         let previousIndex = selectedIndex
         selectedIndex = request.index
         presenter?.presentSelectedRunningLevel(

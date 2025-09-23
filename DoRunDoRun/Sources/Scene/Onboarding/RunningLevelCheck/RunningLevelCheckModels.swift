@@ -1,5 +1,5 @@
 //
-//  OnboardingLevelCheckModels.swift
+//  RunningLevelCheckModels.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum OnboardingLevelCheck {
+enum RunningLevelCheck {
     // MARK: Use cases
     enum LoadRunningLevels {
         struct Request {}

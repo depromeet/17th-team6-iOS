@@ -21,7 +21,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     
     // MARK: Routing
     func routeToLevelCheck() {
-        let destinationVC = OnboardingLevelCheckViewController()
+        let destinationVC = RunningLevelCheckViewController()
         var destinationDS = destinationVC.router!.dataStore!
         passDataToLevelCheck(&destinationDS, frome: dataStore!)
         navigateToLevelCheck(destinationVC, from: viewController!)
@@ -29,7 +29,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     
     // MARK: Navigation
     private func navigateToLevelCheck(
-        _ destination: OnboardingLevelCheckViewController,
+        _ destination: RunningLevelCheckViewController,
         from source: OnboardingPermissionViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
@@ -37,7 +37,7 @@ final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, Onboar
     
     // MARK: Passing data
     private func passDataToLevelCheck(
-        _ destination: inout OnboardingLevelCheckDataStore,
+        _ destination: inout RunningLevelCheckDataStore,
         frome source: OnboardingPermissionDataStore
     ) {
         // 데이터 전달

@@ -1,5 +1,5 @@
 //
-//  OnboardingLevelCheckRouter.swift
+//  RunningLevelCheckRouter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingLevelCheckRoutingLogic {
+protocol RunningLevelCheckRoutingLogic {
     func routeToGoalSetting()
 }
 
-protocol OnboardingLevelCheckDataPassing {
-    var dataStore: OnboardingLevelCheckDataStore? { get }
+protocol RunningLevelCheckDataPassing {
+    var dataStore: RunningLevelCheckDataStore? { get }
 }
 
-final class OnboardingLevelCheckRouter: OnboardingLevelCheckRoutingLogic, OnboardingLevelCheckDataPassing {
-    weak var viewController: OnboardingLevelCheckViewController?
-    var dataStore: OnboardingLevelCheckDataStore?
+final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevelCheckDataPassing {
+    weak var viewController: RunningLevelCheckViewController?
+    var dataStore: RunningLevelCheckDataStore?
     
     // MARK: Routing
     func routeToGoalSetting() {
@@ -30,7 +30,7 @@ final class OnboardingLevelCheckRouter: OnboardingLevelCheckRoutingLogic, Onboar
     // MARK: Navigation
     private func navigateToGoalSetting(
         _ destination: OnboardingGoalSettingViewController,
-        from source: OnboardingLevelCheckViewController
+        from source: RunningLevelCheckViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
     }
@@ -38,7 +38,7 @@ final class OnboardingLevelCheckRouter: OnboardingLevelCheckRoutingLogic, Onboar
     // MARK: Passing data
     private func passDataToGoalSetting(
         _ destination: inout OnboardingGoalSettingDataStore,
-        frome source: OnboardingLevelCheckDataStore
+        frome source: RunningLevelCheckDataStore
     ) {
         // 데이터 전달
     }

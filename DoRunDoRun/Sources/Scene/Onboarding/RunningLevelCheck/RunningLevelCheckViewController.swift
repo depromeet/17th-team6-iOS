@@ -1,5 +1,5 @@
 //
-//  OnboardingLevelCheckViewController.swift
+//  RunningLevelCheckViewController.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -13,14 +13,14 @@ struct RunningLevel {
     let subtitle: String
 }
 
-protocol OnboardingLevelCheckDisplayLogic: AnyObject {
-    func displayRunningLevels(viewModel: OnboardingLevelCheck.LoadRunningLevels.ViewModel)
-    func displaySelectedRunningLevel(viewModel: OnboardingLevelCheck.SelectRunningLevel.ViewModel)
+protocol RunningLevelCheckDisplayLogic: AnyObject {
+    func displayRunningLevels(viewModel: RunningLevelCheck.LoadRunningLevels.ViewModel)
+    func displaySelectedRunningLevel(viewModel: RunningLevelCheck.SelectRunningLevel.ViewModel)
 }
 
-final class OnboardingLevelCheckViewController: UIViewController {
-    var interactor: OnboardingLevelCheckBusinessLogic?
-    var router: (OnboardingLevelCheckRoutingLogic & OnboardingLevelCheckDataPassing)?
+final class RunningLevelCheckViewController: UIViewController {
+    var interactor: RunningLevelCheckBusinessLogic?
+    var router: (RunningLevelCheckRoutingLogic & RunningLevelCheckDataPassing)?
     
     // MARK: UI
     
@@ -106,9 +106,9 @@ final class OnboardingLevelCheckViewController: UIViewController {
     
     private func setup() {
         let viewController = self
-        let interactor = OnboardingLevelCheckInteractor()
-        let presenter = OnboardingLevelCheckPresenter()
-        let router = OnboardingLevelCheckRouter()
+        let interactor = RunningLevelCheckInteractor()
+        let presenter = RunningLevelCheckPresenter()
+        let router = RunningLevelCheckRouter()
         viewController.interactor = interactor
         viewController.router = router
         interactor.presenter = presenter
@@ -173,7 +173,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
     }
 }
 
-extension OnboardingLevelCheckViewController: UITableViewDataSource, UITableViewDelegate {
+extension RunningLevelCheckViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return displayedLevels.count
     }
@@ -192,13 +192,13 @@ extension OnboardingLevelCheckViewController: UITableViewDataSource, UITableView
     }
 }
 
-extension OnboardingLevelCheckViewController: OnboardingLevelCheckDisplayLogic {
-    func displayRunningLevels(viewModel: OnboardingLevelCheck.LoadRunningLevels.ViewModel) {
+extension RunningLevelCheckViewController: RunningLevelCheckDisplayLogic {
+    func displayRunningLevels(viewModel: RunningLevelCheck.LoadRunningLevels.ViewModel) {
         displayedLevels = viewModel.displayedRunningLevels
         tableView.reloadData()
     }
     
-    func displaySelectedRunningLevel(viewModel: OnboardingLevelCheck.SelectRunningLevel.ViewModel) {
+    func displaySelectedRunningLevel(viewModel: RunningLevelCheck.SelectRunningLevel.ViewModel) {
         displayedLevels = viewModel.displayedLevels
         let indexPaths = [
             IndexPath(row: viewModel.previousIndex, section: 0),
