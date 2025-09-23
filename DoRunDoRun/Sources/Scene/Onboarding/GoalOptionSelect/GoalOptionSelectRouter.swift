@@ -1,5 +1,5 @@
 //
-//  OnboardingGoalSettingRouter.swift
+//  GoalOptionSelectRouter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingGoalSettingRoutingLogic {
+protocol GoalOptionSelectRoutingLogic {
     func routeToGuide()
 }
 
-protocol OnboardingGoalSettingDataPassing {
-    var dataStore: OnboardingGoalSettingDataStore? { get }
+protocol GoalOptionSelectDataPassing {
+    var dataStore: GoalOptionSelectDataStore? { get }
 }
 
-final class OnboardingGoalSettingRouter: OnboardingGoalSettingRoutingLogic, OnboardingGoalSettingDataPassing {
-    weak var viewController: OnboardingGoalSettingViewController?
-    var dataStore: OnboardingGoalSettingDataStore?
+final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSelectDataPassing {
+    weak var viewController: GoalOptionSelectViewController?
+    var dataStore: GoalOptionSelectDataStore?
     
     // MARK: Routing
     func routeToGuide() {
@@ -30,7 +30,7 @@ final class OnboardingGoalSettingRouter: OnboardingGoalSettingRoutingLogic, Onbo
     // MARK: Navigation
     private func navigateToGuide(
         _ destination: OnboardingGuideViewController,
-        from source: OnboardingGoalSettingViewController
+        from source: GoalOptionSelectViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
     }
@@ -38,7 +38,7 @@ final class OnboardingGoalSettingRouter: OnboardingGoalSettingRoutingLogic, Onbo
     // MARK: Passing data
     private func passDataToGuide(
         _ destination: inout OnboardingGuideDataStore,
-        frome source: OnboardingGoalSettingDataStore
+        frome source: GoalOptionSelectDataStore
     ) {
         destination.selectedGoalOption = source.selectedGoalOption
     }

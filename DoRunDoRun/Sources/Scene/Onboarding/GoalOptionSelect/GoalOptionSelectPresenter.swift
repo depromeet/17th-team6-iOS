@@ -1,5 +1,5 @@
 //
-//  OnboardingGoalSettingPresenter.swift
+//  GoalOptionSelectPresenter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingGoalSettingPresentationLogic {
-    func presentGoalOptions(response: OnboardingGoalSetting.LoadGoalOptions.Response)
-    func presentSelectedGoalOption(response: OnboardingGoalSetting.SelectGoalOption.Response)
+protocol GoalOptionSelectPresentationLogic {
+    func presentGoalOptions(response: GoalOptionSelect.LoadGoalOptions.Response)
+    func presentSelectedGoalOption(response: GoalOptionSelect.SelectGoalOption.Response)
 }
 
-final class OnboardingGoalSettingPresenter {
-    weak var viewController: OnboardingGoalSettingDisplayLogic?
+final class GoalOptionSelectPresenter {
+    weak var viewController: GoalOptionSelectDisplayLogic?
 }
 
-extension OnboardingGoalSettingPresenter: OnboardingGoalSettingPresentationLogic {
-    func presentGoalOptions(response: OnboardingGoalSetting.LoadGoalOptions.Response) {
+extension GoalOptionSelectPresenter: GoalOptionSelectPresentationLogic {
+    func presentGoalOptions(response: GoalOptionSelect.LoadGoalOptions.Response) {
         let displayed = response.goalOptions.enumerated().map { index, goal in
             DisplayedGoalOption(
                 image: goal.image,
@@ -31,7 +31,7 @@ extension OnboardingGoalSettingPresenter: OnboardingGoalSettingPresentationLogic
         )
     }
 
-    func presentSelectedGoalOption(response: OnboardingGoalSetting.SelectGoalOption.Response) {
+    func presentSelectedGoalOption(response: GoalOptionSelect.SelectGoalOption.Response) {
         let displayed = response.goalOptions.enumerated().map { index, goal in
             DisplayedGoalOption(
                 image: goal.image,

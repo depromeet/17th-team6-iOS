@@ -1,5 +1,5 @@
 //
-//  OnboardingGoalSettingModels.swift
+//  GoalOptionSelectModels.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum OnboardingGoalSetting {
+enum GoalOptionSelect {
     // MARK: Use cases
 
     enum LoadGoalOptions {

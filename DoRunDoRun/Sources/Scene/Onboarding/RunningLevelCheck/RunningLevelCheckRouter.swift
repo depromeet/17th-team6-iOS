@@ -21,7 +21,7 @@ final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevel
     
     // MARK: Routing
     func routeToGoalSetting() {
-        let destinationVC = OnboardingGoalSettingViewController()
+        let destinationVC = GoalOptionSelectViewController()
         var destinationDS = destinationVC.router!.dataStore!
         passDataToGoalSetting(&destinationDS, frome: dataStore!)
         navigateToGoalSetting(destinationVC, from: viewController!)
@@ -29,7 +29,7 @@ final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevel
     
     // MARK: Navigation
     private func navigateToGoalSetting(
-        _ destination: OnboardingGoalSettingViewController,
+        _ destination: GoalOptionSelectViewController,
         from source: RunningLevelCheckViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
@@ -37,7 +37,7 @@ final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevel
     
     // MARK: Passing data
     private func passDataToGoalSetting(
-        _ destination: inout OnboardingGoalSettingDataStore,
+        _ destination: inout GoalOptionSelectDataStore,
         frome source: RunningLevelCheckDataStore
     ) {
         // 데이터 전달

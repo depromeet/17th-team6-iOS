@@ -1,5 +1,5 @@
 //
-//  OnboardingGoalSettingViewController.swift
+//  GoalOptionSelectViewController.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -13,14 +13,14 @@ struct GoalOption {
     let subtitle: String
 }
 
-protocol OnboardingGoalSettingDisplayLogic: AnyObject {
-    func displayGoalOptions(viewModel: OnboardingGoalSetting.LoadGoalOptions.ViewModel)
-    func displaySelectedGoalOption(viewModel: OnboardingGoalSetting.SelectGoalOption.ViewModel)
+protocol GoalOptionSelectDisplayLogic: AnyObject {
+    func displayGoalOptions(viewModel: GoalOptionSelect.LoadGoalOptions.ViewModel)
+    func displaySelectedGoalOption(viewModel: GoalOptionSelect.SelectGoalOption.ViewModel)
 }
 
-final class OnboardingGoalSettingViewController: UIViewController {
-    var interactor: OnboardingGoalSettingBusinessLogic?
-    var router: (OnboardingGoalSettingRoutingLogic & OnboardingGoalSettingDataPassing)?
+final class GoalOptionSelectViewController: UIViewController {
+    var interactor: GoalOptionSelectBusinessLogic?
+    var router: (GoalOptionSelectRoutingLogic & GoalOptionSelectDataPassing)?
     
     // MARK: UI
     
@@ -106,9 +106,9 @@ final class OnboardingGoalSettingViewController: UIViewController {
     
     private func setup() {
         let viewController = self
-        let interactor = OnboardingGoalSettingInteractor()
-        let presenter = OnboardingGoalSettingPresenter()
-        let router = OnboardingGoalSettingRouter()
+        let interactor = GoalOptionSelectInteractor()
+        let presenter = GoalOptionSelectPresenter()
+        let router = GoalOptionSelectRouter()
         viewController.interactor = interactor
         viewController.router = router
         interactor.presenter = presenter
@@ -173,7 +173,7 @@ final class OnboardingGoalSettingViewController: UIViewController {
     }
 }
 
-extension OnboardingGoalSettingViewController: UITableViewDataSource, UITableViewDelegate {
+extension GoalOptionSelectViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return displayedGoalOptions.count
     }
@@ -192,13 +192,13 @@ extension OnboardingGoalSettingViewController: UITableViewDataSource, UITableVie
     }
 }
 
-extension OnboardingGoalSettingViewController: OnboardingGoalSettingDisplayLogic {
-    func displayGoalOptions(viewModel: OnboardingGoalSetting.LoadGoalOptions.ViewModel) {
+extension GoalOptionSelectViewController: GoalOptionSelectDisplayLogic {
+    func displayGoalOptions(viewModel: GoalOptionSelect.LoadGoalOptions.ViewModel) {
         displayedGoalOptions = viewModel.displayedGoalOptions
         tableView.reloadData()
     }
 
-    func displaySelectedGoalOption(viewModel: OnboardingGoalSetting.SelectGoalOption.ViewModel) {
+    func displaySelectedGoalOption(viewModel: GoalOptionSelect.SelectGoalOption.ViewModel) {
         displayedGoalOptions = viewModel.displayedGoalOptions
         let indexPaths = [
             IndexPath(row: viewModel.previousIndex, section: 0),
