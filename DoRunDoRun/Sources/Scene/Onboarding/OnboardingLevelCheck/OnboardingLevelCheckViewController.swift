@@ -182,13 +182,8 @@ extension OnboardingLevelCheckViewController: UITableViewDataSource, UITableView
         guard let cell = tableView.dequeueReusableCell(withIdentifier: RunningLevelCell.identifier, for: indexPath) as? RunningLevelCell else {
             return UITableViewCell()
         }
-        let level = displayedLevels[indexPath.row]
-        cell.configure(
-            imageName: level.image,
-            title: level.title,
-            subtitle: level.subtitle,
-            isSelected: level.isSelected
-        )
+        let runningLevel = displayedLevels[indexPath.row]
+        cell.configure(with: runningLevel)
         return cell
     }
     
@@ -278,23 +273,23 @@ final class RunningLevelCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(imageName: String, title: String, subtitle: String, isSelected: Bool) {
-        iconView.image = UIImage(systemName: imageName)
+    func configure(with runningLevel: DisplayedRunningLevel) {
+        iconView.image = UIImage(systemName: runningLevel.image)
 
         titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+            text: runningLevel.title,
             font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         subtitleLabel.attributedText = .withLetterSpacing(
-            text: subtitle,
+            text: runningLevel.subtitle,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)
         )
         
-        container.layer.borderColor = isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
+        container.layer.borderColor = runningLevel.isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
     }
 }

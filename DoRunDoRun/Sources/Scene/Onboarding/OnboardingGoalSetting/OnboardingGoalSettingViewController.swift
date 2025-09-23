@@ -182,11 +182,8 @@ extension OnboardingGoalSettingViewController: UITableViewDataSource, UITableVie
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ChallengeGoalCell.identifier, for: indexPath) as? ChallengeGoalCell else {
             return UITableViewCell()
         }
-        let goal = displayedGoalOptions[indexPath.row]
-        cell.configure(imageName: goal.image,
-                       title: goal.title,
-                       subtitle: goal.subtitle,
-                       isSelected: goal.isSelected)
+        let goalOption = displayedGoalOptions[indexPath.row]
+        cell.configure(with: goalOption)
         return cell
     }
 
@@ -277,23 +274,23 @@ final class ChallengeGoalCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(imageName: String, title: String, subtitle: String, isSelected: Bool) {
-        iconView.image = UIImage(systemName: imageName)
+    func configure(with goalOption: DisplayedGoalOption) {
+        iconView.image = UIImage(systemName: goalOption.image)
 
         titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+            text: goalOption.title,
             font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         subtitleLabel.attributedText = .withLetterSpacing(
-            text: subtitle,
+            text: goalOption.subtitle,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)
         )
         
-        container.layer.borderColor = isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
+        container.layer.borderColor = goalOption.isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
     }
 }

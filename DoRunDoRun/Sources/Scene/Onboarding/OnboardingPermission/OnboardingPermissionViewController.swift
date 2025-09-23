@@ -245,7 +245,7 @@ extension OnboardingPermissionViewController: UITableViewDataSource, UITableView
             return UITableViewCell()
         }
         let agreement = displayedAgreements[indexPath.row]
-        cell.configure(title: agreement.title, isChecked: agreement.isChecked)
+        cell.configure(with: agreement)
         return cell
     }
     
@@ -354,15 +354,15 @@ final class AgrementCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(title: String, isChecked: Bool) {
+    func configure(with agreement: DisplayedAgreement) {
         titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+            text: agreement.title,
             font: .pretendard(size: 16, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)
         )
         
-        checkButton.configuration = .miniCheckmark(isChecked: isChecked)
+        checkButton.configuration = .miniCheckmark(isChecked: agreement.isChecked)
     }
 }
 

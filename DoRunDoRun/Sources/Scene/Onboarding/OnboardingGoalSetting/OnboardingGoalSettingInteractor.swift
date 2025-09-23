@@ -14,8 +14,8 @@ protocol OnboardingGoalSettingBusinessLogic {
 
 protocol OnboardingGoalSettingDataStore {
     var goalOptions: [GoalOption] { get set }
-    var selectedIndex: Int { get set }
     var selectedGoalOption: GoalOption? { get set }
+    var selectedIndex: Int { get set }
 }
 
 final class OnboardingGoalSettingInteractor: OnboardingGoalSettingDataStore {
@@ -25,8 +25,8 @@ final class OnboardingGoalSettingInteractor: OnboardingGoalSettingDataStore {
         GoalOption(image: "dumbbell", title: "체력을 키울래요", subtitle: "30분 달리기"),
         GoalOption(image: "heart", title: "지구력을 키울래요", subtitle: "Zone2 러닝")
     ]
-    var selectedIndex: Int = 0
     var selectedGoalOption: GoalOption?
+    var selectedIndex: Int = 0
 }
 
 extension OnboardingGoalSettingInteractor: OnboardingGoalSettingBusinessLogic {
@@ -46,9 +46,7 @@ extension OnboardingGoalSettingInteractor: OnboardingGoalSettingBusinessLogic {
         selectedGoalOption = goalOptions[selectedIndex]
         
         presenter?.presentSelectedGoalOption(
-            response: .init(goalOptions: goalOptions,
-                            selectedIndex: selectedIndex,
-                            previousIndex: previousIndex)
+            response: .init(goalOptions: goalOptions, selectedIndex: selectedIndex, previousIndex: previousIndex)
         )
     }
 }

@@ -52,7 +52,7 @@ final class OnboardingGuideViewController: UIViewController {
 
     // MARK: Properties
     
-    private var displayedGoals: [DisplayedRecommendedGoal] = []
+    private var displayedRecommendedGoals: [DisplayedRecommendedGoal] = []
     
     // MARK: Object lifecycle
     
@@ -145,24 +145,15 @@ final class OnboardingGuideViewController: UIViewController {
 
 extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return displayedGoals.count
+        return displayedRecommendedGoals.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: RecommendedGoalCell.identifier, for: indexPath) as? RecommendedGoalCell else {
             return UITableViewCell()
         }
-        let goal = displayedGoals[indexPath.row]
-        cell.configure(
-            iconName: goal.icon,
-            title: goal.title,
-            subTitle: goal.subTitle,
-            count: goal.count,
-            time: goal.time,
-            pace: goal.pace,
-            isRecommended: goal.isRecommended,
-            isSelected: goal.isSelected
-        )
+        let recommendedGoal = displayedRecommendedGoals[indexPath.row]
+        cell.configure(with: recommendedGoal)
         return cell
     }
     
@@ -173,12 +164,12 @@ extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDeleg
 
 extension OnboardingGuideViewController: OnboardingGuideDisplayLogic {
     func displayRecommendedGoals(viewModel: OnboardingGuide.LoadRecommendedGoals.ViewModel) {
-        displayedGoals = viewModel.displayedRecommendedGoals
+        displayedRecommendedGoals = viewModel.displayedRecommendedGoals
         tableView.reloadData()
     }
     
     func displaySelectedRecommendedGoal(viewModel: OnboardingGuide.SelectRecommendedGoal.ViewModel) {
-        displayedGoals = viewModel.displayedGoals
+        displayedRecommendedGoals = viewModel.displayedGoals
         let indexPaths = [
             IndexPath(row: viewModel.previousIndex, section: 0),
             IndexPath(row: viewModel.selectedIndex, section: 0)
@@ -340,32 +331,32 @@ final class RecommendedGoalCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(iconName: String, title: String, subTitle: String, count: String, time: String, pace: String, isRecommended: Bool, isSelected: Bool) {
-        iconImageView.image = UIImage(systemName: iconName)
+    func configure(with recommendedGoal: DisplayedRecommendedGoal) {
+        iconImageView.image = UIImage(systemName: recommendedGoal.icon)
         
         titleLabel.attributedText = .withLetterSpacing(
-            text: title,
+            text: recommendedGoal.title,
             font: .pretendard(size: 18, weight: .bold),
             px: -0.2,
             color: .init(hex: 0x232529)
         )
         
         subtitleLabel.attributedText = .withLetterSpacing(
-            text: subTitle,
+            text: recommendedGoal.subTitle,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)
         )
 
         metricTextView.configure(metrics: [
-            ("달성 회차", count),
-            ("권장 러닝 시간", time),
-            ("권장 페이스", pace)
+            ("달성 회차", recommendedGoal.count),
+            ("권장 러닝 시간", recommendedGoal.time),
+            ("권장 페이스", recommendedGoal.pace)
         ])
         
-        badgeButton.isHidden = !isRecommended
+        badgeButton.isHidden = !recommendedGoal.isRecommended
         
-        container.layer.borderColor = isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
+        container.layer.borderColor = recommendedGoal.isSelected ? UIColor(hex: 0x3E4FFF).cgColor : UIColor(hex: 0xDFE4EC).cgColor
     }
 }
 

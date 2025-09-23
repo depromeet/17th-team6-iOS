@@ -41,11 +41,7 @@ extension OnboardingLevelCheckPresenter: OnboardingLevelCheckPresentationLogic {
             )
         }
         viewController?.displaySelectedRunningLevel(
-            viewModel: .init(
-                displayedLevels: displayed,
-                selectedIndex: response.selectedIndex,
-                previousIndex: response.previousIndex
-            )
+            viewModel: .init(displayedLevels: displayed, selectedIndex: response.selectedIndex, previousIndex: response.previousIndex)
         )
     }
 }

@@ -41,9 +41,7 @@ extension OnboardingGoalSettingPresenter: OnboardingGoalSettingPresentationLogic
             )
         }
         viewController?.displaySelectedGoalOption(
-            viewModel: .init(displayedGoalOptions: displayed,
-                             selectedIndex: response.selectedIndex,
-                             previousIndex: response.previousIndex)
+            viewModel: .init(displayedGoalOptions: displayed, selectedIndex: response.selectedIndex, previousIndex: response.previousIndex)
         )
     }
 }
