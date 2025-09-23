@@ -7,7 +7,15 @@
 
 import UIKit
 
+struct RunningLevel {
+    let image: String
+    let title: String
+    let subtitle: String
+}
+
 protocol OnboardingLevelCheckDisplayLogic: AnyObject {
+    func displayLevels(viewModel: OnboardingLevelCheck.LoadLevels.ViewModel)
+    func displaySelectedLevel(viewModel: OnboardingLevelCheck.SelectLevel.ViewModel)
 }
 
 final class OnboardingLevelCheckViewController: UIViewController {
@@ -74,15 +82,8 @@ final class OnboardingLevelCheckViewController: UIViewController {
     }()
     
     // MARK: Properties
-    
-    private var selectedIndex: Int = 0
-    
-    // FIXME: Clean Swift 구조로 변경 시 삭제되는 임시 데이터
-    private let options: [(image: String, title: String, subtitle: String)] = [
-        ("shoe", "이제 막 시작했어요", "최근 달린 경험이 없어요."),
-        ("shoe", "가끔 달려요", "주 1-2회 이하로 가볍게 달려요."),
-        ("shoe", "꾸준히 달려요", "주 3회 이상 루틴대로 달려요.")
-    ]
+        
+    private var displayedLevels: [DisplayedLevel] = []
     
     // MARK: Object lifecycle
     
@@ -101,6 +102,8 @@ final class OnboardingLevelCheckViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
+        
+        interactor?.loadLevels(request: .init())
     }
     
     // MARK: Setup
@@ -163,28 +166,43 @@ final class OnboardingLevelCheckViewController: UIViewController {
 
 extension OnboardingLevelCheckViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return options.count
+        return displayedLevels.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: RunningLevelCell.identifier, for: indexPath) as? RunningLevelCell else {
             return UITableViewCell()
         }
-        let option = options[indexPath.row]
-        cell.configure(imageName: option.image, title: option.title, subtitle: option.subtitle, isSelected: indexPath.row == selectedIndex)
+        let level = displayedLevels[indexPath.row]
+        cell.configure(
+            imageName: level.image,
+            title: level.title,
+            subtitle: level.subtitle,
+            isSelected: level.isSelected
+        )
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let previousIndexPath = IndexPath(row: selectedIndex, section: 0)
-        selectedIndex = indexPath.row
-        tableView.reloadRows(at: [previousIndexPath, indexPath], with: .none)
+        interactor?.selectLevel(request: .init(index: indexPath.row))
     }
 }
 
 extension OnboardingLevelCheckViewController: OnboardingLevelCheckDisplayLogic {
+    func displayLevels(viewModel: OnboardingLevelCheck.LoadLevels.ViewModel) {
+        displayedLevels = viewModel.displayedLevels
+        tableView.reloadData()
+    }
+    
+    func displaySelectedLevel(viewModel: OnboardingLevelCheck.SelectLevel.ViewModel) {
+        displayedLevels = viewModel.displayedLevels
+        let indexPaths = [
+            IndexPath(row: viewModel.previousIndex, section: 0),
+            IndexPath(row: viewModel.selectedIndex, section: 0)
+        ]
+        tableView.reloadRows(at: indexPaths, with: .none)
+    }
 }
-
 
 // MARK: - RunningLevel
 
