@@ -8,8 +8,8 @@
 import UIKit
 
 protocol OnboardingLevelCheckPresentationLogic {
-    func presentLevels(response: OnboardingLevelCheck.LoadLevels.Response)
-    func presentSelectedLevel(response: OnboardingLevelCheck.SelectLevel.Response)
+    func presentRunningLevels(response: OnboardingLevelCheck.LoadRunningLevels.Response)
+    func presentSelectedRunningLevel(response: OnboardingLevelCheck.SelectRunningLevel.Response)
 }
 
 final class OnboardingLevelCheckPresenter {
@@ -17,30 +17,30 @@ final class OnboardingLevelCheckPresenter {
 }
 
 extension OnboardingLevelCheckPresenter: OnboardingLevelCheckPresentationLogic {
-    func presentLevels(response: OnboardingLevelCheck.LoadLevels.Response) {
-        let displayed = response.levels.enumerated().map { index, level in
-            DisplayedLevel(
+    func presentRunningLevels(response: OnboardingLevelCheck.LoadRunningLevels.Response) {
+        let displayed = response.runningLevels.enumerated().map { index, level in
+            DisplayedRunningLevel(
                 image: level.image,
                 title: level.title,
                 subtitle: level.subtitle,
                 isSelected: index == response.selectedIndex
             )
         }
-        viewController?.displayLevels(
-            viewModel: .init(displayedLevels: displayed)
+        viewController?.displayRunningLevels(
+            viewModel: .init(displayedRunningLevels: displayed)
         )
     }
     
-    func presentSelectedLevel(response: OnboardingLevelCheck.SelectLevel.Response) {
-        let displayed = response.levels.enumerated().map { index, level in
-            DisplayedLevel(
+    func presentSelectedRunningLevel(response: OnboardingLevelCheck.SelectRunningLevel.Response) {
+        let displayed = response.runningLevels.enumerated().map { index, level in
+            DisplayedRunningLevel(
                 image: level.image,
                 title: level.title,
                 subtitle: level.subtitle,
                 isSelected: index == response.selectedIndex
             )
         }
-        viewController?.displaySelectedLevel(
+        viewController?.displaySelectedRunningLevel(
             viewModel: .init(
                 displayedLevels: displayed,
                 selectedIndex: response.selectedIndex,

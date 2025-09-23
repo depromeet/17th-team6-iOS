@@ -14,8 +14,8 @@ struct RunningLevel {
 }
 
 protocol OnboardingLevelCheckDisplayLogic: AnyObject {
-    func displayLevels(viewModel: OnboardingLevelCheck.LoadLevels.ViewModel)
-    func displaySelectedLevel(viewModel: OnboardingLevelCheck.SelectLevel.ViewModel)
+    func displayRunningLevels(viewModel: OnboardingLevelCheck.LoadRunningLevels.ViewModel)
+    func displaySelectedRunningLevel(viewModel: OnboardingLevelCheck.SelectRunningLevel.ViewModel)
 }
 
 final class OnboardingLevelCheckViewController: UIViewController {
@@ -83,7 +83,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
     
     // MARK: Properties
         
-    private var displayedLevels: [DisplayedLevel] = []
+    private var displayedLevels: [DisplayedRunningLevel] = []
     
     // MARK: Object lifecycle
     
@@ -103,7 +103,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
         setupView()
         setupTableView()
         
-        interactor?.loadLevels(request: .init())
+        interactor?.loadRunningLevels(request: .init())
     }
     
     // MARK: Setup
@@ -184,17 +184,17 @@ extension OnboardingLevelCheckViewController: UITableViewDataSource, UITableView
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        interactor?.selectLevel(request: .init(index: indexPath.row))
+        interactor?.selectRunningLevel(request: .init(index: indexPath.row))
     }
 }
 
 extension OnboardingLevelCheckViewController: OnboardingLevelCheckDisplayLogic {
-    func displayLevels(viewModel: OnboardingLevelCheck.LoadLevels.ViewModel) {
-        displayedLevels = viewModel.displayedLevels
+    func displayRunningLevels(viewModel: OnboardingLevelCheck.LoadRunningLevels.ViewModel) {
+        displayedLevels = viewModel.displayedRunningLevels
         tableView.reloadData()
     }
     
-    func displaySelectedLevel(viewModel: OnboardingLevelCheck.SelectLevel.ViewModel) {
+    func displaySelectedRunningLevel(viewModel: OnboardingLevelCheck.SelectRunningLevel.ViewModel) {
         displayedLevels = viewModel.displayedLevels
         let indexPaths = [
             IndexPath(row: viewModel.previousIndex, section: 0),

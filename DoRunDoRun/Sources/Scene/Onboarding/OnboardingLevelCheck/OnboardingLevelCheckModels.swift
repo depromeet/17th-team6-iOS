@@ -9,33 +9,33 @@ import UIKit
 
 enum OnboardingLevelCheck {
     // MARK: Use cases
-    enum LoadLevels {
+    enum LoadRunningLevels {
         struct Request {}
         struct Response {
-            let levels: [RunningLevel]
+            let runningLevels: [RunningLevel]
             let selectedIndex: Int
         }
         struct ViewModel {
-            let displayedLevels: [DisplayedLevel]
+            let displayedRunningLevels: [DisplayedRunningLevel]
         }
     }
     
-    enum SelectLevel {
+    enum SelectRunningLevel {
         struct Request { let index: Int }
         struct Response {
-            let levels: [RunningLevel]
+            let runningLevels: [RunningLevel]
             let selectedIndex: Int
             let previousIndex: Int
         }
         struct ViewModel {
-            let displayedLevels: [DisplayedLevel]
+            let displayedLevels: [DisplayedRunningLevel]
             let selectedIndex: Int
             let previousIndex: Int
         }
     }
 }
 
-struct DisplayedLevel {
+struct DisplayedRunningLevel {
     let image: String
     let title: String
     let subtitle: String
