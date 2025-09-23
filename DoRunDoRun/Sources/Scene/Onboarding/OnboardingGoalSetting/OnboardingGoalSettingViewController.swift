@@ -102,6 +102,7 @@ final class OnboardingGoalSettingViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
+        setupActions()
         
         interactor?.loadGoalOptions(request: .init())
     }
@@ -162,6 +163,16 @@ final class OnboardingGoalSettingViewController: UIViewController {
         tableView.delegate = self
         tableView.register(ChallengeGoalCell.self, forCellReuseIdentifier: ChallengeGoalCell.identifier)
         tableView.isScrollEnabled = false
+    }
+    
+    private func setupActions() {
+        nextButton.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
+    }
+    
+    // MARK: Actions
+    
+    @objc private func didTapNext() {
+        router?.routeToGuide()
     }
 }
 
