@@ -1,5 +1,5 @@
 //
-//  OnboardingGuideViewController.swift
+//  RecommendedGoalSelectViewController.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -17,14 +17,14 @@ struct RecommendedGoal {
     let isRecommended: Bool
 }
 
-protocol OnboardingGuideDisplayLogic: AnyObject {
-    func displayRecommendedGoals(viewModel: OnboardingGuide.LoadRecommendedGoals.ViewModel)
-    func displaySelectedRecommendedGoal(viewModel: OnboardingGuide.SelectRecommendedGoal.ViewModel)
+protocol RecommendedGoalSelectDisplayLogic: AnyObject {
+    func displayRecommendedGoals(viewModel: RecommendedGoalSelect.LoadRecommendedGoals.ViewModel)
+    func displaySelectedRecommendedGoal(viewModel: RecommendedGoalSelect.SelectRecommendedGoal.ViewModel)
 }
 
-final class OnboardingGuideViewController: UIViewController {
-    var interactor: OnboardingGuideBusinessLogic?
-    var router: (OnboardingGuideRoutingLogic & OnboardingGuideDataPassing)?
+final class RecommendedGoalSelectViewController: UIViewController {
+    var interactor: RecommendedGoalSelectBusinessLogic?
+    var router: (RecommendedGoalSelectRoutingLogic & RecommendedGoalSelectDataPassing)?
     
     // MARK: UI
 
@@ -80,9 +80,9 @@ final class OnboardingGuideViewController: UIViewController {
     
     private func setup() {
         let viewController = self
-        let interactor = OnboardingGuideInteractor()
-        let presenter = OnboardingGuidePresenter()
-        let router = OnboardingGuideRouter()
+        let interactor = RecommendedGoalSelectInteractor()
+        let presenter = RecommendedGoalSelectPresenter()
+        let router = RecommendedGoalSelectRouter()
         viewController.interactor = interactor
         viewController.router = router
         interactor.presenter = presenter
@@ -143,7 +143,7 @@ final class OnboardingGuideViewController: UIViewController {
     }
 }
 
-extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDelegate {
+extension RecommendedGoalSelectViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return displayedRecommendedGoals.count
     }
@@ -162,13 +162,13 @@ extension OnboardingGuideViewController: UITableViewDataSource, UITableViewDeleg
     }
 }
 
-extension OnboardingGuideViewController: OnboardingGuideDisplayLogic {
-    func displayRecommendedGoals(viewModel: OnboardingGuide.LoadRecommendedGoals.ViewModel) {
+extension RecommendedGoalSelectViewController: RecommendedGoalSelectDisplayLogic {
+    func displayRecommendedGoals(viewModel: RecommendedGoalSelect.LoadRecommendedGoals.ViewModel) {
         displayedRecommendedGoals = viewModel.displayedRecommendedGoals
         tableView.reloadData()
     }
     
-    func displaySelectedRecommendedGoal(viewModel: OnboardingGuide.SelectRecommendedGoal.ViewModel) {
+    func displaySelectedRecommendedGoal(viewModel: RecommendedGoalSelect.SelectRecommendedGoal.ViewModel) {
         displayedRecommendedGoals = viewModel.displayedGoals
         let indexPaths = [
             IndexPath(row: viewModel.previousIndex, section: 0),

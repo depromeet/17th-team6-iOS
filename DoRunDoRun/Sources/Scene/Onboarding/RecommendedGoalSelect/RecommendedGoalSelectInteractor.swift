@@ -1,5 +1,5 @@
 //
-//  OnboardingGuideInteractor.swift
+//  RecommendedGoalSelectInteractor.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,19 +7,19 @@
 
 import UIKit
 
-protocol OnboardingGuideBusinessLogic {
-    func loadRecommendedGoals(request: OnboardingGuide.LoadRecommendedGoals.Request)
-    func selectRecommendedGoal(request: OnboardingGuide.SelectRecommendedGoal.Request)
+protocol RecommendedGoalSelectBusinessLogic {
+    func loadRecommendedGoals(request: RecommendedGoalSelect.LoadRecommendedGoals.Request)
+    func selectRecommendedGoal(request: RecommendedGoalSelect.SelectRecommendedGoal.Request)
 }
 
-protocol OnboardingGuideDataStore {
+protocol RecommendedGoalSelectDataStore {
     var selectedGoalOption: GoalOption? { get set }
     var recommendedGoals: [RecommendedGoal] { get set }
     var selectedIndex: Int { get set }
 }
 
-final class OnboardingGuideInteractor: OnboardingGuideDataStore {
-    var presenter: OnboardingGuidePresentationLogic?
+final class RecommendedGoalSelectInteractor: RecommendedGoalSelectDataStore {
+    var presenter: RecommendedGoalSelectPresentationLogic?
     var selectedGoalOption: GoalOption?
     var recommendedGoals: [RecommendedGoal] = [
         RecommendedGoal(icon: "flag", title: "10km 마라톤 완주", subTitle: "초보 러너도 안정적으로 완주할 수 있어요!", count: "32", time: "01:00:00", pace: "6'30''", isRecommended: true),
@@ -29,8 +29,8 @@ final class OnboardingGuideInteractor: OnboardingGuideDataStore {
     var selectedIndex: Int = 0
 }
 
-extension OnboardingGuideInteractor: OnboardingGuideBusinessLogic {
-    func loadRecommendedGoals(request: OnboardingGuide.LoadRecommendedGoals.Request) {
+extension RecommendedGoalSelectInteractor: RecommendedGoalSelectBusinessLogic {
+    func loadRecommendedGoals(request: RecommendedGoalSelect.LoadRecommendedGoals.Request) {
         // GoalOption에 따라 다른 recommendedGoals 준비
         switch selectedGoalOption?.title {
         case "마라톤에 도전할래요":
@@ -55,7 +55,7 @@ extension OnboardingGuideInteractor: OnboardingGuideBusinessLogic {
         )
     }
     
-    func selectRecommendedGoal(request: OnboardingGuide.SelectRecommendedGoal.Request) {
+    func selectRecommendedGoal(request: RecommendedGoalSelect.SelectRecommendedGoal.Request) {
         let previousIndex = selectedIndex
         selectedIndex = request.index
         presenter?.presentSelectedRecommendedGoal(

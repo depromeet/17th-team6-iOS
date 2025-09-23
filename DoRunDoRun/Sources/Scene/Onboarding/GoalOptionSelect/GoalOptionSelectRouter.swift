@@ -21,7 +21,7 @@ final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSele
     
     // MARK: Routing
     func routeToGuide() {
-        let destinationVC = OnboardingGuideViewController()
+        let destinationVC = RecommendedGoalSelectViewController()
         var destinationDS = destinationVC.router!.dataStore!
         passDataToGuide(&destinationDS, frome: dataStore!)
         navigateToGuide(destinationVC, from: viewController!)
@@ -29,7 +29,7 @@ final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSele
     
     // MARK: Navigation
     private func navigateToGuide(
-        _ destination: OnboardingGuideViewController,
+        _ destination: RecommendedGoalSelectViewController,
         from source: GoalOptionSelectViewController
     ) {
         source.navigationController?.pushViewController(destination, animated: true)
@@ -37,7 +37,7 @@ final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSele
     
     // MARK: Passing data
     private func passDataToGuide(
-        _ destination: inout OnboardingGuideDataStore,
+        _ destination: inout RecommendedGoalSelectDataStore,
         frome source: GoalOptionSelectDataStore
     ) {
         destination.selectedGoalOption = source.selectedGoalOption

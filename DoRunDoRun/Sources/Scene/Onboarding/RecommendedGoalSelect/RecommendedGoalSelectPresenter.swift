@@ -1,5 +1,5 @@
 //
-//  OnboardingGuidePresenter.swift
+//  RecommendedGoalSelectPresenter.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-protocol OnboardingGuidePresentationLogic {
-    func presentRecommendedGoals(response: OnboardingGuide.LoadRecommendedGoals.Response)
-    func presentSelectedRecommendedGoal(response: OnboardingGuide.SelectRecommendedGoal.Response)
+protocol RecommendedGoalSelectPresentationLogic {
+    func presentRecommendedGoals(response: RecommendedGoalSelect.LoadRecommendedGoals.Response)
+    func presentSelectedRecommendedGoal(response: RecommendedGoalSelect.SelectRecommendedGoal.Response)
 }
 
-final class OnboardingGuidePresenter {
-    weak var viewController: OnboardingGuideDisplayLogic?
+final class RecommendedGoalSelectPresenter {
+    weak var viewController: RecommendedGoalSelectDisplayLogic?
 }
 
-extension OnboardingGuidePresenter: OnboardingGuidePresentationLogic {
-    func presentRecommendedGoals(response: OnboardingGuide.LoadRecommendedGoals.Response) {
+extension RecommendedGoalSelectPresenter: RecommendedGoalSelectPresentationLogic {
+    func presentRecommendedGoals(response: RecommendedGoalSelect.LoadRecommendedGoals.Response) {
         let displayedGoals = response.recommendedGoals.enumerated().map { index, goal in
             DisplayedRecommendedGoal(
                 icon: goal.icon,
@@ -33,7 +33,7 @@ extension OnboardingGuidePresenter: OnboardingGuidePresentationLogic {
         viewController?.displayRecommendedGoals(viewModel: .init(displayedRecommendedGoals: displayedGoals))
     }
     
-    func presentSelectedRecommendedGoal(response: OnboardingGuide.SelectRecommendedGoal.Response) {
+    func presentSelectedRecommendedGoal(response: RecommendedGoalSelect.SelectRecommendedGoal.Response) {
         let displayedGoals = response.goals.enumerated().map { index, goal in
             DisplayedRecommendedGoal(
                 icon: goal.icon,

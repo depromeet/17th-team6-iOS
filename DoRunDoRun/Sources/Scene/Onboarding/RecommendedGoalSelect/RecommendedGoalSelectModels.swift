@@ -1,5 +1,5 @@
 //
-//  OnboardingGuideModels.swift
+//  RecommendedGoalSelectModels.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 9/20/25.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum OnboardingGuide {
+enum RecommendedGoalSelect {
     // MARK: Use cases
     
     enum LoadRecommendedGoals {
