@@ -57,12 +57,7 @@ final class OnboardingGoalSettingViewController: UIViewController {
         return label
     }()
     
-    private let tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.separatorStyle = .none
-        tableView.showsVerticalScrollIndicator = false
-        return tableView
-    }()
+    private let tableView = UITableView()
     
     private let nextButton: UIButton = {
         var config = UIButton.Configuration.filled()
@@ -162,7 +157,9 @@ final class OnboardingGoalSettingViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ChallengeGoalCell.self, forCellReuseIdentifier: ChallengeGoalCell.identifier)
+        tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
+        tableView.showsVerticalScrollIndicator = false
     }
     
     private func setupActions() {

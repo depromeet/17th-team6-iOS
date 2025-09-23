@@ -57,12 +57,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
         return label
     }()
     
-    private let tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.separatorStyle = .none
-        tableView.showsVerticalScrollIndicator = false
-        return tableView
-    }()
+    private let tableView = UITableView()
     
     private let nextButton: UIButton = {
         var config = UIButton.Configuration.filled()
@@ -162,7 +157,9 @@ final class OnboardingLevelCheckViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(RunningLevelCell.self, forCellReuseIdentifier: RunningLevelCell.identifier)
+        tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
+        tableView.showsVerticalScrollIndicator = false
     }
     
     private func setupActions() {

@@ -87,12 +87,7 @@ final class OnboardingPermissionViewController: UIViewController {
         return view
     }()
     
-    private let tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.separatorStyle = .none
-        tableView.showsVerticalScrollIndicator = false
-        return tableView
-    }()
+    private let tableView = UITableView()
     
     private let nextButton: UIButton = {
         var config = UIButton.Configuration.filled()
@@ -216,9 +211,11 @@ final class OnboardingPermissionViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(AgrementCell.self, forCellReuseIdentifier: AgrementCell.identifier)
-        tableView.isScrollEnabled = false
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 32
+        tableView.separatorStyle = .none
+        tableView.isScrollEnabled = false
+        tableView.showsVerticalScrollIndicator = false
     }
     
     private func setupActions() {
