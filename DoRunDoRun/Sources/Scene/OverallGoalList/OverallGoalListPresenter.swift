@@ -15,8 +15,9 @@ protocol OverallGoalListPresentationLogic {
 final class OverallGoalListPresenter {
     weak var viewController: OverallGoalListDisplayLogic?
     
+    private let formatter = DateComponentsFormatter()
+
     private func formatTime(_ seconds: TimeInterval) -> String {
-        let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
         formatter.unitsStyle = .positional
         formatter.zeroFormattingBehavior = .pad

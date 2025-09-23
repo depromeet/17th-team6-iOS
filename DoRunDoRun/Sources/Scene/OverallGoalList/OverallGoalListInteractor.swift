@@ -25,7 +25,7 @@ final class OverallGoalListInteractor: OverallGoalListDataStore {
 
 extension OverallGoalListInteractor: OverallGoalListBusinessLogic {
     func getOverallGoal(request: OverallGoalList.GetOverallGoal.Request) {
-        guard let overallGoal = overallGoal else { return }
+        guard let overallGoal else { return }
         presenter?.presentOverallGoal(response: .init(overallGoal: overallGoal))
     }
     
