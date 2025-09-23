@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OnboardingPermissionBusinessLogic {
+    func loadAgreements(request: OnboardingPermission.LoadAgreements.Request)
     func toggleAll(request: OnboardingPermission.ToggleAll.Request)
     func toggleOne(request: OnboardingPermission.ToggleOne.Request)
 }
@@ -26,6 +27,10 @@ final class OnboardingPermissionInteractor: OnboardingPermissionDataStore {
 }
 
 extension OnboardingPermissionInteractor: OnboardingPermissionBusinessLogic {
+    func loadAgreements(request: OnboardingPermission.LoadAgreements.Request) {
+        presenter?.presentAgreements(response: .init(agreements: agreements))
+    }
+    
     func toggleAll(request: OnboardingPermission.ToggleAll.Request) {
         let isAllChecked = agreements.allSatisfy { $0.isChecked }
         agreements = agreements.map {

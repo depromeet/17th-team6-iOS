@@ -14,6 +14,7 @@ struct Agreement {
 }
 
 protocol OnboardingPermissionDisplayLogic: AnyObject {
+    func displayAgreements(viewModel: OnboardingPermission.LoadAgreements.ViewModel)
     func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel)
     func displayToggleOne(viewModel: OnboardingPermission.ToggleOne.ViewModel)
 }
@@ -113,11 +114,7 @@ final class OnboardingPermissionViewController: UIViewController {
     
     // MARK: Properties
     
-    private var displayedAgreements: [DisplayedAgreement] = [
-        .init(title: "[필수] 위치기반 정보 수집 동의", isChecked: false),
-        .init(title: "[필수] 개인정보 수집/이용 동의", isChecked: false),
-        .init(title: "[선택] 마케팅 정보 수신 동의", isChecked: false)
-    ]
+    private var displayedAgreements: [DisplayedAgreement] = []
 
     // MARK: Object lifecycle
     
@@ -137,6 +134,8 @@ final class OnboardingPermissionViewController: UIViewController {
         setupView()
         setupTableView()
         setupActions()
+        
+        interactor?.loadAgreements(request: .init())
     }
     
     // MARK: Setup
@@ -259,6 +258,11 @@ extension OnboardingPermissionViewController: UITableViewDataSource, UITableView
 }
 
 extension OnboardingPermissionViewController: OnboardingPermissionDisplayLogic {
+    func displayAgreements(viewModel: OnboardingPermission.LoadAgreements.ViewModel) {
+        displayedAgreements = viewModel.displayedAgreements
+        tableView.reloadData()
+    }
+    
     func displayToggleAll(viewModel: OnboardingPermission.ToggleAll.ViewModel) {
         displayedAgreements = viewModel.displayedAgreements
         allCheckButton.configuration = .miniCheckmark(isChecked: viewModel.isAllChecked)

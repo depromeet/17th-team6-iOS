@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OnboardingPermissionPresentationLogic {
+    func presentAgreements(response: OnboardingPermission.LoadAgreements.Response)
     func presentToggleAll(response: OnboardingPermission.ToggleAll.Response)
     func presentToggleOne(response: OnboardingPermission.ToggleOne.Response)
 }
@@ -17,6 +18,13 @@ final class OnboardingPermissionPresenter {
 }
 
 extension OnboardingPermissionPresenter: OnboardingPermissionPresentationLogic {
+    func presentAgreements(response: OnboardingPermission.LoadAgreements.Response) {
+        let displayed = response.agreements.map {
+            DisplayedAgreement(title: $0.title, isChecked: $0.isChecked)
+        }
+        viewController?.displayAgreements(viewModel: .init(displayedAgreements: displayed))
+    }
+    
     func presentToggleAll(response: OnboardingPermission.ToggleAll.Response) {
         let displayed = response.agreements.map {
             DisplayedAgreement(title: $0.title, isChecked: $0.isChecked)

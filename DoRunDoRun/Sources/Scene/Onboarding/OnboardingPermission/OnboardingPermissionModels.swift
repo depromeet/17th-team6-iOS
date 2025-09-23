@@ -10,6 +10,16 @@ import UIKit
 enum OnboardingPermission {
     // MARK: Use cases
     
+    enum LoadAgreements {
+        struct Request {}
+        struct Response {
+            let agreements: [Agreement]
+        }
+        struct ViewModel {
+            let displayedAgreements: [DisplayedAgreement]
+        }
+    }
+    
     enum ToggleAll {
         struct Request {}
         struct Response { let agreements: [Agreement] }
