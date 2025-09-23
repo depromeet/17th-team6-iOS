@@ -1,4 +1,3 @@
-//
 //  RunningViewController.swift
 //  DoRunDoRun
 //
@@ -19,80 +18,54 @@ protocol RunningDisplayLogic: AnyObject {
 final class RunningViewController: UIViewController {
     var interactor: RunningBusinessLogic?
     var router: (RunningRoutingLogic & RunningDataPassing)?
-    
+
     // MARK: UI Object
-    private let segmentedControl: UISegmentedControl = {
-        let segment = UISegmentedControl()
-        segment.translatesAutoresizingMaskIntoConstraints = false
-        segment.insertSegment(withTitle: "목표", at: 0, animated: true)
-        segment.insertSegment(withTitle: "지도", at: 1, animated: true)
-        segment.selectedSegmentIndex = 0
-        
-        segment.setTitleTextAttributes([
-            NSAttributedString.Key.foregroundColor: UIColor.systemGray,
-            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16)
-        ], for: .normal)
-        segment.setTitleTextAttributes([
-            NSAttributedString.Key.foregroundColor: UIColor.black,
-            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16)
-        ], for: .selected)
-        segment.selectedSegmentTintColor = .clear
-        segment.setBackgroundImage(UIImage(), for: .normal, barMetrics: .default)
-        segment.setDividerImage(UIImage(), forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
-        return segment
-    }()
-    
-    private let underlineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemBlue // TODO: 이거 색깔 고르기
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private var underlineLeadingConstraint: NSLayoutConstraint!
-    
-    private let containerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
+
+    private let navBar = RunningNavigationBar()
+
     private let goalView: GoalView = {
         let view = GoalView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = false
         return view
     }()
-    
-    private let naverMapView: NMFMapView = {
-        let mapView = NMFMapView()
+
+    // Map Container UIView
+    private let mapContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+
+    private lazy var naverMapView: NMFMapView = {
+        let mapView = NMFMapView(frame: .zero)
         mapView.translatesAutoresizingMaskIntoConstraints = false
-        mapView.isHidden = true
         return mapView
     }()
     
-    private let startButton: UIButton = {
+    private let startRunningButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Start Running", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("러닝 시작", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(hex: 0x4C46FC)
-        button.titleLabel?.font = .pretendard(size: 40, weight: .heavy)
+        button.backgroundColor = UIColor(hex: 0x3E4FFF)
+        button.layer.cornerRadius = 12
+        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     // MARK: Object lifecycle
-    
     init() {
         super.init(nibName: nil, bundle: nil)
         setup()
     }
-    
+
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
+
     // MARK: Setup
-    
+
     private func setup() {
         let viewController = self
         let interactor = RunningInteractor()
@@ -105,75 +78,103 @@ final class RunningViewController: UIViewController {
         router.viewController = viewController
         router.dataStore = interactor
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setUI()
-        setupActions()
+        setDelegate()
+        addAction()
     }
-    
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        view.bringSubviewToFront(navBar)
+    }
+
     private func setUI() {
         view.backgroundColor = .white
-        view.addSubviews(segmentedControl, underlineView, containerView)
-        containerView.addSubviews(goalView, naverMapView)
-        
-        underlineLeadingConstraint = underlineView.leadingAnchor.constraint(equalTo: segmentedControl.leadingAnchor)
-        
+        view.addSubviews(goalView, mapContainer, navBar, startRunningButton)
+        navigationController?.navigationBar.isHidden = true
+
+        // naverMapView를 mapContainer에 추가
+        mapContainer.addSubview(naverMapView)
+
         NSLayoutConstraint.activate([
-            segmentedControl.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            segmentedControl.heightAnchor.constraint(equalToConstant: 44),
+            // Navigation Bar 제약 조건
+            navBar.heightAnchor.constraint(equalToConstant: 44),
+            navBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            // Goal View 제약 조건
+            goalView.topAnchor.constraint(equalTo: navBar.bottomAnchor),
+            goalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            goalView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            goalView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
+
+            // Map Container 제약 조건
+            mapContainer.topAnchor.constraint(equalTo: view.topAnchor),
+            mapContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mapContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mapContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
-            underlineView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 4),
-            underlineLeadingConstraint,
-            underlineView.widthAnchor.constraint(equalTo: segmentedControl.widthAnchor, multiplier: 0.5),
-            underlineView.heightAnchor.constraint(equalToConstant: 2),
+            // Naver Map View가 mapContainer 전체를 채우도록 제약 조건 설정
+            naverMapView.topAnchor.constraint(equalTo: mapContainer.topAnchor),
+            naverMapView.leadingAnchor.constraint(equalTo: mapContainer.leadingAnchor),
+            naverMapView.trailingAnchor.constraint(equalTo: mapContainer.trailingAnchor),
+            naverMapView.bottomAnchor.constraint(equalTo: mapContainer.bottomAnchor),
             
-            containerView.topAnchor.constraint(equalTo: underlineView.bottomAnchor, constant: 16),
-            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            goalView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            goalView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            goalView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            goalView.bottomAnchor.constraint(lessThanOrEqualTo: containerView.bottomAnchor),
-            
-            naverMapView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            naverMapView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            naverMapView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            naverMapView.bottomAnchor.constraint(lessThanOrEqualTo: containerView.bottomAnchor),
-            
+            // Start Running Button 높이만 설정 (레이아웃은 사용자가 직접 설정)
+            startRunningButton.heightAnchor.constraint(equalToConstant: 56),
+            startRunningButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            startRunningButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            startRunningButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
         ])
     }
-    
-    private func setupActions() {
-        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+
+    private func setDelegate() {
+        navBar.delegate = self
     }
-    
-    @objc private func segmentChanged() {
-        let selectedIndex = segmentedControl.selectedSegmentIndex
-        
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2, options: .curveEaseInOut) { [weak self] in
-            guard let self else { return }
-            underlineLeadingConstraint.constant = selectedIndex == 0 ? 0 : segmentedControl.frame.width / CGFloat(segmentedControl.numberOfSegments)
-            view.layoutIfNeeded()
+
+    private func addAction() {
+        let action = UIAction { [weak self] _ in
+            self?.displayStartRunning()
         }
+        startRunningButton.addAction(action, for: .touchUpInside)
+    }
+}
+
+extension RunningViewController: RunningDisplayLogic {
+
+}
+
+extension RunningViewController: NavigationBarDelegate {
+    func displayStartRunning() {
+        // TabBar까지 완전히 덮는 오버레이 표시
+        self.showFullScreenOverlayOnRootView()
+
+        // 대안: Root View에 오버레이 추가 (더 안정적)
+        // self.showFullScreenOverlayOnRootView()
         
-        switch selectedIndex {
+        print("러닝 시작 오버레이가 표시되었습니다.")
+    }
+
+    func didTapBackButton() {
+        print("Back button tapped")
+        navigationController?.popViewController(animated: true)
+    }
+
+    func didSelectSegment(at index: Int) {
+        print("Segment selected at index: \(index)")
+        switch index {
             case 0:
                 goalView.isHidden = false
-                naverMapView.isHidden = true
+                mapContainer.isHidden = true
             case 1:
                 goalView.isHidden = true
-                naverMapView.isHidden = false
+                mapContainer.isHidden = false
             default:
                 break
         }
     }
-}
-
-extension RunningViewController:  RunningDisplayLogic {
-    
 }

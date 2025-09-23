@@ -69,7 +69,7 @@ final class GoalView: UIView {
         self.addSubviews(aimTilteView, recommendAimStackView, routineStepView)
         
         NSLayoutConstraint.activate([
-            aimTilteView.topAnchor.constraint(equalTo: self.topAnchor, constant: 44),
+            aimTilteView.topAnchor.constraint(equalTo: self.topAnchor, constant: 32),
             aimTilteView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
             aimTilteView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20),
             
