@@ -155,6 +155,7 @@ final class OnboardingPermissionViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationItem.backButtonTitle = ""
+        navigationController?.navigationBar.tintColor = .init(hex: 0x1C1B1F)
     }
     
     private func setupView() {
@@ -233,8 +234,7 @@ final class OnboardingPermissionViewController: UIViewController {
     }
     
     @objc private func didTapNext() {
-        print("다음 버튼 눌림")
-        // router?.routeToNext()
+        router?.routeToLevelCheck()
     }
 }
 

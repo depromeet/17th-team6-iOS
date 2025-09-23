@@ -8,6 +8,7 @@
 import UIKit
 
 protocol OnboardingPermissionRoutingLogic {
+    func routeToLevelCheck()
 }
 
 protocol OnboardingPermissionDataPassing {
@@ -17,4 +18,28 @@ protocol OnboardingPermissionDataPassing {
 final class OnboardingPermissionRouter: OnboardingPermissionRoutingLogic, OnboardingPermissionDataPassing {
     weak var viewController: OnboardingPermissionViewController?
     var dataStore: OnboardingPermissionDataStore?
+    
+    // MARK: Routing
+    func routeToLevelCheck() {
+        let destinationVC = OnboardingLevelCheckViewController()
+        var destinationDS = destinationVC.router!.dataStore!
+        passDataToOverallGoalList(&destinationDS, frome: dataStore!)
+        navigateToOverallGoalList(destinationVC, from: viewController!)
+    }
+    
+    // MARK: Navigation
+    private func navigateToOverallGoalList(
+        _ destination: OnboardingLevelCheckViewController,
+        from source: OnboardingPermissionViewController
+    ) {
+        source.navigationController?.pushViewController(destination, animated: true)
+    }
+    
+    // MARK: Passing data
+    private func passDataToOverallGoalList(
+        _ destination: inout OnboardingLevelCheckDataStore,
+        frome source: OnboardingPermissionDataStore
+    ) {
+        // 데이터 전달
+    }
 }

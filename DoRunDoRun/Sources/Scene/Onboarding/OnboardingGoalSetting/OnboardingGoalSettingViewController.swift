@@ -123,6 +123,7 @@ final class OnboardingGoalSettingViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationItem.backButtonTitle = ""
+        navigationController?.navigationBar.tintColor = .init(hex: 0x1C1B1F)
     }
     
     private func setupView() {

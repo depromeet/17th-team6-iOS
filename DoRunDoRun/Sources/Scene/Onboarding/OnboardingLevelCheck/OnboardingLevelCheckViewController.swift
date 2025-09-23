@@ -102,6 +102,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
+        setupActions()
         
         interactor?.loadRunningLevels(request: .init())
     }
@@ -123,6 +124,7 @@ final class OnboardingLevelCheckViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationItem.backButtonTitle = ""
+        navigationController?.navigationBar.tintColor = .init(hex: 0x1C1B1F)
     }
     
     private func setupView() {
@@ -161,6 +163,16 @@ final class OnboardingLevelCheckViewController: UIViewController {
         tableView.delegate = self
         tableView.register(RunningLevelCell.self, forCellReuseIdentifier: RunningLevelCell.identifier)
         tableView.isScrollEnabled = false
+    }
+    
+    private func setupActions() {
+        nextButton.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
+    }
+    
+    // MARK: Actions
+    
+    @objc private func didTapNext() {
+        router?.routeToGoalSetting()
     }
 }
 
