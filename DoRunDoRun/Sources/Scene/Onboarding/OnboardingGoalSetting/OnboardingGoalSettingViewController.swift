@@ -7,7 +7,15 @@
 
 import UIKit
 
+struct GoalOption {
+    let image: String
+    let title: String
+    let subtitle: String
+}
+
 protocol OnboardingGoalSettingDisplayLogic: AnyObject {
+    func displayGoalOptions(viewModel: OnboardingGoalSetting.LoadGoalOptions.ViewModel)
+    func displaySelectedGoalOption(viewModel: OnboardingGoalSetting.SelectGoalOption.ViewModel)
 }
 
 final class OnboardingGoalSettingViewController: UIViewController {
@@ -74,15 +82,8 @@ final class OnboardingGoalSettingViewController: UIViewController {
     }()
     
     // MARK: Properties
-    
-    private var selectedIndex: Int = 0
-    
-    // FIXME: Clean Swift 구조로 변경 시 삭제되는 임시 데이터
-    private let options: [(image: String, title: String, subtitle: String)] = [
-        ("flag", "마라톤에 도전할래요", "10km · 21km · 42km"),
-        ("dumbbell", "체력을 키울래요", "30분 달리기"),
-        ("heart", "지구력을 키울래요", "Zone2 러닝")
-    ]
+
+    private var displayedGoalOptions: [DisplayedGoalOption] = []
     
     // MARK: Object lifecycle
     
@@ -101,6 +102,8 @@ final class OnboardingGoalSettingViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupTableView()
+        
+        interactor?.loadGoalOptions(request: .init())
     }
     
     // MARK: Setup
@@ -163,26 +166,40 @@ final class OnboardingGoalSettingViewController: UIViewController {
 
 extension OnboardingGoalSettingViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return options.count
+        return displayedGoalOptions.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ChallengeGoalCell.identifier, for: indexPath) as? ChallengeGoalCell else {
             return UITableViewCell()
         }
-        let option = options[indexPath.row]
-        cell.configure(imageName: option.image, title: option.title, subtitle: option.subtitle, isSelected: indexPath.row == selectedIndex)
+        let goal = displayedGoalOptions[indexPath.row]
+        cell.configure(imageName: goal.image,
+                       title: goal.title,
+                       subtitle: goal.subtitle,
+                       isSelected: goal.isSelected)
         return cell
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let previousIndexPath = IndexPath(row: selectedIndex, section: 0)
-        selectedIndex = indexPath.row
-        tableView.reloadRows(at: [previousIndexPath, indexPath], with: .none)
+        interactor?.selectGoalOption(request: .init(index: indexPath.row))
     }
 }
 
 extension OnboardingGoalSettingViewController: OnboardingGoalSettingDisplayLogic {
+    func displayGoalOptions(viewModel: OnboardingGoalSetting.LoadGoalOptions.ViewModel) {
+        displayedGoalOptions = viewModel.displayedGoalOptions
+        tableView.reloadData()
+    }
+
+    func displaySelectedGoalOption(viewModel: OnboardingGoalSetting.SelectGoalOption.ViewModel) {
+        displayedGoalOptions = viewModel.displayedGoalOptions
+        let indexPaths = [
+            IndexPath(row: viewModel.previousIndex, section: 0),
+            IndexPath(row: viewModel.selectedIndex, section: 0)
+        ]
+        tableView.reloadRows(at: indexPaths, with: .none)
+    }
 }
 
 
