@@ -6,92 +6,17 @@
 //
 
 import Foundation
+
 import Alamofire
 
 protocol RecommendedGoalServiceProtocol {
     func fetchRecommendedGoals(goalOption: GoalOption) async throws -> [RecommendedGoalDTO]
 }
 
+/// 실제 서버 통신
 final class RecommendedGoalService: RecommendedGoalServiceProtocol {
-    
-    private let useMockData: Bool = true // 개발 중 true, 서버 붙이면 false로
-    
     func fetchRecommendedGoals(goalOption: GoalOption) async throws -> [RecommendedGoalDTO] {
-        
-        if useMockData {
-            // GoalOption.type 별 Mock 데이터 반환
-            let mock: [RecommendedGoalDTO]
-            
-            switch goalOption.type {
-            case .marathon:
-                mock = [
-                    RecommendedGoalDTO(
-                        type: "MARATHON",
-                        title: "10km 마라톤 완주",
-                        subTitle: "초보 러너도 안정적으로 완주할 수 있어요!",
-                        distance: 10000,
-                        totalRoundCount: 8,
-                        duration: 60,
-                        pace: 390,
-                        isRecommended: true
-                    ),
-                    RecommendedGoalDTO(
-                        type: "MARATHON",
-                        title: "하프마라톤 완주",
-                        subTitle: "한계를 넘어서는 도전, 함께 성장해봐요!",
-                        distance: 21097,
-                        totalRoundCount: 12,
-                        duration: 200,
-                        pace: 360,
-                        isRecommended: false
-                    ),
-                    RecommendedGoalDTO(
-                        type: "MARATHON",
-                        title: "풀마라톤 완주",
-                        subTitle: "러너라면 한 번쯤 꿈꾸는 목표에 도전해보세요!",
-                        distance: 42195,
-                        totalRoundCount: 16,
-                        duration: 280,
-                        pace: 390,
-                        isRecommended: false
-                    )
-                ]
-                
-            case .stamina:
-                mock = [
-                    RecommendedGoalDTO(
-                        type: "STAMINA",
-                        title: "30분 달리기",
-                        subTitle: "러닝의 첫걸음, 체력을 기르는 기본 루틴",
-                        distance: 5000,
-                        totalRoundCount: 10,
-                        duration: 30,
-                        pace: 420,
-                        isRecommended: true
-                    )
-                ]
-                
-            case .zone2:
-                mock = [
-                    RecommendedGoalDTO(
-                        type: "ZONE_2",
-                        title: "Zone2 러닝 - 5km",
-                        subTitle: "편안한 조깅으로 지방 연소",
-                        distance: 5000,
-                        totalRoundCount: 6,
-                        duration: 40,
-                        pace: 390,
-                        isRecommended: true
-                    )
-                ]
-            }
-            
-            return mock
-        }
-        
-        // 실제 API 통신, URL은 이후 서버에서 제공는 실제 엔드포인트로 교체 필요
         let url = "https://api.example.com/api/goals/suggest"
-        
         let parameters: [String: Any] = [
             "type": goalOption.type.rawValue,
             "distance": goalOption.distance,
@@ -114,6 +39,70 @@ final class RecommendedGoalService: RecommendedGoalServiceProtocol {
                     continuation.resume(throwing: error)
                 }
             }
+        }
+    }
+}
+
+/// 목 데이터
+final class MockRecommendedGoalService: RecommendedGoalServiceProtocol {
+    func fetchRecommendedGoals(goalOption: GoalOption) async throws -> [RecommendedGoalDTO] {
+        switch goalOption.type {
+        case .marathon: [
+            RecommendedGoalDTO(
+                type: "MARATHON",
+                title: "10km 마라톤 완주",
+                subTitle: "초보 러너도 안정적으로 완주할 수 있어요!",
+                distance: 10000,
+                totalRoundCount: 8,
+                duration: 60,
+                pace: 390,
+                isRecommended: true
+            ),
+            RecommendedGoalDTO(
+                type: "MARATHON",
+                title: "하프마라톤 완주",
+                subTitle: "한계를 넘어서는 도전, 함께 성장해봐요!",
+                distance: 21097,
+                totalRoundCount: 12,
+                duration: 200,
+                pace: 360,
+                isRecommended: false
+            ),
+            RecommendedGoalDTO(
+                type: "MARATHON",
+                title: "풀마라톤 완주",
+                subTitle: "러너라면 한 번쯤 꿈꾸는 목표에 도전해보세요!",
+                distance: 42195,
+                totalRoundCount: 16,
+                duration: 280,
+                pace: 390,
+                isRecommended: false
+            )
+        ]
+        case .stamina: [
+            RecommendedGoalDTO(
+                type: "STAMINA",
+                title: "30분 달리기",
+                subTitle: "러닝의 첫걸음, 체력을 기르는 기본 루틴",
+                distance: 5000,
+                totalRoundCount: 10,
+                duration: 30,
+                pace: 420,
+                isRecommended: true
+            )
+        ]
+        case .zone2: [
+            RecommendedGoalDTO(
+                type: "ZONE_2",
+                title: "Zone2 러닝 - 5km",
+                subTitle: "편안한 조깅으로 지방 연소",
+                distance: 5000,
+                totalRoundCount: 6,
+                duration: 40,
+                pace: 390,
+                isRecommended: true
+            )
+        ]
         }
     }
 }

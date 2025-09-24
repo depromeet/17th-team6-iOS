@@ -8,7 +8,7 @@
 import UIKit
 
 protocol RunningLevelCheckRoutingLogic {
-    func routeToGoalSetting()
+    func routeToGoalOptionSelect()
 }
 
 protocol RunningLevelCheckDataPassing {
@@ -20,15 +20,15 @@ final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevel
     var dataStore: RunningLevelCheckDataStore?
     
     // MARK: Routing
-    func routeToGoalSetting() {
+    func routeToGoalOptionSelect() {
         let destinationVC = GoalOptionSelectViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToGoalSetting(&destinationDS, frome: dataStore!)
-        navigateToGoalSetting(destinationVC, from: viewController!)
+        passDataToGoalOptionSelect(&destinationDS, frome: dataStore!)
+        navigateToGoalOptionSelect(destinationVC, from: viewController!)
     }
     
     // MARK: Navigation
-    private func navigateToGoalSetting(
+    private func navigateToGoalOptionSelect(
         _ destination: GoalOptionSelectViewController,
         from source: RunningLevelCheckViewController
     ) {
@@ -36,7 +36,7 @@ final class RunningLevelCheckRouter: RunningLevelCheckRoutingLogic, RunningLevel
     }
     
     // MARK: Passing data
-    private func passDataToGoalSetting(
+    private func passDataToGoalOptionSelect(
         _ destination: inout GoalOptionSelectDataStore,
         frome source: RunningLevelCheckDataStore
     ) {

@@ -8,7 +8,7 @@
 import UIKit
 
 protocol GoalOptionSelectRoutingLogic {
-    func routeToGuide()
+    func routeToRecommendedGoalSelect()
 }
 
 protocol GoalOptionSelectDataPassing {
@@ -20,15 +20,15 @@ final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSele
     var dataStore: GoalOptionSelectDataStore?
     
     // MARK: Routing
-    func routeToGuide() {
+    func routeToRecommendedGoalSelect() {
         let destinationVC = RecommendedGoalSelectViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToGuide(&destinationDS, frome: dataStore!)
-        navigateToGuide(destinationVC, from: viewController!)
+        passDataToRecommendedGoalSelect(&destinationDS, frome: dataStore!)
+        navigateToRecommendedGoalSelect(destinationVC, from: viewController!)
     }
     
     // MARK: Navigation
-    private func navigateToGuide(
+    private func navigateToRecommendedGoalSelect(
         _ destination: RecommendedGoalSelectViewController,
         from source: GoalOptionSelectViewController
     ) {
@@ -36,7 +36,7 @@ final class GoalOptionSelectRouter: GoalOptionSelectRoutingLogic, GoalOptionSele
     }
     
     // MARK: Passing data
-    private func passDataToGuide(
+    private func passDataToRecommendedGoalSelect(
         _ destination: inout RecommendedGoalSelectDataStore,
         frome source: GoalOptionSelectDataStore
     ) {

@@ -5,8 +5,6 @@
 //  Created by Jaehui Yu on 9/24/25.
 //
 
-import Foundation
-
 struct RecommendedGoal {
     let type: String
     let title: String

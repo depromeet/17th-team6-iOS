@@ -10,7 +10,7 @@ import Foundation
 final class RecommendedGoalRepositoryImpl: RecommendedGoalRepository {
     private let service: RecommendedGoalServiceProtocol
     
-    init(service: RecommendedGoalServiceProtocol = RecommendedGoalService()) {
+    init(service: RecommendedGoalServiceProtocol = MockRecommendedGoalService()) {
         self.service = service
     }
     

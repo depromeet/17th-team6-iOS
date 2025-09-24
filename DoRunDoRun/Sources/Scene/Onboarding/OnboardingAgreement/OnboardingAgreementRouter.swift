@@ -8,7 +8,7 @@
 import UIKit
 
 protocol OnboardingAgreementRoutingLogic {
-    func routeToLevelCheck()
+    func routeToRunningLevelCheck()
 }
 
 protocol OnboardingAgreementDataPassing {
@@ -20,15 +20,15 @@ final class OnboardingAgreementRouter: OnboardingAgreementRoutingLogic, Onboardi
     var dataStore: OnboardingAgreementDataStore?
     
     // MARK: Routing
-    func routeToLevelCheck() {
+    func routeToRunningLevelCheck() {
         let destinationVC = RunningLevelCheckViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToLevelCheck(&destinationDS, frome: dataStore!)
-        navigateToLevelCheck(destinationVC, from: viewController!)
+        passDataToRunningLevelCheck(&destinationDS, frome: dataStore!)
+        navigateToRunningLevelCheck(destinationVC, from: viewController!)
     }
     
     // MARK: Navigation
-    private func navigateToLevelCheck(
+    private func navigateToRunningLevelCheck(
         _ destination: RunningLevelCheckViewController,
         from source: OnboardingAgreementViewController
     ) {
@@ -36,7 +36,7 @@ final class OnboardingAgreementRouter: OnboardingAgreementRoutingLogic, Onboardi
     }
     
     // MARK: Passing data
-    private func passDataToLevelCheck(
+    private func passDataToRunningLevelCheck(
         _ destination: inout RunningLevelCheckDataStore,
         frome source: OnboardingAgreementDataStore
     ) {
