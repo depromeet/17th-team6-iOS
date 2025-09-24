@@ -18,11 +18,12 @@ protocol HomeBusinessLogic {
 }
 
 protocol HomeDataStore {
-    // 나중에 서버 통신되면 여기에 데이터 보관
+    var overallGoal: OverallGoal? { get set }
 }
 
 final class HomeInteractor: HomeDataStore {
     var presenter: HomePresentationLogic?
+    var overallGoal: OverallGoal?
 }
 
 extension HomeInteractor: HomeBusinessLogic {
@@ -37,6 +38,7 @@ extension HomeInteractor: HomeBusinessLogic {
             totalSession: 12,
             progress: 0.75
         )
+        overallGoal = mockOverallGoal
         let response = Home.LoadOverallGoal.Response(overallGoal: mockOverallGoal)
         presenter?.presentOverallGoal(response: response)
     }

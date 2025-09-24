@@ -1,0 +1,57 @@
+//
+//  OverallGoalListPresenter.swift
+//  DoRunDoRun
+//
+//  Created by Jaehui Yu on 9/18/25.
+//
+
+import UIKit
+
+protocol OverallGoalListPresentationLogic {
+    func presentOverallGoal(response: OverallGoalList.GetOverallGoal.Response)
+    func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response)
+}
+
+final class OverallGoalListPresenter {
+    weak var viewController: OverallGoalListDisplayLogic?
+    
+    private let formatter = DateComponentsFormatter()
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = .pad
+        return formatter.string(from: seconds) ?? "00:00:00"
+    }
+}
+
+extension OverallGoalListPresenter: OverallGoalListPresentationLogic {
+    func presentOverallGoal(response: OverallGoalList.GetOverallGoal.Response) {
+        let goal = response.overallGoal
+        let displayedOverallGoal = OverallGoalList.GetOverallGoal.ViewModel.DisplayedOverallGoal(
+            iconName: goal.iconName,
+            title: goal.title,
+            currentSession: "\(goal.currentSession)회차",
+            totalSession: "/ 총 \(goal.totalSession)회",
+            progress: goal.progress
+        )
+        
+        let viewModel = OverallGoalList.GetOverallGoal.ViewModel(displayedOverallGoal: displayedOverallGoal)
+        viewController?.displayOverallGoal(viewModel: viewModel)
+    }
+    
+    func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response) {
+        let displayedSessionGoals = response.sessionGoals.map {
+            OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal(
+                round: "\($0.round)회차",
+                distance: String(format: "%.1f km", $0.distance),
+                time: formatTime($0.time),
+                pace: $0.pace,
+                isCompleted: $0.isCompleted
+            )
+        }
+        
+        let viewModel = OverallGoalList.LoadSessionGoals.ViewModel(displayedSessionGoals: displayedSessionGoals)
+        viewController?.displaySessionGoals(viewModel: viewModel)
+    }
+}

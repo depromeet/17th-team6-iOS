@@ -45,6 +45,7 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupView()
+        setupActions()
         
         fetchGoalData()
     }
@@ -89,6 +90,8 @@ final class HomeViewController: UIViewController {
         button.tintColor = .init(hex: 0x1C1B1F)
         button.addTarget(self, action: #selector(didTapNotification), for: .touchUpInside)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+        
+        navigationItem.backButtonTitle = ""
     }
     
     private func setupView() {
@@ -114,6 +117,10 @@ final class HomeViewController: UIViewController {
         ])
     }
     
+    private func setupActions() {
+        overallGoalView.viewAllButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
+    }
+    
     // MARK: Actions
     
     private func fetchGoalData() {
@@ -123,6 +130,10 @@ final class HomeViewController: UIViewController {
     
     @objc private func didTapNotification() {
         print("알림 버튼 눌림")
+    }
+    
+    @objc private func didTapOverallGoal() {
+        router?.routeToOverallGoalList()
     }
 }
 

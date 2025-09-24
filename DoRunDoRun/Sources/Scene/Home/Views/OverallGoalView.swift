@@ -24,7 +24,7 @@ final class OverallGoalView: UIView {
     private let titleLabel = UILabel()
     
     //TODO: 버튼 이미지 사이즈 관련 디자이너와 상의 필요
-    private let viewAllButton: UIButton = {
+    let viewAllButton: UIButton = {
         var config = UIButton.Configuration.plain()
         let attributedTitle = NSAttributedString.withLetterSpacing(
             text: "전체보기",
