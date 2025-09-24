@@ -21,9 +21,24 @@ protocol GoalOptionSelectDataStore {
 final class GoalOptionSelectInteractor: GoalOptionSelectDataStore {
     var presenter: GoalOptionSelectPresentationLogic?
     var goalOptions: [GoalOption] = [
-        GoalOption(image: "flag", title: "마라톤에 도전할래요", subtitle: "10km · 21km · 42km"),
-        GoalOption(image: "dumbbell", title: "체력을 키울래요", subtitle: "30분 달리기"),
-        GoalOption(image: "heart", title: "지구력을 키울래요", subtitle: "Zone2 러닝")
+        GoalOption(
+            type: .marathon,
+            distance: [10000, 21000, 42000],
+            duration: [],
+            pace: []
+        ),
+        GoalOption(
+            type: .stamina,
+            distance: [],
+            duration: [30],
+            pace: []
+        ),
+        GoalOption(
+            type: .zone2,
+            distance: [5000, 10000, 15000],
+            duration: [40, 80, 120],
+            pace: [360, 420]
+        )
     ]
     var selectedGoalOption: GoalOption?
     var selectedIndex: Int = 0

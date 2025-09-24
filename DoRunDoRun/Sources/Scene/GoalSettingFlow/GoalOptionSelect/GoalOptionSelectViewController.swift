@@ -7,12 +7,6 @@
 
 import UIKit
 
-struct GoalOption {
-    let image: String
-    let title: String
-    let subtitle: String
-}
-
 protocol GoalOptionSelectDisplayLogic: AnyObject {
     func displayGoalOptions(viewModel: GoalOptionSelect.LoadGoalOptions.ViewModel)
     func displaySelectedGoalOption(viewModel: GoalOptionSelect.SelectGoalOption.ViewModel)

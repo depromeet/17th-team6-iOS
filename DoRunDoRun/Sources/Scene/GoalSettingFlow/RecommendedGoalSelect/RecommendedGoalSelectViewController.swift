@@ -7,16 +7,6 @@
 
 import UIKit
 
-struct RecommendedGoal {
-    let icon: String
-    let title: String
-    let subTitle: String
-    let count: String
-    let time: String
-    let pace: String
-    let isRecommended: Bool
-}
-
 protocol RecommendedGoalSelectDisplayLogic: AnyObject {
     func displayRecommendedGoals(viewModel: RecommendedGoalSelect.LoadRecommendedGoals.ViewModel)
     func displaySelectedRecommendedGoal(viewModel: RecommendedGoalSelect.SelectRecommendedGoal.ViewModel)
