@@ -86,7 +86,6 @@ final class LocationServiceTestViewController: UIViewController {
     
     @objc private func stopTapped() {
         locationService.stopTracking()
-        streamTask?.cancel()
         streamTask = nil
         textView.text.append("\n--- Stopped ---\n")
     }
