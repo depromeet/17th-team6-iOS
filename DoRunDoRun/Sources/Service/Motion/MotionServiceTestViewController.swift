@@ -93,7 +93,6 @@ final class MotionServiceTestViewController: UIViewController {
     @objc private func stopTapped() { stopStreaming() }
 
     private func stopStreaming() {
-        task?.cancel()
         task = nil
         motionService.stopTracking()
         updateStatus("Stopped")
