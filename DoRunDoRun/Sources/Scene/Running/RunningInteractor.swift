@@ -13,6 +13,7 @@
 import UIKit
 
 protocol RunningBusinessLogic {
+    func requestStartRunning(request: Running.StartRunning.Request)
 }
 
 protocol RunningDataStore {
@@ -28,5 +29,7 @@ final class RunningInteractor: RunningDataStore {
 }
 
 extension RunningInteractor: RunningBusinessLogic {
-    
+    func requestStartRunning(request: Running.StartRunning.Request) {
+        presenter?.presentStartRunning(response: .init())
+    }
 }

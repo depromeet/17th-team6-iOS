@@ -38,8 +38,7 @@ final class RunningNavigationBar: UIView {
         button.contentMode = .scaleAspectFill
         return button
     }()
-    
-    
+
     private lazy var segmentedControl: UISegmentedControl = {
         let segment = UISegmentedControl()
         segment.translatesAutoresizingMaskIntoConstraints = false
@@ -190,5 +189,17 @@ final class RunningNavigationBar: UIView {
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return image ?? UIImage()
+    }
+
+    func setSegmentedControlIndex(to index: Int) {
+        guard index >= 0 && index < segmentedControl.numberOfSegments else { return }
+        segmentedControl.selectedSegmentIndex = index
+        animateSelectedBackgroundPosition()
+    }
+
+    func hideSegmentedControl(_ hide: Bool) {
+        segmentedControl.isHidden = hide
+        segmentBackgroundView.isHidden = hide
+        selectedBackgroundView.isHidden = hide
     }
 }

@@ -7,9 +7,7 @@
 import UIKit
 
 extension UIViewController {
-    
-    /// 최상단 Window를 찾는 함수 (TabBar까지 완전히 덮기 위해)
-    private func getKeyWindow() -> UIWindow? {
+    func getKeyWindow() -> UIWindow? {
         return UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }

@@ -12,9 +12,6 @@
 import NMapsMap
 import UIKit
 
-protocol RunningDisplayLogic: AnyObject {
-}
-
 final class RunningViewController: UIViewController {
     var interactor: RunningBusinessLogic?
     var router: (RunningRoutingLogic & RunningDataPassing)?
@@ -54,6 +51,10 @@ final class RunningViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+
+    private lazy var warmupView = StepRunningView(text: "웜업")
+
+    private lazy var coolDownView = StepRunningView(text: "쿨다운")
 
     // MARK: Object lifecycle
     init() {
@@ -138,14 +139,42 @@ final class RunningViewController: UIViewController {
 
     private func addAction() {
         let action = UIAction { [weak self] _ in
-            self?.displayStartRunning()
+            self?.interactor?.requestStartRunning(request: .init())
         }
         startRunningButton.addAction(action, for: .touchUpInside)
     }
 }
 
-extension RunningViewController: RunningDisplayLogic {
+@MainActor
+protocol RunningDisplayLogic: AnyObject {
+    func displayStartRunning(viewModel: Running.StartRunning.ViewModel)
+}
 
+extension RunningViewController: RunningDisplayLogic {
+    func displayStartRunning(viewModel: Running.StartRunning.ViewModel) {
+        navBar.setSegmentedControlIndex(to: 1)
+        navBar.hideSegmentedControl(true)
+        didSelectSegment(at: 1)
+        self.startRunningButton.isHidden = true
+//        self.displayStartRunning()
+        showWarmupModal()
+    }
+}
+
+extension RunningViewController {
+    private func showWarmupModal() {
+        self.tabBarController?.tabBar.isHidden = true
+
+        let warmupView = StepRunningView(text: "웜업")
+        view.addSubview(warmupView)
+
+        NSLayoutConstraint.activate([
+            warmupView.topAnchor.constraint(equalTo: view.topAnchor),
+            warmupView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            warmupView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            warmupView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
 }
 
 extension RunningViewController: NavigationBarDelegate {
