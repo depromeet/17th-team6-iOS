@@ -50,7 +50,7 @@ final class MetricView: UIView {
     
     // MARK: Configure
     
-    func configure(metrics: [(icon: String, title: String, value: String)]) {
+    func configure(metrics: [(icon: String?, title: String, value: String)]) {
         metricsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         metricViews.removeAll()
         
@@ -68,22 +68,25 @@ final class MetricView: UIView {
             }
             
             if index < metrics.count - 1 {
-                let separator = makeSeparator()
+                // 아이콘 여부에 따른 separator 높이 분기 처리
+                let separatorHeight: CGFloat = (metric.icon != nil) ? 40 : 20
+                let separator = makeSeparator(height: separatorHeight)
                 metricsStackView.addArrangedSubview(separator)
-                NSLayoutConstraint.activate([
-                    separator.widthAnchor.constraint(equalToConstant: 1),
-                    separator.heightAnchor.constraint(equalToConstant: 40)
-                ])
             }
         }
     }
-    
-    private func makeSeparator() -> UIView {
+
+    private func makeSeparator(height: CGFloat) -> UIView {
         let separator = UIView()
         separator.backgroundColor = .init(hex: 0xDFE4EC)
         separator.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            separator.widthAnchor.constraint(equalToConstant: 1),
+            separator.heightAnchor.constraint(equalToConstant: height)
+        ])
         return separator
     }
+
 }
 
 
@@ -101,6 +104,14 @@ final class MetricItemView: UIView {
     
     private let titleLabel = UILabel()
     
+    private let stackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 2
+        return stack
+    }()
+    
     // MARK: Object lifecycle
 
     override init(frame: CGRect) {
@@ -114,28 +125,34 @@ final class MetricItemView: UIView {
     // MARK: Setup
 
     private func setupView() {
-        [imageView, valueLabel, titleLabel].forEach {
-            addSubview($0)
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
+        [imageView, valueLabel, titleLabel].forEach { stackView.addArrangedSubview($0) }
+        addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: topAnchor),
-            imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            
-            valueLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
-            valueLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            
-            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 2),
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+            stackView.topAnchor.constraint(equalTo: topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
     
     // MARK: Configure
     
-    func configure(icon: String, title: String, value: String) {
-        imageView.image = UIImage(systemName: icon)
+    func configure(icon: String?, title: String, value: String) {
+        // 아이콘 여부에 따른 분기 처리
+        if let icon = icon {
+            imageView.image = UIImage(systemName: icon)
+            imageView.isHidden = false
+            
+            // 아이콘 있을 때는 imageView 아래 spacing = 8
+            stackView.setCustomSpacing(8, after: imageView)
+        } else {
+            imageView.isHidden = true
+            
+            // 아이콘 없을 때는 valueLabel이 맨 위로 올라오게 spacing = 0
+            stackView.setCustomSpacing(0, after: imageView)
+        }
         
         valueLabel.attributedText = .withLetterSpacing(
             text: value,

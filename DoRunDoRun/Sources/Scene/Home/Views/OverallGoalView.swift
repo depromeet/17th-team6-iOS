@@ -41,40 +41,15 @@ final class OverallGoalView: UIView {
         config.imagePadding = 2
         config.imagePlacement = .trailing
         config.baseForegroundColor = .init(hex: 0x585D64)
-        config.baseBackgroundColor = .red
+        config.baseBackgroundColor = .clear
         
         let button = UIButton(configuration: config)
         return button
     }()
-
-    private let distanceTitleLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "목표 거리",
-            font: .pretendard(size: 12, weight: .regular),
-            px: -0.2,
-            color: .init(hex: 0x82878F)
-        )
-        return label
-    }()
     
-    private let distanceValueLabel = UILabel()
-    
-    private let timeTitleLabel: UILabel = {
-        let label = UILabel()
-        label.attributedText = .withLetterSpacing(
-            text: "목표 시간",
-            font: .pretendard(size: 12, weight: .regular),
-            px: -0.2,
-            color: .init(hex: 0x82878F)
-        )
-        return label
-    }()
-    
-    private let timeValueLabel = UILabel()
+    private let metricView = MetricView()
     
     private let currentLabel = UILabel()
-    
     private let totalLabel = UILabel()
     
     private lazy var progressStack: UIStackView = {
@@ -108,7 +83,7 @@ final class OverallGoalView: UIView {
     private func setupView() {
         backgroundColor = .init(hex: 0xFFFFFF)
 
-        [iconImageView, titleLabel, viewAllButton, distanceTitleLabel, distanceValueLabel, timeTitleLabel, timeValueLabel, progressStack, progressView].forEach {
+        [iconImageView, titleLabel, viewAllButton, metricView, progressStack, progressView].forEach {
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -118,29 +93,21 @@ final class OverallGoalView: UIView {
             iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             iconImageView.widthAnchor.constraint(equalToConstant: 32),
             iconImageView.heightAnchor.constraint(equalToConstant: 32),
-
+            
             titleLabel.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
-
+            
             viewAllButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             viewAllButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-
-            distanceTitleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
-            distanceTitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-
-            distanceValueLabel.topAnchor.constraint(equalTo: distanceTitleLabel.bottomAnchor, constant: 2),
-            distanceValueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-
-            timeTitleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
-            timeTitleLabel.leadingAnchor.constraint(equalTo: distanceValueLabel.trailingAnchor, constant: 40),
-
-            timeValueLabel.topAnchor.constraint(equalTo: timeTitleLabel.bottomAnchor, constant: 2),
-            timeValueLabel.leadingAnchor.constraint(equalTo: timeTitleLabel.leadingAnchor),
-
-            progressStack.topAnchor.constraint(equalTo: distanceValueLabel.bottomAnchor, constant: 16),
+            
+            metricView.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 16),
+            metricView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            metricView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            
+            progressStack.topAnchor.constraint(equalTo: metricView.bottomAnchor, constant: 16),
             progressStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             progressStack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -20),
-
+            
             progressView.topAnchor.constraint(equalTo: progressStack.bottomAnchor, constant: 6),
             progressView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             progressView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
@@ -162,19 +129,11 @@ final class OverallGoalView: UIView {
             color: .init(hex: 0x232529)
         )
         
-        distanceValueLabel.attributedText = .withLetterSpacing(
-            text: data.distance,
-            font: .pretendard(size: 28, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x3B3E43)
-        )
-        
-        timeValueLabel.attributedText = .withLetterSpacing(
-            text: data.time,
-            font: .pretendard(size: 28, weight: .bold),
-            px: -0.2,
-            color: .init(hex: 0x3B3E43)
-        )
+        metricView.configure(metrics: [
+            (nil, "목표 거리", data.distance),
+            (nil, "권장 러닝 시간", data.time),
+            (nil, "권장 페이스", data.pace)
+        ])
         
         currentLabel.attributedText = .withLetterSpacing(
             text: data.currentSession,
@@ -182,6 +141,7 @@ final class OverallGoalView: UIView {
             px: -0.2,
             color: .init(hex: 0x3E4FFF)
         )
+        
         totalLabel.attributedText = .withLetterSpacing(
             text: data.totalSession,
             font: .pretendard(size: 12, weight: .regular),
