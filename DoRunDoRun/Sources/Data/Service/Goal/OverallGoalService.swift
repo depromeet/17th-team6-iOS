@@ -44,8 +44,8 @@ final class MockOverallGoalService: OverallGoalServiceProtocol {
             subTitle: "초보 러너도 안정적으로 완주할 수 있어요!",
             type: "MARATHON",
             pace: 360,
-            distance: 21097,
-            duration: 200,
+            distance: 10000,
+            duration: 60,
             currentRountCount: 4,
             totalRoundCount: 10
         )

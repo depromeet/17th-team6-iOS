@@ -59,9 +59,9 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
             clearedAt: nil,
             goalId: 1,
             pace: 360,
-            distance: 21097,
-            duration: 200,
-            roundCount: 7
+            distance: 5000,
+            duration: 60,
+            roundCount: 5
         )
     }
     
@@ -74,7 +74,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 1
             ),
@@ -85,7 +85,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 2
             ),
@@ -96,7 +96,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 3
             ),
@@ -107,7 +107,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 4
             ),
@@ -118,7 +118,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 5
             ),
@@ -129,7 +129,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 6
             ),
@@ -140,7 +140,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 7
             ),
@@ -151,7 +151,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 8
             ),
@@ -162,7 +162,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 9
             ),
@@ -173,7 +173,7 @@ final class MockSessionGoalService: SessionGoalServiceProtocol {
                 clearedAt: nil,
                 goalId: 1,
                 pace: 360,
-                distance: 5000,
+                distance: 1000,
                 duration: 30,
                 roundCount: 10
             ),

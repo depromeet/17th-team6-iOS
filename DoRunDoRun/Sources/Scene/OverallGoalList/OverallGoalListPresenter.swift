@@ -27,7 +27,10 @@ final class OverallGoalListPresenter {
 
     private func formatDistance(_ meters: Int) -> String {
         let km = Double(meters) / 1000.0
-        return String(format: "%.2f km", km)
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 1
+        return "\(formatter.string(from: NSNumber(value: km)) ?? "0") km"
     }
 
     private func formatDuration(_ minutes: Int) -> String {

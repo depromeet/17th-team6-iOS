@@ -31,7 +31,7 @@ final class HomePresenter {
 
     private func formatDistance(_ meters: Int) -> String {
         let km = Double(meters) / 1000.0
-        return String(format: "%.2f km", km)
+        return String(format: "%.1f km", km)
     }
 
     private func formatDuration(_ minutes: Int) -> String {
