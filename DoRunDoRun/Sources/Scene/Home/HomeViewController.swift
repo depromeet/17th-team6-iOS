@@ -111,7 +111,7 @@ final class HomeViewController: UIViewController {
             sessionGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             sessionGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            retryGoalView.topAnchor.constraint(equalTo: sessionGoalView.bottomAnchor, constant: 24),
+            retryGoalView.topAnchor.constraint(equalTo: sessionGoalView.bottomAnchor, constant: 16),
             retryGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             retryGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
