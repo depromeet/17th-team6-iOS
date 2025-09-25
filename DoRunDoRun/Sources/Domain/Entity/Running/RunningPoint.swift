@@ -2,17 +2,21 @@
 //  RunningPoint.swift
 //  DoRunDoRun
 //
-//  Created by zaehorang on 9/13/25.
+//  Created by zaehorang on 9/26/25.
 //
 
-import CoreLocation
+import Foundation
 
-/// 사용자가 달린 경로를 구성하는 GPS 좌표 모델
+/// 런닝 경로의 한 지점
 struct RunningPoint {
-    /// 해당 위치가 기록된 시각
     let timestamp: Date
-    /// 해당 위치 좌표
-    let coordinate: CLLocationCoordinate2D
+    let coordinate: RunningCoordinate
+    let altitude: Double
+    let speedMps: Double
 }
 
-
+/// 도메인 좌표 타입
+struct RunningCoordinate {
+    let latitude: Double
+    let longitude: Double
+}

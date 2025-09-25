@@ -7,11 +7,22 @@
 
 import CoreLocation
 
+extension CLLocationCoordinate2D {
+    func toRunningCoordinate() -> RunningCoordinate {
+        RunningCoordinate(
+            latitude: Double(latitude),
+            longitude: Double(longitude)
+        )
+    }
+}
+
 extension CLLocation {
-    func toDomain() -> RunningPoint {
-        .init(
-            timestamp: self.timestamp,
-            coordinate: self.coordinate
+    func toRunningPoint() -> RunningPoint {
+        RunningPoint(
+            timestamp: timestamp,
+            coordinate: coordinate.toRunningCoordinate(),
+            altitude: altitude,
+            speedMps: speed > 0 ? speed : 0
         )
     }
 }

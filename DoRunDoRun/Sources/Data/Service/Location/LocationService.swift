@@ -81,8 +81,10 @@ extension LocationService: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         for location in locations {
             // 정확도 필터: 0...40m 만 통과
-            let acc = location.horizontalAccuracy
-            guard acc >= 0, acc <= 40 else { continue }
+            let hAcc = location.horizontalAccuracy
+            let vAcc = location.verticalAccuracy
+            
+            guard hAcc >= 0, hAcc <= 40, vAcc >= 0 else { continue }
             continuation?.yield(location)
         }
     }
