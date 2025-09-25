@@ -10,6 +10,7 @@ import UIKit
 protocol OverallGoalListPresentationLogic {
     func presentOverallGoal(response: OverallGoalList.GetOverallGoal.Response)
     func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response, overallGoal: OverallGoal?)
+    func presentSelectedSessionGoal(response: OverallGoalList.SelectSessionGoal.Response, overallGoal: OverallGoal?)
 }
 
 final class OverallGoalListPresenter {
@@ -69,12 +70,13 @@ extension OverallGoalListPresenter: OverallGoalListPresentationLogic {
     
     func presentSessionGoals(response: OverallGoalList.LoadSessionGoals.Response, overallGoal: OverallGoal?) {
         let displayedSessionGoals = response.sessionGoals.map {
-            OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal(
+            DisplayedSessionGoal(
                 round: "\($0.roundCount)회차",
                 distance: formatDistance($0.distance),
                 time: formatDuration($0.duration),
                 pace: formatPace($0.pace),
-                isCompleted: $0.roundCount <= (overallGoal?.currentRoundCount ?? 0)
+                isCompleted: $0.roundCount <= (overallGoal?.currentRoundCount ?? 0),
+                isExpanded: false
             )
         }
         
@@ -82,6 +84,25 @@ extension OverallGoalListPresenter: OverallGoalListPresentationLogic {
         
         Task { @MainActor in
             viewController?.displaySessionGoals(viewModel: viewModel)
+        }
+    }
+    
+    func presentSelectedSessionGoal(response: OverallGoalList.SelectSessionGoal.Response, overallGoal: OverallGoal?) {
+        let displayed = response.sessionGoals.enumerated().map { index, goal in
+            DisplayedSessionGoal(
+                round: "\(goal.roundCount)회차",
+                distance: formatDistance(goal.distance),
+                time: formatDuration(goal.duration),
+                pace: formatPace(goal.pace),
+                isCompleted: goal.roundCount <= (overallGoal?.currentRoundCount ?? 0),
+                isExpanded: index == response.selectedIndex
+            )
+        }
+        
+        let viewModel = OverallGoalList.SelectSessionGoal.ViewModel(displayedSessionGoals: displayed, selectedIndex: response.selectedIndex, previousIndex: response.previousIndex, errorMessage: response.errorMessage)
+        
+        Task { @MainActor in
+            viewController?.displaySelectedSessionGoal(viewModel: viewModel)
         }
     }
 }

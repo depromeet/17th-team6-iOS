@@ -33,14 +33,33 @@ enum OverallGoalList {
             let sessionGoals: [SessionGoal]
         }
         struct ViewModel {
-            struct DisplayedSessionGoal {
-                let round: String
-                let distance: String
-                let time: String
-                let pace: String
-                let isCompleted: Bool
-            }
             let displayedSessionGoals: [DisplayedSessionGoal]
         }
     }
+    
+    enum SelectSessionGoal {
+        struct Request { let index: Int }
+        struct Response {
+            let sessionGoals: [SessionGoal]
+            let selectedIndex: Int?
+            let previousIndex: Int?
+            let errorMessage: String?
+        }
+        struct ViewModel {
+            let displayedSessionGoals: [DisplayedSessionGoal]
+            let selectedIndex: Int?
+            let previousIndex: Int?
+            let errorMessage: String?
+        }
+    }
+}
+
+struct DisplayedSessionGoal {
+    let id = UUID().uuidString
+    let round: String
+    let distance: String
+    let time: String
+    let pace: String
+    let isCompleted: Bool
+    let isExpanded: Bool
 }

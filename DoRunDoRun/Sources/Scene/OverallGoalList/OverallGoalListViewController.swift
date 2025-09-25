@@ -10,6 +10,7 @@ import UIKit
 protocol OverallGoalListDisplayLogic: AnyObject {
     func displayOverallGoal(viewModel: OverallGoalList.GetOverallGoal.ViewModel)
     func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel)
+    func displaySelectedSessionGoal(viewModel: OverallGoalList.SelectSessionGoal.ViewModel)
 }
 
 final class OverallGoalListViewController: UIViewController {
@@ -23,8 +24,7 @@ final class OverallGoalListViewController: UIViewController {
     
     // MARK: Properties
     
-    private var displayedSessionGoals: [OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal] = []
-    private var expandedIndexPath: IndexPath?
+    private var displayedSessionGoals: [DisplayedSessionGoal] = []
     
     // MARK: Object lifecycle
     
@@ -92,8 +92,6 @@ final class OverallGoalListViewController: UIViewController {
         tableView.delegate = self
         tableView.register(GoalSessionCell.self, forCellReuseIdentifier: GoalSessionCell.identifier)
         tableView.separatorStyle = .none
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 80
     }
     
     // MARK: Action
@@ -117,31 +115,18 @@ extension OverallGoalListViewController: UITableViewDataSource, UITableViewDeleg
         
         let session = displayedSessionGoals[indexPath.row]
         cell.configure(with: session)
-        
-        let shouldShowRetry = (indexPath == expandedIndexPath) && session.isCompleted
-        cell.showRetryButton(shouldShowRetry)
+        cell.showRetryButton(session.isCompleted && session.isExpanded)
         
         return cell
     }
 
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let session = displayedSessionGoals[indexPath.row]
+        return (session.isCompleted && session.isExpanded) ? 162 : 86
+    }
         
-        if session.isCompleted {
-            let previousExpandedIndexPath = expandedIndexPath
-            expandedIndexPath = (expandedIndexPath == indexPath) ? nil : indexPath
-            
-            tableView.beginUpdates()
-            if let previous = previousExpandedIndexPath {
-                tableView.reloadRows(at: [previous], with: .automatic)
-            }
-            if let current = expandedIndexPath {
-                tableView.reloadRows(at: [current], with: .automatic)
-            }
-            tableView.endUpdates()
-        } else {
-            showToast(message: "이전 회차를 끝내야 도전할 수 있어요.", style: .error)
-        }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        interactor?.selectSessionGoal(request: .init(index: indexPath.row))
     }
 }
 
@@ -154,6 +139,27 @@ extension OverallGoalListViewController: OverallGoalListDisplayLogic {
     func displaySessionGoals(viewModel: OverallGoalList.LoadSessionGoals.ViewModel) {
         displayedSessionGoals = viewModel.displayedSessionGoals
         tableView.reloadData()
+    }
+    
+    func displaySelectedSessionGoal(viewModel: OverallGoalList.SelectSessionGoal.ViewModel) {
+        if let error = viewModel.errorMessage {
+            showToast(message: error, style: .error)
+            return
+        }
+
+        displayedSessionGoals = viewModel.displayedSessionGoals
+
+        var indexPaths: [IndexPath] = []
+        if let prev = viewModel.previousIndex {
+            indexPaths.append(IndexPath(row: prev, section: 0))
+        }
+        if let curr = viewModel.selectedIndex {
+            indexPaths.append(IndexPath(row: curr, section: 0))
+        }
+        
+        tableView.beginUpdates()
+        tableView.reloadRows(at: indexPaths, with: .automatic)
+        tableView.endUpdates()
     }
 }
 

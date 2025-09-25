@@ -74,7 +74,6 @@ final class GoalSessionCell: UITableViewCell {
     // Retry 버튼 상단/높이 여백 제약
     private var retryButtonTopConstraint: NSLayoutConstraint!
     private var retryButtonHeightConstraint: NSLayoutConstraint!
-
     
     // MARK: Object lifecyle
     
@@ -164,7 +163,7 @@ final class GoalSessionCell: UITableViewCell {
     
     // MARK: Configure
     
-    func configure(with viewModel: OverallGoalList.LoadSessionGoals.ViewModel.DisplayedSessionGoal) {
+    func configure(with viewModel: DisplayedSessionGoal) {
         roundLabel.attributedText = .withLetterSpacing(
             text: viewModel.round,
             font: .pretendard(size: 16, weight: .bold),
@@ -176,21 +175,21 @@ final class GoalSessionCell: UITableViewCell {
             text: viewModel.distance,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
-            color: .init(hex: 0x82878F)
+            color: .init(hex: 0x585D64)
         )
         
         timeLabel.attributedText = .withLetterSpacing(
             text: viewModel.time,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
-            color: .init(hex: 0x232529)
+            color: .init(hex: 0x585D64)
         )
         
         paceLabel.attributedText = .withLetterSpacing(
             text: viewModel.pace,
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
-            color: .init(hex: 0x232529)
+            color: .init(hex: 0x585D64)
         )
         
         checkButton.configuration = .checkmark(isChecked: viewModel.isCompleted)
