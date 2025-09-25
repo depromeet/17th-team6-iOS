@@ -15,9 +15,6 @@ final class OverallGoalView: UIView {
     
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .init(hex: 0xD7DBE3)
-        imageView.layer.cornerRadius = 16
-        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -42,6 +39,7 @@ final class OverallGoalView: UIView {
         config.imagePlacement = .trailing
         config.baseForegroundColor = .init(hex: 0x585D64)
         config.baseBackgroundColor = .clear
+        config.imageColorTransformer = UIConfigurationColorTransformer { _ in UIColor(hex: 0x8F949C) }
         
         let button = UIButton(configuration: config)
         return button

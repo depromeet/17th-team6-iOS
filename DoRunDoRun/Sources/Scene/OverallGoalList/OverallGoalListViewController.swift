@@ -164,42 +164,9 @@ extension OverallGoalListViewController: OverallGoalListDisplayLogic {
 // 충돌 방지를 위해 현재는 ViewController 파일에 임시로 두었음.
 // 이후 정리 시에는 각각의 Extension 전용 파일로 이동 필요:
 //
-// - UIImage+.swift
 // - UIButton.Configuration+.swift
 // - UIViewController+.swift
 //
-
-extension UIImage {
-    func rotate(radians: CGFloat) -> UIImage {
-        var newSize = CGRect(origin: .zero, size: size)
-            .applying(CGAffineTransform(rotationAngle: radians))
-            .integral.size
-        
-        // scale 보존
-        newSize.width = floor(newSize.width)
-        newSize.height = floor(newSize.height)
-        
-        UIGraphicsBeginImageContextWithOptions(newSize, false, scale)
-        guard let context = UIGraphicsGetCurrentContext(), let cgImage = self.cgImage else {
-            return self
-        }
-        
-        // 중심 이동 후 회전
-        context.translateBy(x: newSize.width / 2, y: newSize.height / 2)
-        context.rotate(by: radians)
-        
-        // 이미지 그리기 (중심 맞춰서)
-        context.scaleBy(x: 1.0, y: -1.0)
-        let rect = CGRect(x: -size.width / 2, y: -size.height / 2,
-                          width: size.width, height: size.height)
-        context.draw(cgImage, in: rect)
-        
-        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return rotatedImage ?? self
-    }
-}
 
 extension UIButton.Configuration {
     static func checkmark(isChecked: Bool) -> UIButton.Configuration {

@@ -15,9 +15,6 @@ final class GoalHeaderView: UIView {
     
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .init(hex: 0xD7DBE3)
-        imageView.layer.cornerRadius = 16
-        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -26,11 +23,9 @@ final class GoalHeaderView: UIView {
     private let optionButton: UIButton = {
         var config = UIButton.Configuration.plain()
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
-        if let image = UIImage(systemName: "ellipsis", withConfiguration: imageConfig) {
-            let rotatedImage = image.withRenderingMode(.alwaysOriginal).rotate(radians: .pi / 2)
-            config.image = rotatedImage
-        }
+        let image = UIImage(systemName: "pencil", withConfiguration: imageConfig)
         
+        config.image = image
         config.imagePadding = 0
         config.baseForegroundColor = UIColor(hex: 0x585D64)
         
