@@ -94,51 +94,51 @@ final class RunningRepoTestViewController: UIViewController {
         streamTask = Task { [weak self] in
             guard let self else { return }
             do {
-                // NOTE:
-                // - 현재 MockRunningRepository.startRun()은 동기 throws입니다.
-                // - 만약 레포가 actor로 바뀌어 protocol이 `isolated`라면 `try await repo.startRun()`로 바꿔주세요.
-                let stream = try self.repo.startRun()
-                appendLine("▶️ START STREAM")
-                
+                let stream = try await self.repo.startRun()
+                await MainActor.run { self.appendLine("▶️ START STREAM") }
+
                 var count = 0
                 for try await snap in stream {
                     count += 1
-                    appendSnapshot(snap, index: count)
+                    await MainActor.run { self.appendSnapshot(snap, index: count) }
                 }
-                
-                appendLine("⏹️ STREAM ENDED")
+
+                await MainActor.run { self.appendLine("⏹️ STREAM ENDED") }
             } catch is CancellationError {
-                appendLine("🛑 STREAM CANCELLED")
+                await MainActor.run { self.appendLine("🛑 STREAM CANCELLED") }
             } catch {
-                appendLine("❌ ERROR: \(error)")
+                await MainActor.run { self.appendLine("❌ ERROR: \(error)") }
             }
         }
     }
-    
+
     @objc private func tapPause() {
-        // actor 구현이면 await 필요
-        // await repo.pause()
-        repo.pause()
-        appendLine("⏸️ PAUSE")
-    }
-    
-    @objc private func tapResume() {
-        do {
-            // actor 구현이면 try await 필요
-            // try await repo.resume()
-            try repo.resume()
-            appendLine("▶️ RESUME")
-        } catch {
-            appendLine("❌ RESUME ERROR: \(error)")
+        Task { [weak self] in
+            guard let self else { return }
+            await self.repo.pause()
+            await MainActor.run { self.appendLine("⏸️ PAUSE") }
         }
     }
-    
+
+    @objc private func tapResume() {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.repo.resume()
+                await MainActor.run { self.appendLine("▶️ RESUME") }
+            } catch {
+                await MainActor.run { self.appendLine("❌ RESUME ERROR: \(error)") }
+            }
+        }
+    }
+
     @objc private func tapStop() {
-        // actor 구현이면 await 필요
-        // await repo.stopRun()
-        repo.stopRun()
-        streamTask?.cancel()
-        appendLine("⏹️ STOP")
+        Task { [weak self] in
+            guard let self else { return }
+            await self.repo.stopRun()
+            self.streamTask?.cancel()
+            await MainActor.run { self.appendLine("⏹️ STOP") }
+        }
     }
     
     @objc private func tapClear() {

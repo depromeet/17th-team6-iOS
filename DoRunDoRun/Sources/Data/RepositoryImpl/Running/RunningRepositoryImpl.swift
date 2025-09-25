@@ -9,7 +9,7 @@ import CoreLocation
 import CoreMotion
 
 /// 센서 스트림을 합쳐 세션 상태를 관리하고 도메인 스냅샷을 생성
-final class RunningRepositoryImpl: RunningRepositoryProtocol {
+actor RunningRepositoryImpl: RunningRepositoryProtocol {
     
     // MARK: Dependencies
     private let locationService: LocationServiceProtocol
@@ -46,7 +46,7 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
     }
     
     // MARK: API
-    func startRun() throws -> AsyncThrowingStream<RunningSnapshot, Error> {
+    func startRun() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
         guard state == .idle || state == .stopped else {
             throw RunningError.alreadyRunning
         }
@@ -62,7 +62,7 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
         return stream
     }
     
-    func pause() {
+    func pause() async {
         guard state == .running else { return }
         
         state = .paused
@@ -75,7 +75,7 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
         lastLocation = nil
     }
     
-    func resume() throws {
+    func resume() async throws {
         guard state == .paused, let pausedAt else { return }
         
         state = .running
@@ -85,7 +85,7 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
         try startAndSubscribeServices()
     }
     
-    func stopRun() {
+    func stopRun() async {
         guard state == .running || state == .paused else { return }
         state = .stopped
         
@@ -100,34 +100,41 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
     
     // MARK: Service subscription
     private func startAndSubscribeServices() throws {
-        // 네 서비스 프로토콜 시그니처를 그대로 사용 (스트림 Error 타입은 Error)
         let locationStream = try locationService.startTracking()
         let motionStream = try motionService.startTracking()
-        
+    
         // 위치 스트림 소비
         let t1 = Task { [weak self] in
             guard let self else { return }
             do {
                 for try await loc in locationStream {
-                    self.consumeLocation(loc)
+                    if Task.isCancelled { break }
+                    await self.consumeLocation(loc)
                 }
+            } catch is CancellationError {
+                // 정상 취소로 취급
             } catch {
-                self.finishWith(error: self.mapError(error, origin: .location))
+                let mapped = await self.mapError(error, origin: .location)
+                await self.finishWith(error: mapped)
             }
         }
-        
+    
         // 모션 스트림 소비
         let t2 = Task { [weak self] in
             guard let self else { return }
             do {
                 for try await ped in motionStream {
-                    self.consumePedometer(ped)
+                    if Task.isCancelled { break }
+                    await self.consumePedometer(ped)
                 }
+            } catch is CancellationError {
+                // 정상 취소로 취급
             } catch {
-                self.finishWith(error: self.mapError(error, origin: .motion))
+                let mapped = await self.mapError(error, origin: .motion)
+                await self.finishWith(error: mapped)
             }
         }
-        
+    
         consumerTasks = [t1, t2]
     }
     
