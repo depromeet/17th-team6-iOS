@@ -33,7 +33,7 @@ final class RetryGoalView: UIView {
     }()
     
     //TODO: 버튼 이미지 사이즈 관련 디자이너와 상의 필요
-    private let playButton: UIButton = {
+    let playButton: UIButton = {
         var config = UIButton.Configuration.filled()
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
         let image = UIImage(systemName: "play.fill", withConfiguration: imageConfig)

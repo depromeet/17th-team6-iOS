@@ -119,6 +119,7 @@ final class HomeViewController: UIViewController {
     
     private func setupActions() {
         overallGoalView.viewAllButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
+        retryGoalView.playButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
     }
     
     // MARK: Actions
