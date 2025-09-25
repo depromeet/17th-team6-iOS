@@ -26,6 +26,7 @@ final class RunningRepositoryImpl: RunningRepositoryProtocol {
     private var startAt: Date?
     private var pausedAt: Date?
     private var totalPausedSec: TimeInterval = 0
+    
     private var lastLocation: CLLocation?
     private var lastPedometer: CMPedometerData?
     private var totalDistanceMeters: Double = 0
