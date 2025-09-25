@@ -20,42 +20,77 @@ protocol HomePresentationLogic {
 final class HomePresenter {
     weak var viewController: HomeDisplayLogic?
     
-    private func formatTime(_ seconds: TimeInterval) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.unitsStyle = .positional
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: seconds) ?? "00:00:00"
+    private func mapIcon(for type: String) -> String {
+        switch type {
+        case "MARATHON": return "flag"
+        case "STAMINA": return "dumbbell"
+        case "ZONE_2": return "heart"
+        default: return "circle"
+        }
     }
+
+    private func formatDistance(_ meters: Int) -> String {
+        let km = Double(meters) / 1000.0
+        return String(format: "%.2f km", km)
+    }
+
+    private func formatDuration(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 {
+            return String(format: "%02d:%02d:00", hours, mins)
+        } else {
+            return String(format: "00:%02d:00", mins)
+        }
+    }
+
+    private func formatPace(_ secondsPerKm: Int) -> String {
+        let minutes = secondsPerKm / 60
+        let seconds = secondsPerKm % 60
+        return "\(minutes)'\(String(format: "%02d", seconds))\""
+    }
+
 }
 
 extension HomePresenter: HomePresentationLogic {
     func presentOverallGoal(response: Home.LoadOverallGoal.Response) {
-        let overallGoal = response.overallGoal
+        let goal = response.overallGoal
+        
+        let progress: Float = Float(goal.currentRoundCount) / Float(goal.totalRoundCount)
+        
         let displayed = Home.LoadOverallGoal.ViewModel.DisplayedGoal(
-            iconName: overallGoal.iconName,
-            title: overallGoal.title,
-            distance: String(format: "%.2f km", overallGoal.distance),
-            time: formatTime(overallGoal.time),
-            currentSession: "\(overallGoal.currentSession)회차",
-            totalSession: "/ 총 \(overallGoal.totalSession)회",
-            progress: overallGoal.progress
+            iconName: mapIcon(for: goal.type),
+            title: goal.title,
+            distance: formatDistance(goal.distance),
+            time: formatDuration(goal.duration),
+            pace: formatPace(goal.pace),
+            currentSession: "\(goal.currentRoundCount)회차",
+            totalSession: "/ 총 \(goal.totalRoundCount)회",
+            progress: progress
         )
+        
         let viewModel = Home.LoadOverallGoal.ViewModel(displayedGoal: displayed)
-        viewController?.displayOverallGoal(viewModel: viewModel)
+        
+        Task { @MainActor in
+            viewController?.displayOverallGoal(viewModel: viewModel)
+        }
     }
     
     func presentSessionGoal(response: Home.LoadSessionGoal.Response) {
         let sessionGoal = response.sessionGoal
+        
         let displayed = Home.LoadSessionGoal.ViewModel.DisplayedSessionGoal(
-            title: "\(sessionGoal.round)회차 목표",
-            subtitle: sessionGoal.subtitle,
-            distance: String(format: "%.1f km", sessionGoal.distance),
-            time: formatTime(sessionGoal.time),
-            pace: sessionGoal.pace,
-            isCompleted: sessionGoal.isCompleted
+            title: "\(sessionGoal.roundCount)회차 목표",
+            subtitle: "목표까지 얼마 남지 않았어요! 힘차게 달려봐요!",
+            distance: formatDistance(sessionGoal.distance),
+            time: formatDuration(sessionGoal.duration),
+            pace: formatPace(sessionGoal.pace)
         )
+        
         let viewModel = Home.LoadSessionGoal.ViewModel(displayedSessionGoal: displayed)
-        viewController?.displaySessionGoal(viewModel: viewModel)
+        
+        Task { @MainActor in
+            viewController?.displaySessionGoal(viewModel: viewModel)
+        }
     }
 }

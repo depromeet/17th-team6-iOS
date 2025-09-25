@@ -27,6 +27,7 @@ enum Home {
         let title: String
         let distance: String
         let time: String
+        let pace: String
         let currentSession: String
         let totalSession: String
         let progress: Float
@@ -47,11 +48,8 @@ enum Home {
           let distance: String
           let time: String
           let pace: String
-          let isCompleted: Bool
         }
         let displayedSessionGoal: DisplayedSessionGoal
     }
   }
 }
-
-
