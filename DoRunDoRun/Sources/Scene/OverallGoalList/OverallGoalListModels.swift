@@ -1,0 +1,62 @@
+//
+//  OverallGoalListModels.swift
+//  DoRunDoRun
+//
+//  Created by Jaehui Yu on 9/18/25.
+//
+
+enum OverallGoalList {
+    
+    // MARK: - Use cases
+    enum GetOverallGoal {
+        struct Request { }
+        struct Response {
+            let overallGoal: OverallGoal
+        }
+        struct ViewModel {
+            struct DisplayedOverallGoal {
+                let iconName: String
+                let title: String
+                let currentSession: String
+                let totalSession: String
+                let progress: Float
+            }
+            let displayedOverallGoal: DisplayedOverallGoal
+        }
+    }
+    
+    enum LoadSessionGoals {
+        struct Request { }
+        struct Response {
+            let sessionGoals: [SessionGoal]
+        }
+        struct ViewModel {
+            let displayedSessionGoals: [DisplayedSessionGoal]
+        }
+    }
+    
+    enum SelectSessionGoal {
+        struct Request { let index: Int }
+        struct Response {
+            let sessionGoals: [SessionGoal]
+            let selectedIndex: Int?
+            let previousIndex: Int?
+            let errorMessage: String?
+        }
+        struct ViewModel {
+            let displayedSessionGoals: [DisplayedSessionGoal]
+            let selectedIndex: Int?
+            let previousIndex: Int?
+            let errorMessage: String?
+        }
+    }
+}
+
+struct DisplayedSessionGoal {
+    let round: String
+    let distance: String
+    let time: String
+    let pace: String
+    let isCompleted: Bool
+    let isExpanded: Bool
+}

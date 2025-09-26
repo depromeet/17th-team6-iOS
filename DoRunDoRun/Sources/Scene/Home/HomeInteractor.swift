@@ -13,20 +13,48 @@
 import UIKit
 
 protocol HomeBusinessLogic {
+    func loadOverallGoal(request: Home.LoadOverallGoal.Request)
+    func loadSessionGoal(request: Home.LoadSessionGoal.Request)
 }
 
 protocol HomeDataStore {
-    //var name: String { get set }
+    var overallGoal: OverallGoal? { get set }
 }
 
 final class HomeInteractor: HomeDataStore {
     var presenter: HomePresentationLogic?
-    //var name: String = ""
-    
-    // MARK: Do something
-    
+    var worker: HomeWorker = HomeWorker()
+
+    var overallGoal: OverallGoal?
 }
 
 extension HomeInteractor: HomeBusinessLogic {
+    func loadOverallGoal(request: Home.LoadOverallGoal.Request) {
+        Task {
+            do {
+                let goal = try await worker.loadOverallGoal()
+                self.overallGoal = goal
+                let response = Home.LoadOverallGoal.Response(overallGoal: goal)
+                await MainActor.run { [weak self] in
+                    self?.presenter?.presentOverallGoal(response: response)
+                }
+            } catch {
+                print("🚨 Error: \(error.localizedDescription)")
+            }
+        }
+    }
     
+    func loadSessionGoal(request: Home.LoadSessionGoal.Request) {
+        Task {
+            do {
+                let session = try await worker.loadSessionGoal()
+                let response = Home.LoadSessionGoal.Response(sessionGoal: session)
+                await MainActor.run { [weak self] in
+                    self?.presenter?.presentSessionGoal(response: response)
+                }
+            } catch {
+                print("🚨 Error: \(error.localizedDescription)")
+            }
+        }
+    }
 }

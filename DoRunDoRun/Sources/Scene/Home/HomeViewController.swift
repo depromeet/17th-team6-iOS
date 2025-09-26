@@ -13,14 +13,24 @@
 import UIKit
 
 protocol HomeDisplayLogic: AnyObject {
+    func displayOverallGoal(viewModel: Home.LoadOverallGoal.ViewModel)
+    func displaySessionGoal(viewModel: Home.LoadSessionGoal.ViewModel)
 }
 
 final class HomeViewController: UIViewController {
     var interactor: HomeBusinessLogic?
     var router: (HomeRoutingLogic & HomeDataPassing)?
+        
+    // MARK: UI
+    
+    private let overallGoalView = OverallGoalView()
+    
+    private let sessionGoalView = SessionGoalView()
+    
+    private let retryGoalView = RetryGoalView()
     
     // MARK: Object lifecycle
-    
+
     init() {
         super.init(nibName: nil, bundle: nil)
         setup()
@@ -28,6 +38,17 @@ final class HomeViewController: UIViewController {
     
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    // MARK: View lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupNavigationBar()
+        setupView()
+        setupActions()
+        
+        fetchGoalData()
+    }
     
     // MARK: Setup
     
@@ -43,8 +64,86 @@ final class HomeViewController: UIViewController {
         router.viewController = viewController
         router.dataStore = interactor
     }
+    
+    private func setupNavigationBar() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .init(hex: 0xFFFFFF)
+        appearance.shadowColor = .none
+
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        
+        
+        let homeLabel = UILabel()
+        homeLabel.attributedText = .withLetterSpacing(
+            text: "홈",
+            font: .pretendard(size: 20, weight: .bold),
+            px: 0.5,
+            color: .init(hex: 0x000000)
+        )
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: homeLabel)
+        
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "bell.badge"), for: .normal)
+        button.tintColor = .init(hex: 0x1C1B1F)
+        button.addTarget(self, action: #selector(didTapNotification), for: .touchUpInside)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+        
+        navigationItem.backButtonTitle = ""
+    }
+    
+    private func setupView() {
+        view.backgroundColor = .init(hex: 0xF0F3F8)
+        
+        [overallGoalView, sessionGoalView, retryGoalView].forEach {
+            view.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        NSLayoutConstraint.activate([
+            overallGoalView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            overallGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overallGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            sessionGoalView.topAnchor.constraint(equalTo: overallGoalView.bottomAnchor, constant: 18),
+            sessionGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            sessionGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            retryGoalView.topAnchor.constraint(equalTo: sessionGoalView.bottomAnchor, constant: 16),
+            retryGoalView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            retryGoalView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+        ])
+    }
+    
+    private func setupActions() {
+        overallGoalView.viewAllButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
+        retryGoalView.playButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
+    }
+    
+    // MARK: Actions
+    
+    private func fetchGoalData() {
+        interactor?.loadOverallGoal(request: .init())
+        interactor?.loadSessionGoal(request: .init())
+    }
+    
+    @objc private func didTapNotification() {
+        print("알림 버튼 눌림")
+    }
+    
+    @objc private func didTapOverallGoal() {
+        router?.routeToOverallGoalList()
+    }
 }
 
-extension HomeViewController:  HomeDisplayLogic {
+extension HomeViewController: HomeDisplayLogic {
+    func displayOverallGoal(viewModel: Home.LoadOverallGoal.ViewModel) {
+        overallGoalView.configure(with: viewModel.displayedGoal)
+    }
     
+    func displaySessionGoal(viewModel: Home.LoadSessionGoal.ViewModel) {
+        sessionGoalView.configure(with: viewModel.displayedSessionGoal)
+    }
 }
