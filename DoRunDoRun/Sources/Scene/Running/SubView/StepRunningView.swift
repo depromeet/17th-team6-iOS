@@ -7,9 +7,24 @@
 
 import UIKit
 
+protocol StepRunningViewDelegate: AnyObject {
+    func didTapPassButton(type: StepRunningView.StepType)
+    func didTapStopButton(type: StepRunningView.StepType)
+    func didTapTerminateButton(type: StepRunningView.StepType)
+    func didTapContinueButton(type: StepRunningView.StepType)
+}
+
+
 final class StepRunningView: UIView {
+    enum StepType {
+        case warmup
+        case cooldown
+    }
     private lazy var titleLabel = UILabel(text: self.text, size: 24, weight: .bold)
     private let text: String
+    private let stepType: StepType
+    weak var delegate: StepRunningViewDelegate?
+
     private let container: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -25,13 +40,13 @@ final class StepRunningView: UIView {
     )
     private let runningLabel = UILabel(text: "러닝 시간", size: 14, weight: .medium, color: UIColor(hex: 0x747A83))
     private let timmerLabel = UILabel(text: "00:00:00", size: 32, weight: .bold, color: .black)
-    private let pauseButton = UIButton(
+    private let stopButton = UIButton(
         title: "기록 정지",
         font: .pretendard(size: 16, weight: .bold),
         titleColor: .white,
         backgroundColor: .init(hex: 0x3E4FFF)
     )
-    private let stopButton = UIButton(
+    private let terminateButton = UIButton(
         title: "기록 종료",
         font: .pretendard(size: 16, weight: .bold),
         titleColor: .init(hex: 0xFF443B),
@@ -45,19 +60,24 @@ final class StepRunningView: UIView {
     )
 
 
-    init(text: String) {
-        self.text = text
+    init(stepType: StepType) {
+        self.stepType = stepType
+        self.text = switch stepType {
+            case .warmup: "웜업"
+            case .cooldown: "쿨다운"
+        }
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
         setupUI()
+        addAction()
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func setupUI() {
-        pauseButton.layer.cornerRadius = 12
         stopButton.layer.cornerRadius = 12
+        terminateButton.layer.cornerRadius = 12
         continueButton.layer.cornerRadius = 12
 
         let emptyView = UIView()
@@ -67,7 +87,7 @@ final class StepRunningView: UIView {
 
 
         self.addSubviews(emptyView, container)
-        container.addSubviews(titleLabel, passButton, runningLabel, timmerLabel, pauseButton, stopButton, continueButton)
+        container.addSubviews(titleLabel, passButton, runningLabel, timmerLabel, stopButton, terminateButton, continueButton)
 
         NSLayoutConstraint.activate([
             emptyView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
@@ -100,25 +120,57 @@ final class StepRunningView: UIView {
             timmerLabel.topAnchor.constraint(equalTo: runningLabel.bottomAnchor, constant: 8),
         ])
 
-        stopButton.isHidden = true
+        terminateButton.isHidden = true
         continueButton.isHidden = true
 
         NSLayoutConstraint.activate([
-            pauseButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-            pauseButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-            pauseButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -24),
-            pauseButton.heightAnchor.constraint(equalToConstant: 56),
-
+            stopButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
             stopButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
             stopButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -24),
-            stopButton.trailingAnchor.constraint(equalTo: continueButton.leadingAnchor, constant: -8),
             stopButton.heightAnchor.constraint(equalToConstant: 56),
+
+            terminateButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            terminateButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -24),
+            terminateButton.trailingAnchor.constraint(equalTo: continueButton.leadingAnchor, constant: -8),
+            terminateButton.heightAnchor.constraint(equalToConstant: 56),
 
             continueButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
             continueButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -24),
             continueButton.heightAnchor.constraint(equalToConstant: 56),
-            continueButton.widthAnchor.constraint(equalTo: stopButton.widthAnchor)
+            continueButton.widthAnchor.constraint(equalTo: terminateButton.widthAnchor)
         ])
+    }
+
+    private func addAction() {
+        let passAction = UIAction { [weak self] _ in
+            guard let self else { return }
+            self.delegate?.didTapPassButton(type: self.stepType)
+        }
+        passButton.addAction(passAction, for: .touchUpInside)
+
+        let stopAction = UIAction { [weak self] _ in
+            guard let self else { return }
+            self.stopButton.isHidden = true
+            self.terminateButton.isHidden = false
+            self.continueButton.isHidden = false
+            self.delegate?.didTapStopButton(type: self.stepType)
+        }
+        stopButton.addAction(stopAction, for: .touchUpInside)
+
+        let terminateAction = UIAction { [weak self] _ in
+            guard let self else { return }
+            self.delegate?.didTapTerminateButton(type: self.stepType)
+        }
+        terminateButton.addAction(terminateAction, for: .touchUpInside)
+
+        let continueAction = UIAction { [weak self] _ in
+            guard let self else { return }
+            self.stopButton.isHidden = false
+            self.terminateButton.isHidden = true
+            self.continueButton.isHidden = true
+            self.delegate?.didTapContinueButton(type: self.stepType)
+        }
+        continueButton.addAction(continueAction, for: .touchUpInside)
     }
 }
  

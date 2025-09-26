@@ -196,10 +196,4 @@ final class RunningNavigationBar: UIView {
         segmentedControl.selectedSegmentIndex = index
         animateSelectedBackgroundPosition()
     }
-
-    func hideSegmentedControl(_ hide: Bool) {
-        segmentedControl.isHidden = hide
-        segmentBackgroundView.isHidden = hide
-        selectedBackgroundView.isHidden = hide
-    }
 }

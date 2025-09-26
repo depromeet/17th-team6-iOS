@@ -40,7 +40,7 @@ final class RunningViewController: UIViewController {
         mapView.translatesAutoresizingMaskIntoConstraints = false
         return mapView
     }()
-    
+
     private let startRunningButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("러닝 시작", for: .normal)
@@ -52,9 +52,11 @@ final class RunningViewController: UIViewController {
         return button
     }()
 
-    private lazy var warmupView = StepRunningView(text: "웜업")
+    private lazy var warmupView = StepRunningView(stepType: .warmup)
 
-    private lazy var coolDownView = StepRunningView(text: "쿨다운")
+    private lazy var coolDownView = StepRunningView(stepType: .cooldown)
+
+    private lazy var runningInfoView = RunningInfoView()
 
     // MARK: Object lifecycle
     init() {
@@ -118,13 +120,13 @@ final class RunningViewController: UIViewController {
             mapContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mapContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             mapContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
+
             // Naver Map View가 mapContainer 전체를 채우도록 제약 조건 설정
             naverMapView.topAnchor.constraint(equalTo: mapContainer.topAnchor),
             naverMapView.leadingAnchor.constraint(equalTo: mapContainer.leadingAnchor),
             naverMapView.trailingAnchor.constraint(equalTo: mapContainer.trailingAnchor),
             naverMapView.bottomAnchor.constraint(equalTo: mapContainer.bottomAnchor),
-            
+
             // Start Running Button 높이만 설정 (레이아웃은 사용자가 직접 설정)
             startRunningButton.heightAnchor.constraint(equalToConstant: 56),
             startRunningButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -152,27 +154,138 @@ protocol RunningDisplayLogic: AnyObject {
 
 extension RunningViewController: RunningDisplayLogic {
     func displayStartRunning(viewModel: Running.StartRunning.ViewModel) {
-        navBar.setSegmentedControlIndex(to: 1)
-        navBar.hideSegmentedControl(true)
         didSelectSegment(at: 1)
-        self.startRunningButton.isHidden = true
-//        self.displayStartRunning()
         showWarmupModal()
     }
 }
 
+extension RunningViewController: StepRunningViewDelegate {
+    func didTapPassButton(type: StepRunningView.StepType) {
+        switch type {
+            case .warmup:
+                let alertView = AlertView(
+                    title: "웜업 건너뛰기",
+                    message: "안전한 러닝을 위해 웜업을 권장해요.\n건너뛰고 본 러닝을 시작할까요?",
+                    confirmText: "건너뛰기",
+                    cancelAction: {
+                        print("Cancel tapped")
+                    },
+                    confirmAction: { [weak self] in
+                        self?.warmupView.removeFromSuperview()
+                        self?.showRunningModal()
+                    }
+                )
+                alertView.show(in: self.view)
+            case .cooldown:
+                break
+        }
+    }
+
+    func didTapTerminateButton(type: StepRunningView.StepType) {
+        switch type {
+            case .warmup:
+                let alertView = AlertView(
+                    title: "웜업 종료",
+                    message: "웜업은 기록되지 않아요.\n기록을 종료하고 홈으로 이동하시겠어요?",
+                    destructiveText: "기록 종료",
+                    cancelAction: {
+                        print("Cancel tapped")
+                    },
+                    destructiveAction: { [weak self] in
+                        self?.changeMode(mode: .notRunning)
+                    }
+                )
+                alertView.show(in: self.view)
+            case .cooldown:
+                break
+        }
+    }
+
+    func didTapStopButton(type: StepRunningView.StepType) {
+        switch type {
+            case .warmup:
+                break
+            case .cooldown:
+                break
+        }
+    }
+
+    func didTapContinueButton(type: StepRunningView.StepType) {
+        switch type {
+            case .warmup:
+                break
+            case .cooldown:
+                break
+        }
+    }
+}
+
+extension RunningViewController: RunningInfoViewDelegate {
+    func didTapTerminateButton() {
+        let alertView = AlertView(
+            title: "러닝 기록 종료",
+            message: "아직 목표까지 200m 남았어요.\n이대로 기록을 종료하시겠어요?",
+            destructiveText: "기록 종료",
+            cancelAction: { [weak self] in
+                guard let self else { return }
+            },
+            destructiveAction: { [weak self] in
+                guard let self else { return }
+                changeMode(mode: .notRunning)
+                runningInfoView.removeFromSuperview()
+            }
+        )
+        alertView.show(in: self.view)
+    }
+    
+    func didTapContinueButton() {
+        
+    }
+    
+    func didTapStopButton() {
+
+    }
+}
+
 extension RunningViewController {
+    enum Mode {
+        case notRunning, running
+    }
+
+    private func changeMode(mode: Mode) {
+        switch mode {
+            case .notRunning:
+                navBar.isHidden = false
+                tabBarController?.tabBar.isHidden = false
+                warmupView.removeFromSuperview()
+                coolDownView.removeFromSuperview()
+            case .running:
+                navBar.isHidden = true
+                tabBarController?.tabBar.isHidden = true
+        }
+    }
+
     private func showWarmupModal() {
-        self.tabBarController?.tabBar.isHidden = true
-
-        let warmupView = StepRunningView(text: "웜업")
+        changeMode(mode: .running)
+        navBar.setSegmentedControlIndex(to: 1)
         view.addSubview(warmupView)
-
+        warmupView.delegate = self
         NSLayoutConstraint.activate([
             warmupView.topAnchor.constraint(equalTo: view.topAnchor),
             warmupView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             warmupView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             warmupView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    private func showRunningModal() {
+        view.addSubview(runningInfoView)
+        runningInfoView.delegate = self
+        NSLayoutConstraint.activate([
+            runningInfoView.topAnchor.constraint(equalTo: view.topAnchor),
+            runningInfoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            runningInfoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            runningInfoView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 }
@@ -184,7 +297,7 @@ extension RunningViewController: NavigationBarDelegate {
 
         // 대안: Root View에 오버레이 추가 (더 안정적)
         // self.showFullScreenOverlayOnRootView()
-        
+
         print("러닝 시작 오버레이가 표시되었습니다.")
     }
 
