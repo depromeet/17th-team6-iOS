@@ -66,6 +66,7 @@ final class StepRunningView: UIView {
             case .warmup: "웜업"
             case .cooldown: "쿨다운"
         }
+        passButton.isHidden = stepType == .cooldown
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
         setupUI()
@@ -171,6 +172,10 @@ final class StepRunningView: UIView {
             self.delegate?.didTapContinueButton(type: self.stepType)
         }
         continueButton.addAction(continueAction, for: .touchUpInside)
+    }
+
+    func updateTime(text: String) {
+        timmerLabel.text = text
     }
 }
  

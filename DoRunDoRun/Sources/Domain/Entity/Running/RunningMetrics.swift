@@ -15,4 +15,30 @@ struct RunningMetrics {
     let avgPaceSecPerKm: Double
     /// 현재 케이던스 (steps/min)
     let cadenceSpm: Double
+
+    func toViewModel() -> RunningMetricsViewModel {
+        let distanceKm = totalDistanceMeters / 1000
+        let distanceStr = String(format: "%.1f km", distanceKm)
+
+        let elapsedStr = elapsed.formatted()
+
+        let paceMin = Int(avgPaceSecPerKm) / 60
+        let paceSec = Int(avgPaceSecPerKm) % 60
+        let paceStr = String(format: "%d'%02d\"", paceMin, paceSec)
+
+        let cadenceStr = String(format: "%.0f", cadenceSpm)
+        return .init(
+            distance: distanceStr,
+            elapsed: elapsedStr,
+            pace: paceStr,
+            cadence: cadenceStr
+        )
+    }
+}
+
+struct RunningMetricsViewModel {
+    let distance: String
+    let elapsed: String
+    let pace: String  // e.g. 5'30"
+    let cadence: String
 }

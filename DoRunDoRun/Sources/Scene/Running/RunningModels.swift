@@ -18,4 +18,32 @@ enum Running {
         struct Response {}
         struct ViewModel {}
     }
+
+    enum RunningUpdate {
+        struct Request {}
+        struct Response {
+            let value: RunningSnapshot
+            let startTime: Date
+        }
+        struct ViewModel { // TODO: 이거 나중에 ViewModel로 바꿀 것
+            let value: RunningSnapshot
+            let runningTimeString: String
+            let metrics: RunningMetricsViewModel
+        }
+    }
+
+    enum StopRunning {
+        struct Request {}
+        struct Response {}
+        struct ViewModel {}
+    }
+
+    enum DrawRoute {
+        struct Response {
+            let coords: [RunningCoordinate]
+        }
+        struct ViewModel {
+            let coords: [RunningCoordinate]
+        }
+    }
 }

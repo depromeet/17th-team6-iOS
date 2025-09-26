@@ -19,13 +19,7 @@ final class RunningViewController: UIViewController {
     // MARK: UI Object
 
     private let navBar = RunningNavigationBar()
-
-    private let goalView: GoalView = {
-        let view = GoalView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = false
-        return view
-    }()
+    private let goalView = GoalView(isHidden: false)
 
     // Map Container UIView
     private let mapContainer: UIView = {
@@ -58,6 +52,10 @@ final class RunningViewController: UIViewController {
 
     private lazy var runningInfoView = RunningInfoView()
 
+    private var status: Mode = .notRunning
+
+    private let mapPath = NMFPath()
+
     // MARK: Object lifecycle
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -86,6 +84,7 @@ final class RunningViewController: UIViewController {
         super.viewDidLoad()
         setUI()
         setDelegate()
+        setupNaverMap()
         addAction()
     }
 
@@ -135,6 +134,17 @@ final class RunningViewController: UIViewController {
         ])
     }
 
+    private func setupNaverMap() {
+        let overlay = naverMapView.locationOverlay
+        overlay.hidden = true
+        overlay.icon = NMFOverlayImage(name: "map_user")
+
+        mapPath.mapView = naverMapView
+        mapPath.width = 6
+        mapPath.color = UIColor(hex: 0x3E4FFF)
+        mapPath.outlineWidth = 0
+    }
+
     private func setDelegate() {
         navBar.delegate = self
     }
@@ -142,6 +152,7 @@ final class RunningViewController: UIViewController {
     private func addAction() {
         let action = UIAction { [weak self] _ in
             self?.interactor?.requestStartRunning(request: .init())
+            self?.interactor?.requestRunningUpdate(request: .init())
         }
         startRunningButton.addAction(action, for: .touchUpInside)
     }
@@ -149,10 +160,50 @@ final class RunningViewController: UIViewController {
 
 @MainActor
 protocol RunningDisplayLogic: AnyObject {
+    func displayDrawRoute(viewModel: Running.DrawRoute.ViewModel)
+    func displayRunningUpdate(viewModel: Running.RunningUpdate.ViewModel)
     func displayStartRunning(viewModel: Running.StartRunning.ViewModel)
 }
 
 extension RunningViewController: RunningDisplayLogic {
+    func displayDrawRoute(viewModel: Running.DrawRoute.ViewModel) {
+        let path = viewModel.coords.map {
+            NMGLatLng(lat: $0.latitude, lng: $0.longitude)
+        }
+        mapPath.path = NMGLineString(points: path)
+        mapPath.mapView = naverMapView
+    }
+
+    func displayRunningUpdate(viewModel: Running.RunningUpdate.ViewModel) {
+        let spot = viewModel.value
+        if let lastPoint = spot.lastPoint {
+            updateNaverMap(lastPoint.coordinate)
+        }
+        switch status {
+            case .notRunning:
+                break
+            case .warmup:
+                warmupView.updateTime(text: viewModel.runningTimeString)
+            case .cooldown:
+                coolDownView.updateTime(text: viewModel.runningTimeString)
+            case .running:
+                runningInfoView.update(metrics: viewModel.metrics)
+        }
+    }
+
+    private func updateNaverMap(_ coordinate: RunningCoordinate) {
+        let target = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
+        let position = NMFCameraPosition(target, zoom: 18)
+        let update = NMFCameraUpdate(position: position)
+        update.animationDuration = 1.0
+        update.animation = .easeOut
+        naverMapView.moveCamera(update)
+
+        let overlay = naverMapView.locationOverlay
+        overlay.hidden = false
+        overlay.location = target
+    }
+
     func displayStartRunning(viewModel: Running.StartRunning.ViewModel) {
         didSelectSegment(at: 1)
         showWarmupModal()
@@ -193,6 +244,8 @@ extension RunningViewController: StepRunningViewDelegate {
                     },
                     destructiveAction: { [weak self] in
                         self?.changeMode(mode: .notRunning)
+                        self?.status = .notRunning
+                        self?.interactor?.requestStopRunning(request: .init())
                     }
                 )
                 alertView.show(in: self.view)
@@ -204,18 +257,18 @@ extension RunningViewController: StepRunningViewDelegate {
     func didTapStopButton(type: StepRunningView.StepType) {
         switch type {
             case .warmup:
-                break
+                interactor?.requestStopRunning(request: .init())
             case .cooldown:
-                break
+                interactor?.requestStopRunning(request: .init())
         }
     }
 
     func didTapContinueButton(type: StepRunningView.StepType) {
         switch type {
             case .warmup:
-                break
+                interactor?.requestRunningUpdate(request: .init())
             case .cooldown:
-                break
+                interactor?.requestRunningUpdate(request: .init())
         }
     }
 }
@@ -232,7 +285,9 @@ extension RunningViewController: RunningInfoViewDelegate {
             destructiveAction: { [weak self] in
                 guard let self else { return }
                 changeMode(mode: .notRunning)
+                self.status = .notRunning
                 runningInfoView.removeFromSuperview()
+                interactor?.requestStopRunning(request: .init())
             }
         )
         alertView.show(in: self.view)
@@ -247,9 +302,11 @@ extension RunningViewController: RunningInfoViewDelegate {
     }
 }
 
+// MARK: Modal 관련 로직
 extension RunningViewController {
     enum Mode {
         case notRunning, running
+        case warmup, cooldown
     }
 
     private func changeMode(mode: Mode) {
@@ -259,7 +316,8 @@ extension RunningViewController {
                 tabBarController?.tabBar.isHidden = false
                 warmupView.removeFromSuperview()
                 coolDownView.removeFromSuperview()
-            case .running:
+                mapPath.mapView = nil
+            case .running, .warmup, .cooldown:
                 navBar.isHidden = true
                 tabBarController?.tabBar.isHidden = true
         }
@@ -269,6 +327,7 @@ extension RunningViewController {
         changeMode(mode: .running)
         navBar.setSegmentedControlIndex(to: 1)
         view.addSubview(warmupView)
+        self.status = .warmup
         warmupView.delegate = self
         NSLayoutConstraint.activate([
             warmupView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -281,6 +340,7 @@ extension RunningViewController {
     private func showRunningModal() {
         view.addSubview(runningInfoView)
         runningInfoView.delegate = self
+        self.status = .running
         NSLayoutConstraint.activate([
             runningInfoView.topAnchor.constraint(equalTo: view.topAnchor),
             runningInfoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -290,19 +350,13 @@ extension RunningViewController {
     }
 }
 
+// MARK:
 extension RunningViewController: NavigationBarDelegate {
     func displayStartRunning() {
-        // TabBar까지 완전히 덮는 오버레이 표시
-        self.showFullScreenOverlayOnRootView()
-
-        // 대안: Root View에 오버레이 추가 (더 안정적)
-        // self.showFullScreenOverlayOnRootView()
-
         print("러닝 시작 오버레이가 표시되었습니다.")
     }
 
     func didTapBackButton() {
-        print("Back button tapped")
         navigationController?.popViewController(animated: true)
     }
 

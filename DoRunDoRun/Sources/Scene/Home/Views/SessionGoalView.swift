@@ -9,8 +9,12 @@ import UIKit
 
 // MARK: - SessionGoal
 
+protocol SessionGoalViewDelegate: AnyObject {
+    func didTapStartButton()
+}
+
 final class SessionGoalView: UIView {
-    
+    weak var delegate: SessionGoalViewDelegate?
     // MARK: UI
     
     private let titleLabel = UILabel()
@@ -41,6 +45,7 @@ final class SessionGoalView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
+        addAction()
     }
     
     @available(*, unavailable)
@@ -100,5 +105,12 @@ final class SessionGoalView: UIView {
             ("clock", "권장 러닝 시간", data.time),
             ("figure.run", "권장 페이스", data.pace)
         ])
+    }
+
+    func addAction() {
+        let startAction = UIAction { [weak self] _ in
+            self?.delegate?.didTapStartButton()
+        }
+        startButton.addAction(startAction, for: .touchUpInside)
     }
 }

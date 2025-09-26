@@ -14,6 +14,7 @@ import UIKit
 
 protocol HomeRoutingLogic {
     func routeToOverallGoalList()
+    func routeToRunning()
 }
 
 protocol HomeDataPassing {
@@ -46,5 +47,10 @@ final class HomeRouter: HomeRoutingLogic, HomeDataPassing {
         from source: HomeDataStore
     ) {
         destination.overallGoal = source.overallGoal
+    }
+
+    func routeToRunning() {
+        let destinationVC = RunningViewController()
+        viewController?.navigationController?.pushViewController(destinationVC, animated: true)
     }
 }

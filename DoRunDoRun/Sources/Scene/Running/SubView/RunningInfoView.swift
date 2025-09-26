@@ -154,5 +154,12 @@ final class RunningInfoView: UIView {
         }
         continueButton.addAction(continueAction, for: .touchUpInside)
     }
+
+    func update(metrics: RunningMetricsViewModel) {
+        currentDistanceValueLabel.text = metrics.distance
+        timerValueLabel.text = metrics.elapsed
+        paceValueLabel.text = metrics.pace
+        cadenceValueLabel.text = metrics.cadence
+    }
 }
 

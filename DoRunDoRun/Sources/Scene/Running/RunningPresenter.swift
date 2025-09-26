@@ -13,6 +13,8 @@
 import UIKit
 
 protocol RunningPresentationLogic {
+    func presentDrawRoute(response: Running.DrawRoute.Response)
+    func presentRunningUpdate(response: Running.RunningUpdate.Response)
     func presentStartRunning(response: Running.StartRunning.Response)
 }
 
@@ -21,9 +23,40 @@ final class RunningPresenter {
 }
 
 extension RunningPresenter: RunningPresentationLogic {
+    func presentDrawRoute(response: Running.DrawRoute.Response) {
+        Task { @MainActor in
+            viewController?.displayDrawRoute(viewModel: .init(coords: response.coords))
+        }
+    }
+    
+    func presentRunningUpdate(response: Running.RunningUpdate.Response) {
+        Task { @MainActor in
+            let startTime = response.startTime
+            let currentTime = response.value.timestamp
+            let metrics = response.value.metrics.toViewModel()
+            let viewModel = Running.RunningUpdate.ViewModel(
+                value: response.value,
+                runningTimeString: timeDifference(from: startTime, to: currentTime),
+                metrics: metrics
+            )
+            viewController?.displayRunningUpdate(viewModel: viewModel)
+        }
+    }
+    
     func presentStartRunning(response: Running.StartRunning.Response) {
         Task { @MainActor in
             viewController?.displayStartRunning(viewModel: .init())
         }
+    }
+
+    private func timeDifference(from startDate: Date, to endDate: Date) -> String {
+        let timeInterval = endDate.timeIntervalSince(startDate)
+        let absoluteInterval = abs(timeInterval)
+
+        let hours = Int(absoluteInterval) / 3600
+        let minutes = Int(absoluteInterval) % 3600 / 60
+        let seconds = Int(absoluteInterval) % 60
+
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }
 }

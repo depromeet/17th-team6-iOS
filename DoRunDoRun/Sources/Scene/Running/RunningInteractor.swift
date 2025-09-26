@@ -13,7 +13,9 @@
 import UIKit
 
 protocol RunningBusinessLogic {
+    func requestStopRunning(request: Running.StopRunning.Request)
     func requestStartRunning(request: Running.StartRunning.Request)
+    func requestRunningUpdate(request: Running.RunningUpdate.Request)
 }
 
 protocol RunningDataStore {
@@ -22,14 +24,49 @@ protocol RunningDataStore {
 
 final class RunningInteractor: RunningDataStore {
     var presenter: RunningPresentationLogic?
-    //var name: String = ""
-    
-    // MARK: Do something
-    
+    private var tasks: [Task<Void, Never>] = []
+
+    private var coords: [RunningCoordinate] = []
+    private var startTime: Date?
 }
 
 extension RunningInteractor: RunningBusinessLogic {
+    func requestStopRunning(request: Running.StopRunning.Request) {
+        tasks.forEach { $0.cancel() }
+        tasks.removeAll()
+        startTime = nil
+        coords.removeAll()
+    }
+    
+    func requestRunningUpdate(request: Running.RunningUpdate.Request) {
+        let task = Task { [weak self] in
+            do {
+                guard let self else { return }
+                let worker = RunningWorker(repository: MockRunningRepository())
+                let stream = try await worker.startRun()
+                var iterator = stream.makeAsyncIterator()
+
+                while let value = try await iterator.next() {
+                    if startTime == nil { startTime = value.timestamp }
+                    if let lastCoord = value.lastPoint?.coordinate {
+                        coords.append(lastCoord)
+                    }
+                    presenter?.presentRunningUpdate(response: .init(
+                        value: value,
+                        startTime: startTime! // TODO: 이거 나중에 옵셔널 처리 할 것
+                    ))
+                    presenter?.presentDrawRoute(response: .init(coords: coords))
+                }
+            } catch {
+                print("Failed to start run: \(error)")
+            }
+        }
+        tasks.append(task)
+    }
+    
     func requestStartRunning(request: Running.StartRunning.Request) {
-        presenter?.presentStartRunning(response: .init())
+        Task {
+            presenter?.presentStartRunning(response: .init())
+        }
     }
 }

@@ -32,9 +32,17 @@ final class GoalView: UIView {
                 color: .init(hex: 0x82878F)
             )
         }
-        
+
+        private var titleText: String {
+            switch self {
+                case .distance: "5km"
+                case .time: "50:00"
+                case .pace: "6’00”"
+            }
+        }
+
         var view: RecommendAimView {
-            RecommendAimView(image: self.image, subtitle: self.subtitleText)
+            RecommendAimView(image: self.image, title: titleText, subtitle: self.subtitleText)
         }
     }
     
@@ -56,8 +64,10 @@ final class GoalView: UIView {
     
     private let routineStepView = RoutineStepView()
     
-    init() {
+    init(isHidden: Bool = false) {
         super.init(frame: .zero)
+        self.translatesAutoresizingMaskIntoConstraints = false
+        self.isHidden = isHidden
         setupUI()
         setupStackView()
     }
@@ -198,18 +208,7 @@ final class RecommendAimView: UIView {
         imageView.image = UIImage(named: "goal_pin")
         return imageView
     }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.attributedText = .withLetterSpacing(
-            text: "타이틀",
-            font: .pretendard(size: 20, weight: .bold),
-            px: -0.2,
-            color: .black
-        )
-        return label
-    }()
+    private let titleLabel = UILabel(text: "", size: 20, weight: .bold)
     
     private let subtitleLabel: UILabel = {
         let label = UILabel()
@@ -223,10 +222,11 @@ final class RecommendAimView: UIView {
         return label
     }()
     
-    fileprivate init(image: UIImage?, subtitle: NSAttributedString) {
+    fileprivate init(image: UIImage?, title: String, subtitle: NSAttributedString) {
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
         imageView.image = image
+        titleLabel.text = title
         subtitleLabel.attributedText = subtitle
         setupUI()
     }

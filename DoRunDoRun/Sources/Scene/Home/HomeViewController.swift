@@ -46,7 +46,7 @@ final class HomeViewController: UIViewController {
         setupNavigationBar()
         setupView()
         setupActions()
-        
+        setDelegate()
         fetchGoalData()
     }
     
@@ -121,7 +121,11 @@ final class HomeViewController: UIViewController {
         overallGoalView.viewAllButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
         retryGoalView.playButton.addTarget(self, action: #selector(didTapOverallGoal), for: .touchUpInside)
     }
-    
+
+    private func setDelegate() {
+        sessionGoalView.delegate = self
+    }
+
     // MARK: Actions
     
     private func fetchGoalData() {
@@ -145,5 +149,11 @@ extension HomeViewController: HomeDisplayLogic {
     
     func displaySessionGoal(viewModel: Home.LoadSessionGoal.ViewModel) {
         sessionGoalView.configure(with: viewModel.displayedSessionGoal)
+    }
+}
+
+extension HomeViewController: SessionGoalViewDelegate {
+    func didTapStartButton() {
+        router?.routeToRunning()
     }
 }
