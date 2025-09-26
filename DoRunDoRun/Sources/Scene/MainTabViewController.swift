@@ -25,16 +25,9 @@ final class MainTabViewController: UITabBarController {
     private func createViewControllers() -> [UIViewController] {
         let homeVC = createNavigationController(
             rootViewController: HomeViewController(),
-            title: "홈",
-            image: UIImage(systemName: "house"),
-            selectedImage: UIImage(systemName: "house.fill")
-        )
-        
-        let runningVC = createNavigationController(
-            rootViewController: RunningViewController(),
-            title: "런닝",
+            title: "러닝",
             image: UIImage(systemName: "figure.run"),
-            selectedImage: UIImage(systemName: "figure.run.circle.fill")
+            selectedImage: UIImage(systemName: "figure.run.fill")
         )
         
         let recordVC = createNavigationController(
@@ -51,7 +44,7 @@ final class MainTabViewController: UITabBarController {
             selectedImage: UIImage(systemName: "person.fill")
         )
         
-        return [homeVC, runningVC, recordVC, profileVC]
+        return [homeVC, recordVC, profileVC]
     }
     
     private func createNavigationController(

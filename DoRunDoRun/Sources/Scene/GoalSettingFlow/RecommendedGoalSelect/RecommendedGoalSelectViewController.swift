@@ -10,6 +10,7 @@ import UIKit
 protocol RecommendedGoalSelectDisplayLogic: AnyObject {
     func displayRecommendedGoals(viewModel: RecommendedGoalSelect.LoadRecommendedGoals.ViewModel)
     func displaySelectedRecommendedGoal(viewModel: RecommendedGoalSelect.SelectRecommendedGoal.ViewModel)
+    func displayStart(viewModel: RecommendedGoalSelect.Start.ViewModel)
 }
 
 final class RecommendedGoalSelectViewController: UIViewController {
@@ -129,7 +130,7 @@ final class RecommendedGoalSelectViewController: UIViewController {
     // MARK: Actions
     
     @objc private func didTapStart() {
-        // Home 화면으로 이동
+        interactor?.startWithGoal(request: .init())
     }
 }
 
@@ -165,5 +166,28 @@ extension RecommendedGoalSelectViewController: RecommendedGoalSelectDisplayLogic
             IndexPath(row: viewModel.selectedIndex, section: 0)
         ]
         tableView.reloadRows(at: indexPaths, with: .none)
+    }
+    
+    func displayStart(viewModel: RecommendedGoalSelect.Start.ViewModel) {
+        // 온보딩 완료 상태로 전환
+        Defaults.hasSeenOnboarding = true
+
+        // 전환할 메인 탭
+        let main = MainTabViewController()
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate,
+           let window = sceneDelegate.window {
+
+            UIView.transition(
+                with: window,
+                duration: 0.5,
+                options: .transitionCrossDissolve,
+                animations: {
+                    window.rootViewController = main
+                },
+                completion: nil
+            )
+        }
     }
 }

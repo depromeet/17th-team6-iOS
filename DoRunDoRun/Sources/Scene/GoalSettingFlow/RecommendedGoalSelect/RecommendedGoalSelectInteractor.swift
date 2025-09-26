@@ -10,6 +10,7 @@ import UIKit
 protocol RecommendedGoalSelectBusinessLogic {
     func loadRecommendedGoals(request: RecommendedGoalSelect.LoadRecommendedGoals.Request)
     func selectRecommendedGoal(request: RecommendedGoalSelect.SelectRecommendedGoal.Request)
+    func startWithGoal(request: RecommendedGoalSelect.Start.Request)
 }
 
 protocol RecommendedGoalSelectDataStore {
@@ -50,5 +51,33 @@ extension RecommendedGoalSelectInteractor: RecommendedGoalSelectBusinessLogic {
         presenter?.presentSelectedRecommendedGoal(
             response: .init(goals: recommendedGoals, selectedIndex: selectedIndex, previousIndex: previousIndex)
         )
+    }
+    
+    func startWithGoal(request: RecommendedGoalSelect.Start.Request) {
+        Task {
+            do {
+                let goal = recommendedGoals[selectedIndex]
+                
+                let entity = OverallGoal(
+                    id: 0,
+                    createdAt: .now,
+                    updatedAt: nil,
+                    pausedAt: nil,
+                    clearedAt: nil,
+                    title: goal.title,
+                    subTitle: goal.subTitle,
+                    type: goal.type,
+                    pace: goal.pace,
+                    distance: goal.distance,
+                    duration: goal.duration,
+                    currentRoundCount: 1,
+                    totalRoundCount: goal.totalRoundCount
+                )
+                let overallGoal = try await worker.addOverallGoal(entity: entity)
+                presenter?.presentStart(response: .init(overallGoal: overallGoal))
+            } catch {
+                print("🚨 Error: \(error.localizedDescription)")
+            }
+        }
     }
 }
