@@ -13,7 +13,7 @@ final class RetryGoalView: UIView {
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.attributedText = .withLetterSpacing(
-            text: "한 번 더 연습이 필요하다면",
+            text: "한 번 달린 목표로 달리고 싶다면,",
             font: .pretendard(size: 14, weight: .regular),
             px: -0.2,
             color: .init(hex: 0x585D64)

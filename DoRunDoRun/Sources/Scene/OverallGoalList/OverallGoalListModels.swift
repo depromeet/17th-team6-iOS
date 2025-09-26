@@ -5,8 +5,6 @@
 //  Created by Jaehui Yu on 9/18/25.
 //
 
-import UIKit
-
 enum OverallGoalList {
     
     // MARK: - Use cases
@@ -55,7 +53,6 @@ enum OverallGoalList {
 }
 
 struct DisplayedSessionGoal {
-    let id = UUID().uuidString
     let round: String
     let distance: String
     let time: String

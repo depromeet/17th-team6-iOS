@@ -28,7 +28,7 @@ final class HomeRouter: HomeRoutingLogic, HomeDataPassing {
     func routeToOverallGoalList() {
         let destinationVC = OverallGoalListViewController()
         var destinationDS = destinationVC.router!.dataStore!
-        passDataToOverallGoalList(&destinationDS, frome: dataStore!)
+        passDataToOverallGoalList(&destinationDS, from: dataStore!)
         navigateToOverallGoalList(destinationVC, from: viewController!)
     }
     
@@ -43,7 +43,7 @@ final class HomeRouter: HomeRoutingLogic, HomeDataPassing {
     // MARK: Passing data
     private func passDataToOverallGoalList(
         _ destination: inout OverallGoalListDataStore,
-        frome source: HomeDataStore
+        from source: HomeDataStore
     ) {
         destination.overallGoal = source.overallGoal
     }

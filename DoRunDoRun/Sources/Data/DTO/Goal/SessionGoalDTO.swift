@@ -50,13 +50,17 @@ struct SessionGoalDTO: Decodable {
 }
 
 extension SessionGoalDTO {
-    func toEntity() -> SessionGoal {
+    private static let isoFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
+        return formatter
+    }()
+    
+    func toEntity() -> SessionGoal {
         return SessionGoal(
             id: id,
-            createdAt: formatter.date(from: createdAt) ?? Date(),
-            updatedAt: formatter.date(from: updatedAt) ?? Date(),
-            clearedAt: clearedAt.flatMap { formatter.date(from: $0) },
+            createdAt: Self.isoFormatter.date(from: createdAt) ?? Date(),
+            updatedAt: Self.isoFormatter.date(from: updatedAt) ?? Date(),
+            clearedAt: clearedAt.flatMap { Self.isoFormatter.date(from: $0) },
             goalId: goalId,
             pace: pace,
             distance: distance,

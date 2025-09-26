@@ -31,14 +31,18 @@ struct OverallGoalDTO: Decodable {
 }
 
 extension OverallGoalDTO {
-    func toEntity() -> OverallGoal {
+    private static let isoFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
+        return formatter
+    }()
+    
+    func toEntity() -> OverallGoal {
         return OverallGoal(
             id: id,
-            createdAt: formatter.date(from: createdAt) ?? Date(),
-            updatedAt: formatter.date(from: updatedAt) ?? Date(),
-            pausedAt: pausedAt.flatMap { formatter.date(from: $0) },
-            clearedAt: clearedAt.flatMap { formatter.date(from: $0) },
+            createdAt: Self.isoFormatter.date(from: createdAt) ?? Date(),
+            updatedAt: Self.isoFormatter.date(from: updatedAt) ?? Date(),
+            pausedAt: pausedAt.flatMap { Self.isoFormatter.date(from: $0) },
+            clearedAt: clearedAt.flatMap { Self.isoFormatter.date(from: $0) },
             title: title,
             subTitle: subTitle,
             type: type,

@@ -86,7 +86,6 @@ final class MetricView: UIView {
         ])
         return separator
     }
-
 }
 
 
