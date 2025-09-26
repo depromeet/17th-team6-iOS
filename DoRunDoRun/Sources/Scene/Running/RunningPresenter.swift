@@ -13,7 +13,7 @@
 import UIKit
 
 protocol RunningPresentationLogic {
-    
+    func presentStartRunning(response: Running.StartRunning.Response)
 }
 
 final class RunningPresenter {
@@ -21,5 +21,9 @@ final class RunningPresenter {
 }
 
 extension RunningPresenter: RunningPresentationLogic {
-    
+    func presentStartRunning(response: Running.StartRunning.Response) {
+        Task { @MainActor in
+            viewController?.displayStartRunning(viewModel: .init())
+        }
+    }
 }

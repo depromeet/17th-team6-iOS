@@ -13,14 +13,9 @@
 import UIKit
 
 enum Running {
-    // MARK: Use cases
-    
-    enum Something {
-        struct Request {
-        }
-        struct Response {
-        }
-        struct ViewModel {
-        }
+    enum StartRunning {
+        struct Request {}
+        struct Response {}
+        struct ViewModel {}
     }
 }

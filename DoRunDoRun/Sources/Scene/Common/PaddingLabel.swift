@@ -14,6 +14,11 @@ class PaddingLabel: UILabel {
         super.init()
     }
     
+    init(vertical: CGFloat, horizontal: CGFloat) {
+        self.textInsets = UIEdgeInsets(top: vertical, left: horizontal, bottom: vertical, right: horizontal)
+        super.init(frame: .zero)
+    }
+    
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -25,14 +30,25 @@ class PaddingLabel: UILabel {
     }
 
     override var intrinsicContentSize: CGSize {
-        let size = super.intrinsicContentSize
-        return CGSize(width: size.width + textInsets.left + textInsets.right,
-                      height: size.height + textInsets.top + textInsets.bottom)
+        let originalSize = super.intrinsicContentSize
+        guard originalSize != CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) else {
+            return originalSize
+        }
+        return CGSize(
+            width: originalSize.width + textInsets.left + textInsets.right,
+            height: originalSize.height + textInsets.top + textInsets.bottom
+        )
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        let adjustedSize = super.sizeThatFits(size)
-        return CGSize(width: adjustedSize.width + textInsets.left + textInsets.right,
-                      height: adjustedSize.height + textInsets.top + textInsets.bottom)
+        let availableSize = CGSize(
+            width: size.width - textInsets.left - textInsets.right,
+            height: size.height - textInsets.top - textInsets.bottom
+        )
+        let originalSize = super.sizeThatFits(availableSize)
+        return CGSize(
+            width: originalSize.width + textInsets.left + textInsets.right,
+            height: originalSize.height + textInsets.top + textInsets.bottom
+        )
     }
 }
