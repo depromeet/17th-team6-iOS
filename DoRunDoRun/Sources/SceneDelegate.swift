@@ -8,7 +8,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
-        window?.rootViewController = MainTabViewController()
+        // 온보딩을 본 적이 있는지 확인
+        if Defaults.hasSeenOnboarding {
+            window?.rootViewController = MainTabViewController()
+        } else {
+            let vc = OnboardingAgreementViewController()
+            let nav = UINavigationController(rootViewController: vc)
+            window?.rootViewController = nav
+        }
         window?.makeKeyAndVisible()
     }
 

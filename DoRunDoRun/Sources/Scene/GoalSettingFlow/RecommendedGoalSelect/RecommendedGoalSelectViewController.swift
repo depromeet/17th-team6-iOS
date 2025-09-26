@@ -129,7 +129,15 @@ final class RecommendedGoalSelectViewController: UIViewController {
     // MARK: Actions
     
     @objc private func didTapStart() {
-        // Home 화면으로 이동
+        // 온보딩 화면을 본 상태로 전환
+        Defaults.hasSeenOnboarding = true
+
+        // rootViewController를 MainTabViewController로 전환
+        let main = MainTabViewController()
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate {
+            sceneDelegate.window?.rootViewController = main
+        }
     }
 }
 
