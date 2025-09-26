@@ -30,6 +30,18 @@ struct OverallGoalDTO: Decodable {
     let totalRoundCount: Int
 }
 
+struct AddOverallGoalRequestDTO: Encodable {
+    let userId: String
+    let title: String
+    let subTitle: String
+    let type: String
+    let pace: Int
+    let distance: Int
+    let duration: Int
+    let totalRoundCount: Int
+}
+
+
 extension OverallGoalDTO {
     private static let isoFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()

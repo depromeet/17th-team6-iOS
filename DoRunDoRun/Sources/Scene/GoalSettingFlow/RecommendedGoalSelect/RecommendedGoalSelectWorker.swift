@@ -8,13 +8,22 @@
 import Foundation
 
 final class RecommendedGoalSelectWorker {
-    private let repository: RecommendedGoalRepository
+    private let recommendedGoalRepository: RecommendedGoalRepository
+    private let overallGoalRepository: OverallGoalRepository
     
-    init(repository: RecommendedGoalRepository = RecommendedGoalRepositoryImpl()) {
-        self.repository = repository
+    init(
+        recommendedGoalRepository: RecommendedGoalRepository = RecommendedGoalRepositoryImpl(),
+        overallGoalRepository: OverallGoalRepository = OverallGoalRepositoryImpl()
+    ) {
+        self.recommendedGoalRepository = recommendedGoalRepository
+        self.overallGoalRepository = overallGoalRepository
     }
     
     func loadRecommendedGoals(goalOption: GoalOption) async throws -> [RecommendedGoal] {
-        try await repository.getRecommendedGoals(goalOption: goalOption)
+        try await recommendedGoalRepository.getRecommendedGoals(goalOption: goalOption)
+    }
+    
+    func addOverallGoal(entity: OverallGoal) async throws -> OverallGoal {
+        try await overallGoalRepository.addOverallGoal(entity: entity)
     }
 }

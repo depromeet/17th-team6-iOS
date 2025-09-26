@@ -34,6 +34,14 @@ enum RecommendedGoalSelect {
             let previousIndex: Int
         }
     }
+    
+    enum Start {
+        struct Request {}
+        struct Response {
+            let overallGoal: OverallGoal
+        }
+        struct ViewModel {}
+    }
 }
 
 struct DisplayedRecommendedGoal {

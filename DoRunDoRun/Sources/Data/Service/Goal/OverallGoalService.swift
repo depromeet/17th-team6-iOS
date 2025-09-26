@@ -11,6 +11,7 @@ import Alamofire
 
 protocol OverallGoalServiceProtocol {
     func fetchOverallGoal() async throws -> OverallGoalDTO
+    func addOverallGoal(requestDTO: AddOverallGoalRequestDTO) async throws -> OverallGoalDTO
 }
 
 final class OverallGoalAPIService: OverallGoalServiceProtocol {
@@ -24,6 +25,31 @@ final class OverallGoalAPIService: OverallGoalServiceProtocol {
                     switch response.result {
                     case .success(let result):
                         continuation.resume(returning: result.data)
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+        }
+    }
+    
+    func addOverallGoal(requestDTO: AddOverallGoalRequestDTO) async throws -> OverallGoalDTO {
+        let url = "https://api.example.com/api/goals"
+        let headers: HTTPHeaders = [
+            "X-User-Id": requestDTO.userId,
+            "Content-Type": "application/json"
+        ]
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            AF.request(url,
+                       method: .post,
+                       parameters: requestDTO,
+                       encoder: JSONParameterEncoder.default,
+                       headers: headers)
+                .validate()
+                .responseDecodable(of: OverallGoalDTO.self) { response in
+                    switch response.result {
+                    case .success(let result):
+                        continuation.resume(returning: result)
                     case .failure(let error):
                         continuation.resume(throwing: error)
                     }
@@ -48,6 +74,24 @@ final class MockOverallGoalService: OverallGoalServiceProtocol {
             duration: 60,
             currentRountCount: 4,
             totalRoundCount: 10
+        )
+    }
+    
+    func addOverallGoal(requestDTO: AddOverallGoalRequestDTO) async throws -> OverallGoalDTO {
+        return OverallGoalDTO(
+            id: 99,
+            createdAt: "2025-09-26T09:00:00Z",
+            updatedAt: "2025-09-26T09:00:00Z",
+            pausedAt: nil,
+            clearedAt: nil,
+            title: requestDTO.title,
+            subTitle: requestDTO.subTitle,
+            type: requestDTO.type,
+            pace: requestDTO.pace,
+            distance: requestDTO.distance,
+            duration: requestDTO.duration,
+            currentRountCount: 0,
+            totalRoundCount: requestDTO.totalRoundCount
         )
     }
 }

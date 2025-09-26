@@ -9,4 +9,5 @@ import Foundation
 
 protocol OverallGoalRepository {
     func getOverallGoal() async throws -> OverallGoal
+    func addOverallGoal(entity: OverallGoal) async throws -> OverallGoal
 }

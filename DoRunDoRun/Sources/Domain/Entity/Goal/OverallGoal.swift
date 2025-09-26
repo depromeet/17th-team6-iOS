@@ -10,7 +10,7 @@ import Foundation
 struct OverallGoal {
     let id: Int
     let createdAt: Date
-    let updatedAt: Date
+    let updatedAt: Date?
     let pausedAt: Date?
     let clearedAt: Date?
     let title: String

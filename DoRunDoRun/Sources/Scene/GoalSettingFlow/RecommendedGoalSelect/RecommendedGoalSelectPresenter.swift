@@ -10,6 +10,7 @@ import UIKit
 protocol RecommendedGoalSelectPresentationLogic {
     func presentRecommendedGoals(response: RecommendedGoalSelect.LoadRecommendedGoals.Response)
     func presentSelectedRecommendedGoal(response: RecommendedGoalSelect.SelectRecommendedGoal.Response)
+    func presentStart(response: RecommendedGoalSelect.Start.Response)
 }
 
 final class RecommendedGoalSelectPresenter {
@@ -82,6 +83,12 @@ extension RecommendedGoalSelectPresenter: RecommendedGoalSelectPresentationLogic
                 viewModel: .init(displayedGoals: displayedGoals, selectedIndex: response.selectedIndex, previousIndex: response.previousIndex
                 )
             )
+        }
+    }
+    
+    func presentStart(response: RecommendedGoalSelect.Start.Response) {
+        Task { @MainActor in
+            viewController?.displayStart(viewModel: .init())
         }
     }
 }
