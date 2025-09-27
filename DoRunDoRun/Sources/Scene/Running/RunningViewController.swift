@@ -152,7 +152,6 @@ final class RunningViewController: UIViewController {
     private func addAction() {
         let action = UIAction { [weak self] _ in
             self?.interactor?.requestStartRunning(request: .init())
-            self?.interactor?.requestRunningUpdate(request: .init())
         }
         startRunningButton.addAction(action, for: .touchUpInside)
     }
@@ -206,7 +205,17 @@ extension RunningViewController: RunningDisplayLogic {
 
     func displayStartRunning(viewModel: Running.StartRunning.ViewModel) {
         didSelectSegment(at: 1)
-        showWarmupModal()
+        changeMode(mode: .warmup)
+        let handler = { [weak self] in
+            self?.interactor?.requestRunningUpdate(request: .init())
+            self?.showWarmupModal()
+        }
+        let timerView = ThreeTimerView(
+            title: "5분 웜업 시작",
+            subtitle: "러닝 전 가볍게 달려보세요",
+            completion: handler
+            )
+        timerView.show(in: self.view)
     }
 }
 
@@ -338,15 +347,18 @@ extension RunningViewController {
     }
 
     private func showRunningModal() {
-        view.addSubview(runningInfoView)
         runningInfoView.delegate = self
         self.status = .running
-        NSLayoutConstraint.activate([
-            runningInfoView.topAnchor.constraint(equalTo: view.topAnchor),
-            runningInfoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            runningInfoView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            runningInfoView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        let handler = { [weak self] in
+            guard let self else { return }
+            runningInfoView.show(in: self.view)
+        }
+        let timerView = ThreeTimerView(
+            title: "잠시 후 러닝 시작",
+            subtitle: "웜업을 종료하고 러닝이 시작됩니다",
+            completion: handler
+        )
+        timerView.show(in: self.view)
     }
 }
 
