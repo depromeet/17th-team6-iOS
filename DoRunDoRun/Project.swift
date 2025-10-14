@@ -23,6 +23,17 @@ let project = Project(
                     "NSLocationAlwaysAndWhenInUseUsageDescription": "앱이 백그라운드에 있을 때도 러닝 거리와 경로를 정확히 기록하기 위해 위치 정보를 사용합니다.",
                     "UIBackgroundModes": ["location"],
                     "NMFNcpKeyId": "$(NMFNcpKeyId)",
+                    "UIAppFonts": .array([
+                        .string("Pretendard-Thin.otf"),
+                        .string("Pretendard-SemiBold.otf"),
+                        .string("Pretendard-Regular.otf"),
+                        .string("Pretendard-Medium.otf"),
+                        .string("Pretendard-Light.otf"),
+                        .string("Pretendard-ExtraLight.otf"),
+                        .string("Pretendard-ExtraBold.otf"),
+                        .string("Pretendard-Bold.otf"),
+                        .string("Pretendard-Black.otf"),
+                    ])
                 ]
             ),
             buildableFolders: [
