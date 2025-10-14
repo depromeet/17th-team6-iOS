@@ -72,3 +72,4 @@ Tuist/.build
 ### App Configurations ###
 Configs/*
 !Configs/.gitkeep
+!Configs/*.example.xcconfig

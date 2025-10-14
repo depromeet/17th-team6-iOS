@@ -1,6 +1,6 @@
 import SwiftUI
 
-public enum AppTextStyle: CaseIterable {
+enum AppTextStyle: CaseIterable {
     // MARK: - Headline
     case h1_700, h1_500
     case h2_700, h2_500, h2_400

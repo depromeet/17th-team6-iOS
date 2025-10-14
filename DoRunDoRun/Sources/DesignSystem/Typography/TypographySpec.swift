@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 개별 타이포그래피 스타일의 속성을 정의하는 구조체
-public struct TypographySpec: Equatable {
+struct TypographySpec: Equatable {
     public let size: CGFloat
     public let lineHeight: CGFloat
     public let letterSpacing: CGFloat

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Pretendard 폰트 웨이트 정의
-public enum PretendardWeight: String, CaseIterable {
+enum PretendardWeight: String, CaseIterable {
     case thin = "Pretendard-Thin"
     case extraLight = "Pretendard-ExtraLight"
     case light = "Pretendard-Light"
