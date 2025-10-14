@@ -15,8 +15,8 @@ import PackageDescription
 let package = Package(
     name: "DoRunDoRun",
     dependencies: [
-        // Add your own dependencies here:
-        // .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
-        // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", branch: "main"),
+        .package(url: "https://github.com/navermaps/SPM-NMapsMap", branch: "main"),
+        .package(url: "https://github.com/Alamofire/Alamofire", from: "5.8.0"),
     ]
 )

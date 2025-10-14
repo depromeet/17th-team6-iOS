@@ -26,7 +26,10 @@ let project = Project(
                 "./Resources",
             ],
             dependencies: [
-            ]
+                .external(name: "ComposableArchitecture"),
+                .external(name: "NMapsMap"),
+                .external(name: "Alamofire"),
+            ],
         )
     ]
 )
