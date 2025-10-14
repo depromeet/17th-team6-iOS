@@ -5,40 +5,20 @@ let project = Project(
     targets: [
         .target(
             name: "DoRunDoRun",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .app,
             bundleId: "depromeet.seventeen.six",
             deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
-                    "UILaunchStoryboardName": "LaunchScreen.storyboard",
-                    "UIApplicationSceneManifest": [
-                        "UIApplicationSupportsMultipleScenes": false,
-                        "UISceneConfigurations": [
-                            "UIWindowSceneSessionRoleApplication": [
-                                [
-                                    "UISceneConfigurationName": "Default Configuration",
-                                    "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
-                                ],
-                            ]
-                        ]
+                    "UILaunchScreen": [
+                        "UIColorName": "",
+                        "UIImageName": "",
                     ],
                     "UISupportedInterfaceOrientations": [
                         "UIInterfaceOrientationPortrait"
                     ],
-                    "NSMotionUsageDescription": "사용자의 움직임 데이터를 측정하기 위해 권한이 필요합니다.",
-                    "NSLocationWhenInUseUsageDescription": "위치 기반 지도 기능을 위해 권한이 필요합니다.",
-                    "UIAppFonts": .array([
-                        .string("Pretendard-Thin.ttf"),
-                        .string("Pretendard-SemiBold.ttf"),
-                        .string("Pretendard-Regular.ttf"),
-                        .string("Pretendard-Medium.ttf"),
-                        .string("Pretendard-Light.ttf"),
-                        .string("Pretendard-ExtraLight.ttf"),
-                        .string("Pretendard-ExtraBold.ttf"),
-                        .string("Pretendard-Bold.ttf"),
-                        .string("Pretendard-Black.ttf"),
-                    ])
+                    "UIUserInterfaceStyle": "Light",
                 ]
             ),
             buildableFolders: [
@@ -46,10 +26,7 @@ let project = Project(
                 "./Resources",
             ],
             dependencies: [
-              .external(name: "Alamofire"),
-              .external(name: "NMapsMap")
             ]
-        ),
+        )
     ]
 )
-
