@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 앱의 **타이포그래피 시스템**을 적용하는 `ViewModifier` 및 헬퍼 메서드입니다.
 ///
-/// `AppTextStyle`에 정의된 폰트 크기, 줄 높이, 자간, 폰트 두께를 자동으로 적용하며
+/// `TypographyStyle`에 정의된 폰트 크기, 줄 높이, 자간, 폰트 두께를 자동으로 적용하며
 /// Pretendard 폰트를 기반으로 한 일관된 텍스트 스타일을 제공합니다.
 ///
 /// **사용 예시**
@@ -18,7 +18,7 @@ import SwiftUI
 /// ```
 ///
 /// **파라미터**
-/// - `style`: 적용할 `AppTextStyle`
+/// - `style`: 적용할 `TypographyStyle`
 /// - `color`: 텍스트 색상 (기본값: `.primary`)
 ///
 /// > 💡 **Note**
@@ -28,15 +28,15 @@ import SwiftUI
 
 /// AppTextStyle을 적용하는 ViewModifier
 struct TypographyModifier: ViewModifier {
-    private let style: AppTextStyle
-    private let color: Color?
+    let style: TypographyStyle
+    let color: Color?
 
-    public init(_ style: AppTextStyle, color: Color? = nil) {
+    init(_ style: TypographyStyle, color: Color? = nil) {
         self.style = style
         self.color = color
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         let spec = style.spec
         let topBottomInset = max((spec.lineHeight - spec.size) / 2, 0)
 
@@ -51,7 +51,7 @@ struct TypographyModifier: ViewModifier {
 
 extension View {
     /// Text("텍스트").typography(.b1_400, color: .gray900)
-    func typography(_ style: AppTextStyle, color: Color? = nil) -> some View {
+    func typography(_ style: TypographyStyle, color: Color? = nil) -> some View {
         modifier(TypographyModifier(style, color: color))
     }
 }

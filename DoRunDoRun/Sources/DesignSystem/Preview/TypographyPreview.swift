@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TypographyPreview: View {
-    private let styles: [AppTextStyle] = [
+    private let styles: [TypographyStyle] = [
         .h1_700, .h2_700, .h3_700, .t1_700,
         .b1_700, .b1_500, .b2_400, .c1_400
     ]
