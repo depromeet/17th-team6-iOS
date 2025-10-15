@@ -7,20 +7,20 @@ struct AppFeature {
         enum Tab: Hashable { case running, feed, my }
 
         var selectedTab: Tab = .running
-        var running = RunningFeature.State()
+        var running = RunningReadyFeature.State()
         var feed = FeedFeature.State()
         var my = MyFeature.State()
     }
 
     enum Action: Equatable {
         case tabSelected(State.Tab)
-        case running(RunningFeature.Action)
+        case running(RunningReadyFeature.Action)
         case feed(FeedFeature.Action)
         case my(MyFeature.Action)
     }
 
     var body: some ReducerOf<Self> {
-        Scope(state: \.running, action: \.running) { RunningFeature() }
+        Scope(state: \.running, action: \.running) { RunningReadyFeature() }
         Scope(state: \.feed, action: \.feed) { FeedFeature() }
         Scope(state: \.my, action: \.my) { MyFeature() }
 

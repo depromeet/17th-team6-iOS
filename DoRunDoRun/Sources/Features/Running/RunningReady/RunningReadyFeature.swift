@@ -14,7 +14,7 @@ struct Friend: Equatable, Identifiable {
 }
 
 @Reducer
-struct RunningFeature {
+struct RunningReadyFeature {
     @ObservableState
     struct State: Equatable {
         var friends: [Friend] = mockFriends
@@ -29,7 +29,7 @@ struct RunningFeature {
     }
 }
 
-extension RunningFeature {
+extension RunningReadyFeature {
     static let mockFriends: [Friend] = [
         Friend(name: "민희", time: "1시간 전", distance: "5.01km", location: "광명", isMine: true, isRunning: true, isSent: false, isFocus: true),
         Friend(name: "해준", time: "30분 전", distance: "5.01km", location: "서울", isMine: false, isRunning: true, isSent: false, isFocus: false),

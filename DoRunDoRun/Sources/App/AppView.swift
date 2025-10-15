@@ -7,7 +7,7 @@ struct AppView: View {
     var body: some View {
         WithPerceptionTracking {
             TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-                RunningView(store: store.scope(state: \.running, action: \.running))
+                RunningReadyView(store: store.scope(state: \.running, action: \.running))
                     .tabItem { Label("러닝", systemImage: "figure.run") }
                     .tag(AppFeature.State.Tab.running)
 

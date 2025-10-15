@@ -2,8 +2,8 @@ import SwiftUI
 import ComposableArchitecture
 import NMapsMap
 
-struct RunningView: View {
-    let store: StoreOf<RunningFeature>
+struct RunningReadyView: View {
+    let store: StoreOf<RunningReadyFeature>
     @State private var sheetOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
 
@@ -49,7 +49,7 @@ struct RunningView: View {
 }
 
 #Preview {
-    RunningView(store: Store(initialState: RunningFeature.State()) {
-        RunningFeature()
+    RunningReadyView(store: Store(initialState: RunningReadyFeature.State()) {
+        RunningReadyFeature()
     })
 }
