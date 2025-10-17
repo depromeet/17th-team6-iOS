@@ -7,15 +7,14 @@
 
 import SwiftUI
 
+/// 친구의 러닝 상태를 표시하는 리스트 행(View)
+///
+/// 지도 하단 시트(FriendStatusSheet) 안에서 사용되며,
+/// 각 친구의 이름, 러닝 상태, 거리/위치 정보, 응원 버튼 등을 표시합니다.
 struct FriendRunningRow: View {
-    var name: String
-    var time: String?
-    var distance: String?
-    var location: String?
-    var isMine: Bool = false
-    var isRunning: Bool = false
-    var isSent: Bool = false
-    var isFocus: Bool = false
+    let friend: Friend                  // 표시할 친구 데이터 모델
+    let isFocus: Bool                   // 현재 포커스된(선택된) 친구인지 여부
+    var onTap: (() -> Void)? = nil      // 행 탭 시 실행할 콜백
 
     var body: some View {
         HStack(spacing: 16) {
@@ -27,8 +26,10 @@ struct FriendRunningRow: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 20)
         .background(isFocus ? Color(hex: 0xD2DCFF).opacity(0.25) : Color.gray0)
+        .onTapGesture { onTap?() }
     }
 }
+
 
 // MARK: - Subviews
 extension FriendRunningRow {
@@ -39,7 +40,7 @@ extension FriendRunningRow {
         ProfileImageView(
             image: nil,
             style: isFocus ? .blueBorder : .grayBorder,
-            isZZZ: !isRunning
+            isZZZ: !friend.isRunning
         )
     }
 
@@ -48,10 +49,10 @@ extension FriendRunningRow {
     private var infoSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(name)
+                Text(friend.name)
                     .typography(.t2_700)
 
-                if isMine {
+                if friend.isMine {
                     Circle()
                         .fill(Color.blue600)
                         .frame(width: 20, height: 20)
@@ -63,13 +64,13 @@ extension FriendRunningRow {
 
                 Spacer().frame(width: 12)
 
-                if isRunning, let time {
+                if friend.isRunning, let time = friend.time {
                     Text(time)
                         .typography(.b2_500, color: .gray500)
                 }
             }
 
-            if isRunning, let distance, let location {
+            if friend.isRunning, let distance = friend.distance, let location = friend.location {
                 HStack(spacing: 4) {
                     Text(distance)
                         .typography(.b2_500, color: .gray700)
@@ -88,12 +89,12 @@ extension FriendRunningRow {
     /// 응원 버튼
     @ViewBuilder
     private var cheerButton: some View {
-        if !isRunning {
+        if !friend.isRunning {
             AppButton(
-                title: isSent ? "응원완료" : "응원하기",
+                title: friend.isSent ? "응원완료" : "응원하기",
                 style: .primary,
                 size: .small,
-                isDisabled: isSent
+                isDisabled: friend.isSent
             ) {
                 // TODO: 응원 액션
             }
@@ -104,52 +105,13 @@ extension FriendRunningRow {
 
 #Preview {
     VStack(spacing: 0) {
-        FriendRunningRow(
-            name: "민희",
-            time: "1시간 전",
-            distance: "5.01km",
-            location: "광명",
-            isMine: true,
-            isRunning: true,
-            isSent: false,
-            isFocus: true
-        )
-
-        FriendRunningRow(
-            name: "해준",
-            time: "30분 전",
-            distance: "5.01km",
-            location: "서울",
-            isMine: false,
-            isRunning: true,
-            isSent: false,
-            isFocus: false
-        )
-
-        FriendRunningRow(
-            name: "수연",
-            time: "10시간 전",
-            distance: "5.01km",
-            location: "서울",
-            isMine: false,
-            isRunning: true,
-            isFocus: false
-        )
-
-        FriendRunningRow(
-            name: "달리는하니",
-            isMine: false,
-            isRunning: false,
-            isSent: false,
-            isFocus: false
-        )
-
-        FriendRunningRow(
-            name: "땡땡",
-            isMine: false,
-            isRunning: false,
-            isSent: true,
-            isFocus: false
-        )
+        ForEach(RunningReadyFeature.mockFriends) { friend in
+            FriendRunningRow(
+                friend: friend,
+                isFocus: friend.name == "민희" // 특정 친구만 포커스 테스트
+            )
+        }
     }
+    .background(Color.gray50)
 }
+

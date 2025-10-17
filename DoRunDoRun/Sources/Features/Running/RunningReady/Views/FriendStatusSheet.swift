@@ -7,12 +7,19 @@
 
 import SwiftUI
 
+/// 친구들의 러닝 현황을 표시하는 하단 시트(View)
+///
+/// `RunningReadyView`의 하단에 위치하며,
+/// 친구들의 러닝 상태, 거리, 위치를 리스트 형태로 표시합니다.
+/// 드래그 제스처를 통해 시트를 위·아래로 이동할 수 있습니다.
 struct FriendStatusSheet: View {
-    let friends: [Friend]
-    @Binding var sheetOffset: CGFloat
-    @Binding var currentOffset: CGFloat
-    var sheetHeight: CGFloat = 400
-    var collapsedOffset: CGFloat = 272 // 기본 내려간 상태 400 - 80(버튼 프레임 높이) - 48
+    let friends: [Friend]                       // 표시할 친구 목록
+    let focusedFriendID: UUID?                  // 현재 포커싱된 친구 ID
+    @Binding var sheetOffset: CGFloat           // 시트의 현재 오프셋 (드래그 중 상태)
+    @Binding var currentOffset: CGFloat         // 드래그 종료 시 기준 오프셋
+    var sheetHeight: CGFloat = 400              // 전체 시트 높이 (기본값 400)
+    var collapsedOffset: CGFloat = 272          // 기본 내려간 상태의 오프셋 (400 - 버튼 높이 80 - 여백 48)
+    var onFriendTap: ((UUID) -> Void)? = nil    // 친구 셀 탭 시 호출되는 콜백
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,10 +32,6 @@ struct FriendStatusSheet: View {
         .background(Color.gray0)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .offset(y: sheetOffset)
-        .onAppear {
-            sheetOffset = collapsedOffset
-            currentOffset = collapsedOffset
-        }
         .gesture(dragGesture)
     }
 }
@@ -69,19 +72,16 @@ extension FriendStatusSheet {
     private var friendList: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
-                ForEach(friends) { friend in
+                ForEach(friends, id: \.id) { friend in
                     FriendRunningRow(
-                        name: friend.name,
-                        time: friend.time,
-                        distance: friend.distance,
-                        location: friend.location,
-                        isMine: friend.isMine,
-                        isRunning: friend.isRunning,
-                        isSent: friend.isSent,
-                        isFocus: friend.isFocus
-                    )
+                        friend: friend,
+                        isFocus: friend.id == focusedFriendID
+                    ) {
+                        onFriendTap?(friend.id)
+                    }
                 }
             }
+            .padding(.bottom, 80) // 버튼 공간 확보
         }
     }
 }
@@ -109,13 +109,8 @@ extension FriendStatusSheet {
 // MARK: - Preview
 #Preview {
     FriendStatusSheet(
-        friends: [
-            Friend(name: "민희", time: "1시간 전", distance: "5.01km", location: "광명", isMine: true, isRunning: true, isSent: false, isFocus: true),
-            Friend(name: "해준", time: "30분 전", distance: "5.01km", location: "서울", isMine: false, isRunning: true, isSent: false, isFocus: false),
-            Friend(name: "수연", time: "10시간 전", distance: "5.01km", location: "서울", isMine: false, isRunning: true, isSent: false, isFocus: false),
-            Friend(name: "달리는하니", time: nil, distance: nil, location: nil, isMine: false, isRunning: false, isSent: false, isFocus: false),
-            Friend(name: "땡땡", time: nil, distance: nil, location: nil, isMine: false, isRunning: false, isSent: true, isFocus: false)
-        ],
+        friends: RunningReadyFeature.mockFriends,
+        focusedFriendID: RunningReadyFeature.mockFriends.first!.id,
         sheetOffset: .constant(0),
         currentOffset: .constant(0)
     )
