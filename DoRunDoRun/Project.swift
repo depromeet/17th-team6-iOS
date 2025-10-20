@@ -23,6 +23,7 @@ let project = Project(
                     "NSLocationAlwaysAndWhenInUseUsageDescription": "앱이 백그라운드에 있을 때도 러닝 거리와 경로를 정확히 기록하기 위해 위치 정보를 사용합니다.",
                     "UIBackgroundModes": ["location"],
                     "NMFNcpKeyId": "$(NMFNcpKeyId)",
+                    "BASE_URL": "$(BASE_URL)",
                     "UIAppFonts": .array([
                         .string("Pretendard-Thin.otf"),
                         .string("Pretendard-SemiBold.otf"),
