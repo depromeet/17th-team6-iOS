@@ -111,8 +111,9 @@ extension LocationServiceImpl: CLLocationManagerDelegate {
         for location in locations {
             // 정확도 필터: 0...40m 만 통과
             let hAcc = location.horizontalAccuracy
-            
-            guard hAcc >= 0, hAcc <= 40 else { continue }
+            let vAcc = location.verticalAccuracy
+                        
+            guard hAcc >= 0, hAcc <= 40, vAcc >= 0 else { continue }
             continuation?.yield(location)
         }
     }

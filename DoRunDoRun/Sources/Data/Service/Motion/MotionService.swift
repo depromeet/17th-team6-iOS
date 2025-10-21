@@ -75,7 +75,7 @@ final class MotionServiceImpl: MotionService {
             
             // Background Thread에서 실행
             pedometer.startUpdates(from: start) { [weak self] data, error in
-                guard let self else { return }
+                guard self != nil else { return }
                 
                 if let error {
                     continuation.finish(throwing: MotionServiceError.runtimeError(error))
