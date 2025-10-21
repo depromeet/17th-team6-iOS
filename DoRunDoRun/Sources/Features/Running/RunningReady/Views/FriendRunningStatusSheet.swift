@@ -52,8 +52,7 @@ private extension FriendRunningStatusSheet {
 
     var header: some View {
         HStack {
-            Text("친구 두런 현황")
-                .typography(.t1_700)
+            TypographyText(text: "친구 두런 현황", style: .t1_700)
             Spacer()
             Button {
                 friendListButtonTapped?()

@@ -27,8 +27,7 @@ private extension FriendMarkerView {
     /// 닉네임 텍스트 영역
     @ViewBuilder
     var nicknameLabel: some View {
-        Text(name)
-            .typography(.c1_700, color: .gray900)
+        TypographyText(text: name, style: .c1_700, color: .gray900)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(Color.gray0)

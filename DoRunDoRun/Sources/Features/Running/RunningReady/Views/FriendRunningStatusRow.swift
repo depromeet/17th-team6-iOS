@@ -48,8 +48,7 @@ private extension FriendRunningStatusRow {
         VStack(alignment: .leading, spacing: 4) {
             // 상단 (이름 + 나 배지 + 시간)
             HStack {
-                Text(status.name)
-                    .typography(.t2_700)
+                TypographyText(text: status.name, style: .t2_700)
 
                 if status.isMe {
                     Circle()
@@ -61,21 +60,19 @@ private extension FriendRunningStatusRow {
                 Spacer().frame(width: 12)
 
                 if let time = status.latestRanText {
-                    Text(time)
-                        .typography(.b2_500, color: .gray500)
+                    TypographyText(text: time, style: .b2_500, color: .gray500)
                 }
             }
 
             // 하단 (거리 + 위치)
             if status.isRunning, let distance = status.distanceText {
                 HStack(spacing: 4) {
-                    Text(distance).typography(.b2_500, color: .gray700)
-                    Text("/").typography(.b2_500, color: .gray700)
-                    Text(city).typography(.b2_500, color: .gray700)
+                    TypographyText(text: distance, style: .b2_500, color: .gray700)
+                    TypographyText(text: "/", style: .b2_500, color: .gray700)
+                    TypographyText(text: city, style: .b2_500, color: .gray700)
                 }
             } else {
-                Text("아직 러닝 기록이 없어요...")
-                    .typography(.b2_500, color: .gray700)
+                TypographyText(text: "아직 러닝 기록이 없어요...", style: .b2_500, color: .gray700)
             }
         }
     }
