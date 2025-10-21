@@ -132,4 +132,3 @@ extension LocationServiceImpl: CLLocationManagerDelegate {
         continuation?.finish(throwing: LocationServiceError.runtimeError(error))
     }
 }
-
