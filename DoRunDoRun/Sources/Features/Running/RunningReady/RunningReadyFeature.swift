@@ -128,6 +128,7 @@ struct RunningReadyFeature {
                 
             // MARK: 오늘의 러닝 시작 버튼
             case .startButtonTapped:
+                state.statuses = []
                 // 실제 러닝 시작 로직은 상위 Feature(RunningFeature)에서 담당
                 return .none
             }
