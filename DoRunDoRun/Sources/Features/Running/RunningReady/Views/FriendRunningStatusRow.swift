@@ -105,7 +105,7 @@ private extension FriendRunningStatusRow {
             name: "민희",
             isMe: true,
             profileImageURL: nil,
-            latestRanText: "1일 전",
+            latestRanText: "1시간 전",
             isRunning: true,
             distanceText: "5.01km",
             latitude: 37.4784,
