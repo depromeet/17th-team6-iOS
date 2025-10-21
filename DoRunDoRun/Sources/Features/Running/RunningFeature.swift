@@ -1,3 +1,5 @@
+import UIKit
+
 import ComposableArchitecture
 
 enum RunningPhase {
@@ -35,7 +37,7 @@ struct RunningFeature {
 
             // Ready → Countdown
             case .ready(.startButtonTapped):
-                //UIApplication.shared.setTabBarHidden(true)
+                UIApplication.shared.setTabBarHidden(true)
                 state.phase = .countdown
                 return .none
 
@@ -46,7 +48,7 @@ struct RunningFeature {
 
             // Active 종료 → 다시 Ready
             case .active(.stopButtonTapped):
-                //UIApplication.shared.setTabBarHidden(false)
+                UIApplication.shared.setTabBarHidden(false)
                 state.phase = .ready
                 return .none
 
