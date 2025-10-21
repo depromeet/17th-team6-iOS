@@ -86,8 +86,7 @@ struct ProfileImageView: View {
     }
     
     private var zzzOverlay: some View {
-        Text("ZZZ")
-            .typography(.c1_700, color: .gray0)
+        TypographyText(text: "ZZZ", style: .c1_700, color: .gray0)
             .padding(.vertical, 2)
             .padding(.horizontal, 6)
             .background(Color.gray500)

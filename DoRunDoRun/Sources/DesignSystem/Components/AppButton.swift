@@ -43,8 +43,7 @@ struct AppButton: View {
     
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .typography(style ==  .text ? .b1_500 : .b1_700, color: textColor)
+            TypographyText(text: title, style: style ==  .text ? .b1_500 : .b1_700, color: textColor)
                 .frame(maxWidth: .infinity, minHeight: buttonHeight)
                 .background(backgroundColor)
                 .cornerRadius(size.cornerRadius)

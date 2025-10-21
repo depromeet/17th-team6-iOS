@@ -12,8 +12,7 @@ struct NoticeToastView: View {
                     .frame(width: 72, height: 72)
             }
 
-            Text(message)
-                .typography(.b1_700, color: .gray600)
+            TypographyText(text: message, style: .b1_700, color: .gray600)
         }
         .padding(.leading, 8)
         .padding(.trailing, 24)

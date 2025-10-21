@@ -43,8 +43,7 @@ private extension RunningCountdownView {
             Image("graphic_congrats")
                 .resizable()
                 .frame(width: 72, height: 72)
-            Text("잠시 후 러닝 시작")
-                .typography(.h4_700, color: .lime600)
+            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .lime600)
         }
         .padding(.horizontal, 30)
     }
@@ -52,8 +51,7 @@ private extension RunningCountdownView {
     /// 숫자 카운트다운 표시
     func countdownContent(_ count: Int) -> some View {
         VStack(spacing: 32) {
-            Text("잠시 후 러닝 시작")
-                .typography(.h4_700, color: .lime600)
+            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .lime600)
 
             ZStack {
                 Circle()
@@ -61,8 +59,7 @@ private extension RunningCountdownView {
                     .stroke(Color.lime600, style: StrokeStyle(lineWidth: 10, lineCap: .square))
                     .rotationEffect(.degrees(-90))
 
-                Text("\(count)")
-                    .typography(.countdown_700, color: .lime600)
+                TypographyText(text: "\(count)", style: .countdown_700, color: .lime600)
             }
             .onAppear(perform: restartAnimation)
             .onChange(of: count) { _ in restartAnimation() }
