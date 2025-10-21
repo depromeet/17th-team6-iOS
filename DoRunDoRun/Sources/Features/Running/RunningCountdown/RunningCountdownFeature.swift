@@ -13,12 +13,15 @@ struct RunningCountdownFeature {
     struct State: Equatable {
         /// 현재 카운트 숫자 (3 → 2 → 1 → nil)
         var count: Int? = nil
+
+        /// 카운트다운 시작 전 대기 상태 (“잠시 후 러닝 시작”만 보여줌)
+        var isPreparing: Bool = true
     }
 
     enum Action: Equatable {
-        case onAppear                 // 카운트다운 시작 트리거
-        case updateCountdown(Int?)    // 숫자 업데이트
-        case countdownCompleted       // 카운트다운 완료
+        case onAppear
+        case updateCountdown(Int?)
+        case countdownCompleted
     }
 
     var body: some ReducerOf<Self> {
@@ -26,23 +29,26 @@ struct RunningCountdownFeature {
             switch action {
 
             case .onAppear:
-                // “잠시 후…” 1초 대기 후 3→2→1 카운트다운
+                state.isPreparing = true
                 return .run { send in
-                    try await Task.sleep(for: .seconds(1)) // “잠시 후” 1초
-                    for i in stride(from: 3, through: 1, by: -1) {
-                        await send(.updateCountdown(i))
-                        try await Task.sleep(for: .seconds(1))
-                    }
+                    try await Task.sleep(for: .seconds(1)) // “잠시 후” 표시
+                    await send(.updateCountdown(3))
+                    try await Task.sleep(for: .seconds(1))
+                    await send(.updateCountdown(2))
+                    try await Task.sleep(for: .seconds(1))
+                    await send(.updateCountdown(1))
+                    try await Task.sleep(for: .seconds(1))
                     await send(.countdownCompleted)
                 }
 
             case let .updateCountdown(value):
                 state.count = value
+                state.isPreparing = false
                 return .none
 
             case .countdownCompleted:
                 state.count = nil
-                // 실제 전환 로직은 상위 Feature(RunningFeature)에서 담당
+                state.isPreparing = false
                 return .none
             }
         }
