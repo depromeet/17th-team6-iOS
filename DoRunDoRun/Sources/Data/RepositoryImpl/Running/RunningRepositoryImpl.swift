@@ -8,7 +8,7 @@
 import CoreLocation
 import CoreMotion
 
-actor RunningRepositoryImpl: RunningRepositoryProtocol {
+actor RunningRepositoryImpl: RunningRepository {
     
     // MARK: Dependencies
     private let runningService: RunningService
