@@ -53,9 +53,13 @@ struct AppButton: View {
                         style: .b2_500,
                         color: textColor
                     )
+                    .frame(maxWidth: .infinity, minHeight: buttonHeight)
+                    .background(backgroundColor)
                 } else {
                     // 그냥 텍스트만
                     TypographyText(text: title, style: .b2_500, color: textColor)
+                        .frame(maxWidth: .infinity, minHeight: buttonHeight)
+                        .background(backgroundColor)
                 }
             } else {
                 TypographyText(text: title, style: .b1_700, color: textColor)
@@ -76,7 +80,7 @@ struct AppButton: View {
         case .primary: return .blue600
         case .secondary: return .gray100
         case .destructive: return .redLight
-        case .text: return .clear
+        case .text: return .gray0
         }
     }
     
