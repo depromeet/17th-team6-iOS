@@ -35,18 +35,34 @@ struct AppButton: View {
     var style: ButtonStyleType = .primary
     var size: ButtonSize = .large
     var isDisabled: Bool = false
+    var underlineTarget: String? = nil
     var action: () -> Void
     
     private var buttonHeight: CGFloat {
-        style == .text ? 48 : size.height
+        style == .text ? 29 : size.height
     }
     
     var body: some View {
         Button(action: action) {
-            TypographyText(text: title, style: style ==  .text ? .b1_500 : .b1_700, color: textColor)
-                .frame(maxWidth: .infinity, minHeight: buttonHeight)
-                .background(backgroundColor)
-                .cornerRadius(size.cornerRadius)
+            if style == .text {
+                if let target = underlineTarget {
+                    // 특정 단어에만 밑줄
+                    TypographyUnderlineText(
+                        text: title,
+                        target: target,
+                        style: .b2_500,
+                        color: textColor
+                    )
+                } else {
+                    // 그냥 텍스트만
+                    TypographyText(text: title, style: .b2_500, color: textColor)
+                }
+            } else {
+                TypographyText(text: title, style: .b1_700, color: textColor)
+                    .frame(maxWidth: .infinity, minHeight: buttonHeight)
+                    .background(backgroundColor)
+                    .cornerRadius(size.cornerRadius)
+            }
         }
         .allowsHitTesting(!isDisabled)
         .buttonStyle(.plain)
