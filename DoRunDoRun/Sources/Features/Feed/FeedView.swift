@@ -8,13 +8,10 @@ struct FeedView: View {
         WithPerceptionTracking {
             NavigationStack {
                 VStack {
-                    Spacer()
-                    Text("인증 피드")
-                        .font(.title)
-                        .fontWeight(.bold)
+                    NavigationBar("인증피드")
                     Spacer()
                 }
-                .navigationTitle("인증 피드")
+                .toolbar(.hidden, for: .navigationBar)
             }
         }
     }

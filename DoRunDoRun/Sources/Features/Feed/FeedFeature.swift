@@ -4,11 +4,18 @@ import ComposableArchitecture
 struct FeedFeature {
     @ObservableState
     struct State: Equatable {}
-    enum Action: Equatable {}
+
+    enum Action: BindableAction, Equatable {
+        case binding(BindingAction<State>)
+    }
 
     var body: some ReducerOf<Self> {
+        BindingReducer()
         Reduce { state, action in
-            return .none
+            switch action {
+            case .binding:
+                return .none
+            }
         }
     }
 }

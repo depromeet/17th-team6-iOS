@@ -23,8 +23,8 @@ let packageSettings = PackageSettings(
 let package = Package(
     name: "DoRunDoRun",
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", branch: "main"),
-        .package(url: "https://github.com/navermaps/SPM-NMapsMap", branch: "main"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", .upToNextMajor(from: "1.23.0")),
+        .package(url: "https://github.com/navermaps/SPM-NMapsMap", from: "3.23.0"),
         .package(url: "https://github.com/Alamofire/Alamofire", from: "5.8.0"),
         .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "15.0.0")),
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.6.0"),
