@@ -3,7 +3,9 @@ import ComposableArchitecture
 @Reducer
 struct FeedFeature {
     @ObservableState
-    struct State: Equatable {}
+    struct State: Equatable {
+
+    }
 
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
