@@ -45,6 +45,7 @@ let project = Project(
                 .external(name: "ComposableArchitecture"),
                 .external(name: "NMapsMap"),
                 .external(name: "Alamofire"),
+                .external(name: "Moya"),
             ],
             settings: .settings(
                 base: [:],
