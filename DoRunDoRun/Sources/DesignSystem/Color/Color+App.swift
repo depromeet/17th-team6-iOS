@@ -65,4 +65,8 @@ extension Color {
     static let redLight = Color(hex: 0xFFE5E4)
     static let yellow = Color(hex: 0xFFE14D)
     static let green = Color(hex: 0x2DDD93)
+    
+    // MARK: - Dim
+    static let dimLight = Color(hex: 0x000000, alpha: 0.4)
+    static let dimDark  = Color(hex: 0x000000, alpha: 0.6)
 }
