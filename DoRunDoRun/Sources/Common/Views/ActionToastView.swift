@@ -2,13 +2,24 @@ import SwiftUI
 
 struct ActionToastView: View {
     let message: String
+    let imageName: String?
+
+    init(message: String, imageName: String? = nil) {
+        self.message = message
+        self.imageName = imageName
+    }
 
     var body: some View {
-        TypographyText(text: message, style: .b2_500, color: .gray0)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(Color.gray800)
-            .cornerRadius(12)
+        HStack(spacing: 8) {
+            if let imageName {
+                Image(imageName)
+            }
+            TypographyText(text: message, style: .b1_500, color: .gray0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.dimDark)
+        .cornerRadius(12)
     }
 }
 
