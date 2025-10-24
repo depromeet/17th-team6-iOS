@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Alamofire
 
 /// 친구 관련 네트워크 요청 인터페이스
 protocol FriendService {
