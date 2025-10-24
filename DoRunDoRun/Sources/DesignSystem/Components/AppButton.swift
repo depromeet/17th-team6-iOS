@@ -1,130 +1,209 @@
 import SwiftUI
 
-// MARK: - 버튼 스타일 타입
-enum ButtonStyleType {
-    case primary      // 파란 버튼
-    case secondary    // 회색 버튼
-    case destructive  // 빨간 버튼
-    case text         // 텍스트 버튼
+// MARK: - 버튼 스타일
+enum AppButtonStyle {
+    case primary
+    case secondary
+    case destructive
+    case disabled
+    case cancel
+    case text
 }
 
 // MARK: - 버튼 사이즈
-enum ButtonSize {
-    case large
+enum AppButtonSize {
+    case fullWidth
     case medium
     case small
     
     var height: CGFloat {
         switch self {
-        case .large, .medium: return 56
-        case .small: return 44
+        case .fullWidth: return 56
+        case .medium: return 44
+        case .small: return 32
         }
     }
     
     var cornerRadius: CGFloat {
         switch self {
-        case .large, .medium: return 12
-        case .small: return 8
+        case .fullWidth: return 12
+        case .medium: return 10
+        case .small: return 6
+        }
+    }
+    
+    var horizontalPadding: CGFloat {
+        switch self {
+        case .fullWidth: return 0
+        case .medium: return 16
+        case .small: return 10
+        }
+    }
+    
+    var typographyStyle: TypographyStyle {
+        switch self {
+        case .fullWidth, .medium:
+            return .b1_700
+        case .small:
+            return .c1_700
         }
     }
 }
 
-// MARK: - 버튼 컴포넌트
+// MARK: - AppButton
 struct AppButton: View {
     let title: String
-    var style: ButtonStyleType = .primary
-    var size: ButtonSize = .large
-    var isDisabled: Bool = false
-    var underlineTarget: String? = nil
-    var action: () -> Void
+    let style: AppButtonStyle
+    let size: AppButtonSize
+    let icon: Image?
+    let underlineTarget: String?
+    let action: () -> Void
+    
+    // MARK: - 초기화
+    init(
+        title: String,
+        style: AppButtonStyle = .primary,
+        size: AppButtonSize = .fullWidth,
+        isDisabled: Bool = false,
+        underlineTarget: String? = nil,
+        action: @escaping () -> Void
+    ) {
+        self.title = title
+        self.style = style
+        self.size = size
+        self.icon = nil
+        self.underlineTarget = underlineTarget
+        self.action = action
+    }
+    
+    init(
+        title: String,
+        style: AppButtonStyle,
+        size: AppButtonSize,
+        icon: Image,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        precondition(
+            size == .medium && (style == .secondary || style == .disabled),
+            "❌ 아이콘은 Medium 사이즈의 Secondary 또는 Disabled 스타일에서만 사용할 수 있습니다."
+        )
+        self.title = title
+        self.style = style
+        self.size = size
+        self.icon = icon
+        self.underlineTarget = nil
+        self.action = action
+    }
     
     private var buttonHeight: CGFloat {
         style == .text ? 29 : size.height
     }
     
     var body: some View {
-        Button(action: action) {
-            if style == .text {
-                if let target = underlineTarget {
-                    // 특정 단어에만 밑줄
-                    TypographyUnderlineText(
-                        text: title,
-                        target: target,
-                        style: .b2_500,
-                        color: textColor
-                    )
-                    .frame(maxWidth: .infinity, minHeight: buttonHeight)
-                    .background(backgroundColor)
-                } else {
-                    // 그냥 텍스트만
-                    TypographyText(text: title, style: .b2_500, color: textColor)
-                        .frame(maxWidth: .infinity, minHeight: buttonHeight)
-                        .background(backgroundColor)
-                }
-            } else {
-                TypographyText(text: title, style: .b1_700, color: textColor)
-                    .frame(maxWidth: .infinity, minHeight: buttonHeight)
-                    .background(backgroundColor)
-                    .cornerRadius(size.cornerRadius)
-            }
+        Button(action: {
+            action()
+        }) {
+            content
+                .frame(maxWidth: size == .fullWidth ? .infinity : nil)
+                .frame(height: buttonHeight)
+                .background(backgroundColor)
+                .cornerRadius(size.cornerRadius)
         }
-        .allowsHitTesting(!isDisabled)
         .buttonStyle(.plain)
     }
     
-    private var backgroundColor: Color {
-        if isDisabled {
-            return style == .text ? .clear : .gray50
-        }
+    // MARK: - 콘텐츠
+    @ViewBuilder
+    private var content: some View {
         switch style {
-        case .primary: return .blue600
-        case .secondary: return .gray100
-        case .destructive: return .redLight
-        case .text: return .gray0
+        case .text:
+            if let target = underlineTarget {
+                TypographyUnderlineText(text: title, target: target, style: .b2_500, color: textColor)
+            } else {
+                TypographyText(text: title, style: .b2_500, color: textColor)
+            }
+        default:
+            HStack(spacing: 4) {
+                TypographyText(text: title, style: size.typographyStyle, color: textColor)
+                if let icon = icon {
+                    icon
+                }
+            }
+            .padding(.horizontal, size.horizontalPadding)
+        }
+    }
+    
+    // MARK: - 색상
+    private var backgroundColor: Color {
+        switch style {
+        case .primary:
+            return .blue600
+        case .secondary:
+            switch size {
+            case .fullWidth:
+                return .gray900
+            case .medium, .small:
+                return .blue200
+            }
+        case .destructive:
+            return .redLight
+        case .disabled:
+            return .gray100
+        case .cancel:
+            return .gray100
+        case .text:
+            return .gray0
         }
     }
     
     private var textColor: Color {
-        if isDisabled {
-            return .gray400
-        }
         switch style {
-        case .primary: return .gray0
-        case .secondary: return .gray700
-        case .destructive: return .red
-        case .text: return .gray500
+        case .primary:
+            return .gray0
+        case .secondary:
+            switch size {
+            case .fullWidth:
+                return .gray0
+            case .medium, .small:
+                return .blue600
+            }
+        case .destructive:
+            return .red
+        case .disabled:
+            return .gray400
+        case .cancel:
+            return .gray900
+        case .text:
+            return .gray500
         }
     }
 }
 
-// MARK: - 프리뷰
+// MARK: - Preview
 #Preview {
     VStack(spacing: 16) {
-        // Filled buttons
-        AppButton(title: "확인", style: .primary) {}
-        AppButton(title: "취소", style: .secondary) {}
-        AppButton(title: "삭제하기", style: .destructive) {}
-
+        Group {
+            AppButton(title: "확인", style: .primary) {}
+            AppButton(title: "취소", style: .cancel) {}
+            AppButton(title: "삭제하기", style: .destructive) {}
+            AppButton(title: "비활성화", style: .disabled, isDisabled: true) {}
+        }
+        
         Divider()
-
-        // Disabled
-        AppButton(title: "확인", style: .primary, isDisabled: true) {}
-        AppButton(title: "취소", style: .secondary, isDisabled: true) {}
-        AppButton(title: "삭제하기", style: .destructive, isDisabled: true) {}
-
+        
+        Group {
+            AppButton(title: "텍스트 버튼", style: .text) {}
+            AppButton(title: "밑줄 있는 텍스트 버튼", style: .text, underlineTarget: "밑줄") {}
+        }
+        
         Divider()
-
-        // Text-only buttons
-        AppButton(title: "텍스트 버튼", style: .text) {}
-
-        Divider()
-
-        // Size variations
-        AppButton(title: "Large", size: .large) {}
-        AppButton(title: "Medium", size: .medium) {}
-            .frame(width: 140)
-        AppButton(title: "Small", size: .small) {}
-            .frame(width: 75)
+        
+        Group {
+            AppButton(title: "Medium + 아이콘", style: .secondary, size: .medium, icon: Image(systemName: "plus")) {}
+            AppButton(title: "Medium Disabled + 아이콘", style: .disabled, size: .medium, icon: Image(systemName: "xmark")) {}
+        }
     }
-    .padding(.horizontal, 20)
+    .padding()
+    .background(Color.gray0)
 }
