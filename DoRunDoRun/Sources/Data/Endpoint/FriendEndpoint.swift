@@ -5,12 +5,26 @@
 //  Created by Jaehui Yu on 10/17/25.
 //
 
-import Alamofire
+import Foundation
 
-enum FriendAPI: APIEndpointProtocol {
+import Moya
+
+enum FriendAPI {
     case runningStatus(page: Int, size: Int)
     case reaction(userId: Int)
+}
 
+extension FriendAPI: TargetType {
+    // MARK: - Base URL
+    var baseURL: URL {
+        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
+              let url = URL(string: urlString) else {
+            fatalError("🚨 BASE_URL not found or invalid in Info.plist")
+        }
+        return url
+    }
+
+    // MARK: - Path
     var path: String {
         switch self {
         case .runningStatus:
@@ -20,7 +34,8 @@ enum FriendAPI: APIEndpointProtocol {
         }
     }
 
-    var method: HTTPMethod {
+    // MARK: - Method
+    var method: Moya.Method {
         switch self {
         case .runningStatus:
             return .get
@@ -29,12 +44,30 @@ enum FriendAPI: APIEndpointProtocol {
         }
     }
 
-    var parameters: Parameters? {
+    // MARK: - Task
+    var task: Task {
         switch self {
         case let .runningStatus(page, size):
-            return ["page": page, "size": size]
+            // GET 요청은 쿼리스트링으로 전달
+            return .requestParameters(
+                parameters: ["page": page, "size": size],
+                encoding: URLEncoding.queryString
+            )
+
         case let .reaction(userId):
-            return ["userId": userId]
+            // POST 요청은 JSON body로 전달
+            return .requestParameters(
+                parameters: ["userId": userId],
+                encoding: JSONEncoding.default
+            )
         }
+    }
+
+    // MARK: - Headers
+    var headers: [String : String]? {
+        [
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        ]
     }
 }
