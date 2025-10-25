@@ -29,15 +29,10 @@ struct RunningSnapshotViewStateMapper {
 
     // MARK: - Formatting helpers
 
-    /// 거리(m)를 "x.xxkm" 스타일로 변환 (공백 없음, 말미 0 제거, 0이면 "0km")
+    /// 거리(m)를 "x.xxkm" 스타일로 변환 (항상 소수점 2자리, 공백 없음)
     private static func makeDistanceText(fromMeters meters: Double) -> String {
-        guard meters > 0 else { return "0km" }
         let km = meters / 1000.0
-        let rounded = (km * 100).rounded() / 100
-        var s = String(format: "%.2f", rounded)
-        while s.last == "0" { s.removeLast() }
-        if s.last == "." { s.removeLast() }
-        return "\(s)km"
+        return String(format: "%.2fkm", km)
     }
 
     /// 평균 페이스(초/킬로미터)를 "m'ss''"로 변환, 거리 0 또는 pace 0이면 "0'00''"
@@ -50,13 +45,13 @@ struct RunningSnapshotViewStateMapper {
         return String(format: "%d'%02d''", minutes, seconds)
     }
 
-    /// 경과 시간(Duration)을 "HH:mm:ss"로 변환
+    /// 경과 시간(Duration)을 "H:mm:ss"로 변환
     private static func makeDurationText(from elapsed: Duration) -> String {
         let totalSeconds = Int(elapsed.components.seconds)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        return String(format: "%d:%02d:%02d", hours, minutes, seconds)
     }
 
     /// 케이던스(sppm)를 "154 spm"처럼 정수로 변환
