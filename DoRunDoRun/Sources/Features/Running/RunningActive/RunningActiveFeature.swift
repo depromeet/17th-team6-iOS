@@ -80,7 +80,7 @@ struct RunningActiveFeature {
                     try await useCase.resume()
                 }
             case .stopButtonTapped:
-                state.isRunningPaused = false
+                // TODO: 런닝 기록 종료 팝업 로직 추가
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] _ in
                         await useCase.stop()
@@ -88,6 +88,7 @@ struct RunningActiveFeature {
                     .cancel(id: CancelID.stream)
                 )
             case .gpsButtonTapped:
+                // TODO: 현재 위치 정렬
                 return .none
 
                 //MARK: 러닝 스냅샷 스트림
