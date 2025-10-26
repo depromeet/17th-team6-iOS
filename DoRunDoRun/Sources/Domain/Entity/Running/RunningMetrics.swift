@@ -8,7 +8,7 @@
 import Foundation
 
 /// 런닝 누적 지표
-struct RunningMetrics {
+struct RunningMetrics: Equatable {
     /// 누적 이동거리 (m)
     let totalDistanceMeters: Double
     /// 누적 경과시간 (일시정지 제외)
