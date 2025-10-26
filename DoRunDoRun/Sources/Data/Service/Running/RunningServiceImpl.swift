@@ -31,7 +31,8 @@ final class RunningServiceImpl: RunningService {
     
     private enum State { case idle, running, stopped }
     
-    init(locationService: LocationService, motionService: MotionService) {
+    init(locationService: LocationService = LocationServiceImpl(),
+         motionService: MotionService = MotionServiceImpl()) {
         self.locationService = locationService
         self.motionService = motionService
     }
