@@ -11,8 +11,10 @@ struct RunningView: View {
             ZStack(alignment: .bottom) {
                 // 공통 지도 View
                 RunningMapView(
+                    phase: store.phase,
                     statuses: store.ready.statuses,
-                    focusedFriendID: store.ready.focusedFriendID
+                    focusedFriendID: store.ready.focusedFriendID,
+                    runningCoordinates: store.active.routeCoordinates
                 )
                 .ignoresSafeArea(
                     edges: store.phase == .ready ? .top : [.top, .bottom]

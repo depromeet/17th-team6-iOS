@@ -11,8 +11,12 @@ import NMapsMap
 
 /// 러닝 전, 러닝 중 화면에서 보여질 NaverMap
 struct RunningMapView: UIViewRepresentable {
+    var phase: RunningPhase
+    
     var statuses: [FriendRunningStatusViewState]
     var focusedFriendID: Int?
+    
+    var runningCoordinates: [RunningCoordinateViewState]
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -31,23 +35,37 @@ struct RunningMapView: UIViewRepresentable {
         // 마커 추가 + 카메라 이동
         addMarkers(on: mapView.mapView, with: statuses, context: context)
         moveCamera(to: focusedFriendID, in: mapView.mapView)
+        
+        // 경로 오버레이 초기 생성 + 스타일
+        context.coordinator.routeOverlay = makeRouteOverlay()
+        
         return mapView
     }
 
     // MARK: - UIView 갱신
     func updateUIView(_ uiView: NMFNaverMapView, context: Context) {
-        // 기존 마커 제거
-        context.coordinator.markers.forEach { $0.mapView = nil }
-        context.coordinator.markers.removeAll()
+        switch phase {
+        case .ready:
+            // 기존 마커 제거
+            context.coordinator.markers.forEach { $0.mapView = nil }
+            context.coordinator.markers.removeAll()
 
-        // 새 마커 추가 및 카메라 갱신
-        addMarkers(on: uiView.mapView, with: statuses, context: context)
-        moveCamera(to: focusedFriendID, in: uiView.mapView)
+            // 새 마커 추가 및 카메라 갱신
+            addMarkers(on: uiView.mapView, with: statuses, context: context)
+            moveCamera(to: focusedFriendID, in: uiView.mapView)
+            
+        case .countdown: return
+        case .active:
+            updateForActive(uiView, context: context)
+        }
     }
 
     // MARK: - Coordinator
     class Coordinator {
         var markers: [NMFMarker] = []
+        
+        var routeOverlay: NMFPath?            // 경로 오버레이 보관
+        var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
     }
 }
 
@@ -109,3 +127,69 @@ private extension RunningMapView {
     }
 }
 
+// MARK: - RunningActive
+
+private extension RunningMapView {
+    /// Active 단계에서 지도 상태를 갱신합니다.
+    func updateForActive(_ uiView: NMFNaverMapView, context: Context) {
+        // Active 진입 시 최초 1회만 카메라 센터링
+        if !context.coordinator.didCenterInitialCamera, let first = runningCoordinates.first {
+            centerCamera(on: first, in: uiView.mapView)
+            context.coordinator.didCenterInitialCamera = true
+        }
+
+        // 이후에는 경로만 갱신
+        updateRunningRoute(on: uiView.mapView, context: context)
+    }
+    
+    /// 주어진 러닝 좌표를 기준으로 카메라를 가운데로 이동
+    func centerCamera(
+        on coordinate: RunningCoordinateViewState,
+        in mapView: NMFMapView,
+        zoom: Double = 15
+    ) {
+        let latLng = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
+        let update = NMFCameraUpdate(position: NMFCameraPosition(latLng, zoom: zoom))
+        update.animation = .easeIn
+        mapView.moveCamera(update)
+    }
+    
+    /// runningCoordinates를 이용해 경로를 업데이트한다.
+    func updateRunningRoute(on mapView: NMFMapView, context: Context) {
+        // 좌표가 없으면 기존 경로 제거
+        guard !runningCoordinates.isEmpty else {
+            context.coordinator.routeOverlay?.mapView = nil
+            context.coordinator.routeOverlay = nil
+            return
+        }
+
+        // 1) 없으면 생성
+        if context.coordinator.routeOverlay == nil {
+            context.coordinator.routeOverlay = makeRouteOverlay()
+        }
+        
+        // 2) 라인 구성
+        let latlngs = runningCoordinates
+            .map {
+                NMGLatLng(lat: $0.latitude, lng: $0.longitude)
+            } as [AnyObject]
+        let line = NMGLineString(points: latlngs)
+        
+        // 3) 경로 적용
+        context.coordinator.routeOverlay?.path = line
+        
+        // 4) 지도에 부착
+        context.coordinator.routeOverlay?.mapView = mapView
+
+    }
+    
+    /// 러닝 경로를 지도에 표시하기 위한 `NMFPath` 오버레이를 생성하고 기본 스타일을 설정합니다.
+    func makeRouteOverlay() -> NMFPath {
+        let routeOverlay = NMFPath()
+        
+        routeOverlay.outlineWidth = 2
+        routeOverlay.color = .red
+        
+        return routeOverlay
+    }
+}
