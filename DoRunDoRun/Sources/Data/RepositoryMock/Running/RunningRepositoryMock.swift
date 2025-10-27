@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 
 /// 센서 없이 주기적으로 변하는 러닝 스냅샷을 방출하는 Mock 저장소
-actor RunningRepositoryMock: RunningRepositoryProtocol {
+actor RunningRepositoryMock: RunningRepository {
 
     // MARK: - 시작 좌표 (성수 일대)
     private let startLat: Double = 37.5465029

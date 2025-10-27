@@ -8,7 +8,7 @@
 import Foundation
 
 /// 화면/도메인에서 소비할 스냅샷(단일 순간)
-struct RunningSnapshot {
+struct RunningSnapshot: Equatable {
     let timestamp: Date
     let lastPoint: RunningPoint?
     let metrics: RunningMetrics

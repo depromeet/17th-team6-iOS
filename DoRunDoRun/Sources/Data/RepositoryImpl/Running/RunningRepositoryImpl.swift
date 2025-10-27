@@ -8,7 +8,7 @@
 import CoreLocation
 import CoreMotion
 
-actor RunningRepositoryImpl: RunningRepositoryProtocol {
+actor RunningRepositoryImpl: RunningRepository {
     
     // MARK: Dependencies
     private let runningService: RunningService
@@ -33,7 +33,7 @@ actor RunningRepositoryImpl: RunningRepositoryProtocol {
     private var lastPedometer: CMPedometerData?
     
     // MARK: Init
-    init(runningService: RunningService) {
+    init(runningService: RunningService = RunningServiceImpl()) {
         self.runningService = runningService
     }
     
