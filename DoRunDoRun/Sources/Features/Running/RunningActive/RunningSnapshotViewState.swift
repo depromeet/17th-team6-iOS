@@ -10,6 +10,10 @@ struct RunningSnapshotViewState: Equatable, Sendable {
     let paceText: String
     let durationText: String
     let cadenceText: String
-    let lastLatitude: Double?
-    let lastLongitude: Double?
+    let lastCoordinate: RunningCoordinateViewState?
+}
+
+struct RunningCoordinateViewState: Equatable, Sendable {
+    let latitude: Double
+    let longitude: Double
 }

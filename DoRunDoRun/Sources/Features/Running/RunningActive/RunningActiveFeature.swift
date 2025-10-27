@@ -15,13 +15,16 @@ struct RunningActiveFeature {
     struct State: Equatable {
         /// Entity -> ViewState 매핑 결과
         var statuses: [RunningSnapshotViewState] = []
+        var isRunningPaused: Bool = false
         
-        /// 마지막 스냅샷
-        var lastSnapshot: RunningSnapshotViewState? {
-            statuses.last
+        var routeCoordinates: [RunningCoordinateViewState] {
+            statuses.compactMap { $0.lastCoordinate }
         }
         
-        var isRunningPaused: Bool = false
+        /// 마지막 스냅샷
+       private var lastSnapshot: RunningSnapshotViewState? {
+            statuses.last
+        }
         
         /// UI 표시용
         var distanceText: String { lastSnapshot?.distanceText ?? "0.00km" }

@@ -15,15 +15,14 @@ struct RunningSnapshotViewStateMapper {
         )
         let durationText = makeDurationText(from: snapshot.metrics.elapsed)
         let cadenceText = makeCadenceText(from: snapshot.metrics.cadenceSpm)
-        let (lastLatitude, lastLongitude) = extractLastCoordinates(from: snapshot)
+        let lastCoordinate = makeLastCoordinate(from: snapshot)
 
         return RunningSnapshotViewState(
             distanceText: distanceText,
             paceText: paceText,
             durationText: durationText,
             cadenceText: cadenceText,
-            lastLatitude: lastLatitude,
-            lastLongitude: lastLongitude
+            lastCoordinate: lastCoordinate
         )
     }
 
@@ -59,10 +58,12 @@ struct RunningSnapshotViewStateMapper {
         String(format: "%.0f spm", cadenceSpm)
     }
 
-    /// 마지막 좌표를 추출
-    private static func extractLastCoordinates(from snapshot: RunningSnapshot) -> (Double?, Double?) {
-        let lat = snapshot.lastPoint?.coordinate.latitude
-        let lon = snapshot.lastPoint?.coordinate.longitude
-        return (lat, lon)
+    /// 마지막 좌표를 CoordinateViewState로 생성
+    private static func makeLastCoordinate(from snapshot: RunningSnapshot) -> RunningCoordinateViewState? {
+        guard let point = snapshot.lastPoint else { return nil }
+        return .init(
+            latitude: point.coordinate.latitude,
+            longitude: point.coordinate.longitude
+        )
     }
 }
