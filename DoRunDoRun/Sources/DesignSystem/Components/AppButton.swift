@@ -128,6 +128,8 @@ struct AppButton: View {
                 TypographyText(text: title, style: size.typographyStyle, color: textColor)
                 if let icon = icon {
                     icon
+                        .renderingMode(.template)
+                        .foregroundStyle(textColor)
                 }
             }
             .padding(.horizontal, size.horizontalPadding)
@@ -200,8 +202,8 @@ struct AppButton: View {
         Divider()
         
         Group {
-            AppButton(title: "Medium + 아이콘", style: .secondary, size: .medium, icon: Image(systemName: "plus")) {}
-            AppButton(title: "Medium Disabled + 아이콘", style: .disabled, size: .medium, icon: Image(systemName: "xmark")) {}
+            AppButton(title: "Medium + 아이콘", style: .secondary, size: .medium, icon: Image(.react, fill: .fill)) {}
+            AppButton(title: "Medium Disabled + 아이콘", style: .disabled, size: .medium, icon: Image(.react, fill: .fill)) {}
         }
     }
     .padding()
