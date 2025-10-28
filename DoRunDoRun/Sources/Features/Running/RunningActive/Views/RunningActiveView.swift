@@ -126,7 +126,7 @@ extension RunningActiveView {
                 }
             }
         } else {
-            AppButton(title: "기록정지", style: .primary, size: .large) {
+            AppButton(title: "기록정지", style: .primary, size: .fullWidth) {
                 onPause()
             }
         }
