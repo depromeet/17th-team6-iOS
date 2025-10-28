@@ -202,8 +202,8 @@ struct AppButton: View {
         Divider()
         
         Group {
-            AppButton(title: "Medium + 아이콘", style: .secondary, size: .medium, icon: Image(.react, fill: .fill)) {}
-            AppButton(title: "Medium Disabled + 아이콘", style: .disabled, size: .medium, icon: Image(.react, fill: .fill)) {}
+            AppButton(title: "Medium + 아이콘", style: .secondary, size: .medium, icon: Image(.react, fill: .fill, size: .small)) {}
+            AppButton(title: "Medium Disabled + 아이콘", style: .disabled, size: .medium, icon: Image(.react, fill: .fill, size: .small)) {}
         }
     }
     .padding()
