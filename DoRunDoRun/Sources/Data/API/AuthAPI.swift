@@ -10,6 +10,7 @@ import Moya
 
 enum AuthAPI {
     case sendSMS(phoneNumber: String)
+    case verifySMS(phoneNumber: String, verificationCode: String)
 }
 
 extension AuthAPI: TargetType {
@@ -25,6 +26,8 @@ extension AuthAPI: TargetType {
         switch self {
         case .sendSMS:
             return "/api/auth/sms/send"
+        case .verifySMS:
+            return "/api/auth/sms/verify"
         }
     }
 
@@ -37,6 +40,15 @@ extension AuthAPI: TargetType {
         case let .sendSMS(phoneNumber):
             return .requestParameters(
                 parameters: ["phoneNumber": phoneNumber],
+                encoding: JSONEncoding.default
+            )
+
+        case let .verifySMS(phoneNumber, verificationCode):
+            return .requestParameters(
+                parameters: [
+                    "phoneNumber": phoneNumber,
+                    "verificationCode": verificationCode
+                ],
                 encoding: JSONEncoding.default
             )
         }

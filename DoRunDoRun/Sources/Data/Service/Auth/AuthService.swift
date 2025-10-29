@@ -9,6 +9,7 @@ import Foundation
 
 protocol AuthService {
     func sendSMS(phoneNumber: String) async throws -> AuthSendSMSResponseDTO
+    func verifySMS(phoneNumber: String, verificationCode: String) async throws -> AuthVerifySMSResponseDTO
 }
 
 final class AuthServiceImpl: AuthService {
@@ -22,6 +23,13 @@ final class AuthServiceImpl: AuthService {
         try await apiClient.request(
             AuthAPI.sendSMS(phoneNumber: phoneNumber),
             responseType: AuthSendSMSResponseDTO.self
+        )
+    }
+
+    func verifySMS(phoneNumber: String, verificationCode: String) async throws -> AuthVerifySMSResponseDTO {
+        try await apiClient.request(
+            AuthAPI.verifySMS(phoneNumber: phoneNumber, verificationCode: verificationCode),
+            responseType: AuthVerifySMSResponseDTO.self
         )
     }
 }
