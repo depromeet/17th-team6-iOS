@@ -46,8 +46,9 @@ struct RunningFeature {
                 state.phase = .active
                 return .none
 
-            // Active 종료 → 다시 Ready
-            case .active(.stopButtonTapped):
+            // Active 종료 
+            case .active(.stopConfirmButtonTapped):
+                // TODO: 런닝 종료 기록 화면 이동
                 UIApplication.shared.setTabBarHidden(false)
                 state.phase = .ready
                 return .none
