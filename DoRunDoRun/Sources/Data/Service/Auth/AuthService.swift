@@ -10,6 +10,7 @@ import Foundation
 protocol AuthService {
     func sendSMS(phoneNumber: String) async throws -> AuthSendSMSResponseDTO
     func verifySMS(phoneNumber: String, verificationCode: String) async throws -> AuthVerifySMSResponseDTO
+    func signup(request: AuthSignupRequestDTO, profileImageData: Data?) async throws -> AuthSignupResponseDTO
 }
 
 final class AuthServiceImpl: AuthService {
@@ -30,6 +31,13 @@ final class AuthServiceImpl: AuthService {
         try await apiClient.request(
             AuthAPI.verifySMS(phoneNumber: phoneNumber, verificationCode: verificationCode),
             responseType: AuthVerifySMSResponseDTO.self
+        )
+    }
+    
+    func signup(request: AuthSignupRequestDTO, profileImageData: Data?) async throws -> AuthSignupResponseDTO {
+        try await apiClient.request(
+            AuthAPI.signup(request: request, profileImageData: profileImageData),
+            responseType: AuthSignupResponseDTO.self
         )
     }
 }
