@@ -11,6 +11,14 @@ import NMapsMap
 
 /// 러닝 전, 러닝 중 화면에서 보여질 NaverMap
 struct RunningMapView: UIViewRepresentable {
+    
+    enum CameraZoomLevel {
+        static let min: Double = 6
+        static let max: Double = 18
+        static let `default`: Double = 16
+        static let focusedFriend: Double = 14
+    }
+    
     var phase: RunningPhase
     
     var statuses: [FriendRunningStatusViewState]
@@ -31,6 +39,9 @@ struct RunningMapView: UIViewRepresentable {
         mapView.showLocationButton = false
         mapView.showScaleBar = false
         mapView.mapView.positionMode = .direction
+        
+        mapView.mapView.minZoomLevel = CameraZoomLevel.min
+        mapView.mapView.maxZoomLevel = CameraZoomLevel.max
 
         // 마커 추가 + 카메라 이동
         addMarkers(on: mapView.mapView, with: statuses, context: context)
@@ -121,7 +132,7 @@ private extension RunningMapView {
         let adjustedLatLng = projection.latlng(from: adjustedPoint)
 
         // 4. 카메라 이동 애니메이션 적용
-        let update = NMFCameraUpdate(position: NMFCameraPosition(adjustedLatLng, zoom: 14))
+        let update = NMFCameraUpdate(position: NMFCameraPosition(adjustedLatLng, zoom: CameraZoomLevel.focusedFriend))
         update.animation = .easeIn
         mapView.moveCamera(update)
     }
@@ -146,7 +157,7 @@ private extension RunningMapView {
     func centerCamera(
         on coordinate: RunningCoordinateViewState,
         in mapView: NMFMapView,
-        zoom: Double = 15
+        zoom: Double = CameraZoomLevel.default
     ) {
         let latLng = NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude)
         let update = NMFCameraUpdate(position: NMFCameraPosition(latLng, zoom: zoom))
