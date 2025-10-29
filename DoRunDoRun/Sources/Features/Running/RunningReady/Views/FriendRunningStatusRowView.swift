@@ -1,5 +1,5 @@
 //
-//  FriendRunningStatusRow.swift
+//  FriendRunningStatusRowView.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 10/21/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// 유저 및 친구 러닝 상태를 표시하는 리스트 행(View)
-struct FriendRunningStatusRow: View {
+struct FriendRunningStatusRowView: View {
     let status: FriendRunningStatusViewState
     let city: String
     let isFocused: Bool
@@ -32,7 +32,7 @@ struct FriendRunningStatusRow: View {
 }
 
 // MARK: - Subviews
-private extension FriendRunningStatusRow {
+private extension FriendRunningStatusRowView {
     /// 프로필 이미지
     private var profileImageView: some View {
         ProfileImageView(
@@ -96,7 +96,7 @@ private extension FriendRunningStatusRow {
 
 // MARK: - Preview
 #Preview {
-    FriendRunningStatusRow(
+    FriendRunningStatusRowView(
         status: FriendRunningStatusViewState(
             id: 1,
             name: "민희",

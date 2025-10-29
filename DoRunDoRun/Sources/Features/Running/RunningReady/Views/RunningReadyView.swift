@@ -50,7 +50,7 @@ private extension RunningReadyView {
     
     /// 친구 현황 시트 섹션
     var friendSheet: some View {
-        FriendRunningStatusSheet(
+        FriendRunningStatusSheetView(
             statuses: store.statuses,
             cityCache: store.cityCache,
             focusedFriendID: store.focusedFriendID,
