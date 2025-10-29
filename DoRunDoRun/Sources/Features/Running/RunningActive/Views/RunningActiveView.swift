@@ -118,15 +118,15 @@ extension RunningActiveView {
     ) -> some View {
         if isPaused {
             HStack(spacing: 12) {
-                AppButton(title: "기록 종료", style: .secondary, size: .medium) {
+                AppButton(title: "기록 종료", style: .cancel) {
                     onStop()
                 }
-                AppButton(title: "계속 달리기", style: .primary, size: .medium) {
+                AppButton(title: "계속 달리기") {
                     onResume()
                 }
             }
         } else {
-            AppButton(title: "기록정지", style: .primary, size: .fullWidth) {
+            AppButton(title: "기록정지") {
                 onPause()
             }
         }
