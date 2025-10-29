@@ -87,14 +87,14 @@ struct ActionPopupView: View {
         case .destructive:
             // 위험 액션 + 취소(닫기)
             HStack(spacing: 8) {
-                AppButton(title: actionTitle, style: .destructive, size: .fullWidth) {
-                    onAction() // 위험 액션
-                }
-                
                 if let cancelTitle, let onCancel {
                     AppButton(title: cancelTitle, style: .cancel, size: .fullWidth) {
                         onCancel() // 취소(닫기) 액션
                     }
+                }
+                
+                AppButton(title: actionTitle, style: .destructive, size: .fullWidth) {
+                    onAction() // 위험 액션
                 }
             }
         }
