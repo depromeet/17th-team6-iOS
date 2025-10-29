@@ -16,6 +16,7 @@ struct RunningActiveFeature {
         /// Entity -> ViewState 매핑 결과
         var statuses: [RunningSnapshotViewState] = []
         var isRunningPaused: Bool = false
+        var isShowingStopConfirm: Bool = false
         
         var routeCoordinates: [RunningCoordinateViewState] {
             statuses.compactMap { $0.lastCoordinate }
@@ -43,6 +44,9 @@ struct RunningActiveFeature {
         case pauseButtonTapped
         case resumeButtonTapped
         case stopButtonTapped
+        
+        case stopConfirmButtonTapped
+        case stopCancelButtonTapped
         
         // Stream lifecycle
         case _startStream
@@ -83,7 +87,14 @@ struct RunningActiveFeature {
                     try await useCase.resume()
                 }
             case .stopButtonTapped:
-                // TODO: 런닝 기록 종료 팝업 로직 추가
+                state.isShowingStopConfirm = true
+                return .none
+            case .stopCancelButtonTapped:
+                state.isShowingStopConfirm = false
+                return .none
+            case .stopConfirmButtonTapped:
+                state.isShowingStopConfirm = false
+                
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] _ in
                         await useCase.stop()
