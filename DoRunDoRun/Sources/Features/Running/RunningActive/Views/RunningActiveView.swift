@@ -75,8 +75,7 @@ extension RunningActiveView {
                         TypographyText(text: paceText, style: .t1_700, color: .gray900)
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: .zero) {
@@ -89,7 +88,7 @@ extension RunningActiveView {
                         TypographyText(text: cadenceText, style: .t1_700, color: .gray900)
                     }
                 }
-                .frame(width: 150, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.bottom, 36)
             
