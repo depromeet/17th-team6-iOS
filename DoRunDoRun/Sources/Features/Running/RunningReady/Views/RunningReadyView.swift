@@ -37,7 +37,7 @@ private extension RunningReadyView {
         Button {
             store.send(.gpsButtonTapped)
         } label: {
-            Image("ic_gps_m")
+            Image(.gps)
                 .resizable()
                 .frame(width: 24, height: 24)
                 .padding(10)
@@ -77,17 +77,10 @@ private extension RunningReadyView {
     /// “오늘의 러닝 시작” 버튼 섹션
     var startButton: some View {
         VStack(spacing: 0) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.gray0.opacity(0),
-                    Color.gray0
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            Color.gray0
             .frame(height: 80)
             .overlay(
-                AppButton(title: "오늘의 러닝 시작") {
+                AppButton(title: "러닝 시작하기") {
                     store.send(.startButtonTapped)
                 }
                 .padding(.horizontal, 16)

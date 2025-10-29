@@ -17,8 +17,8 @@ struct FriendRunningStatusSheet: View {
     @Binding var sheetOffset: CGFloat
     @Binding var currentOffset: CGFloat
     
-    var sheetHeight: CGFloat = 400
-    var collapsedOffset: CGFloat = 272
+    var sheetHeight: CGFloat = 446
+    var collapsedOffset: CGFloat = 281
     
     var friendListButtonTapped: (() -> Void)? = nil
     var friendTapped: ((Int) -> Void)? = nil
@@ -46,18 +46,18 @@ private extension FriendRunningStatusSheet {
             Capsule()
                 .frame(width: 32, height: 5)
                 .foregroundStyle(Color.gray100)
+                .padding(.vertical, 16)
         }
-        .frame(height: 24)
     }
 
     var header: some View {
         HStack {
-            TypographyText(text: "친구 두런 현황", style: .t1_700)
+            TypographyText(text: "친구 현황", style: .t1_700)
             Spacer()
             Button {
                 friendListButtonTapped?()
             } label: {
-                Image(systemName: "person.2.fill")
+                Image(.friends, fill: .fill, size: .medium)
                     .foregroundStyle(Color.gray800)
             }
         }
@@ -80,7 +80,8 @@ private extension FriendRunningStatusSheet {
                 }
 
             }
-            .padding(.bottom, 80)
+            .padding(.top, 8)
+            .padding(.bottom, 76)
         }
     }
 }
