@@ -9,7 +9,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct OnboardingView: View {
-    let store: StoreOf<OnboardingFeature>
+    @Perception.Bindable var store: StoreOf<OnboardingFeature>
     
     // 온보딩 페이지 데이터 (이미지, 타이틀, 서브타이틀)
     private let pages: [(image: String, title: String, subtitle: String)] = [
@@ -29,42 +29,47 @@ struct OnboardingView: View {
             "오늘의 러닝을 피드에 남기고,\n친구와 리액션을 주고받으며 함께 달려요."
         )
     ]
-
+    
     var body: some View {
         WithPerceptionTracking {
-            @Perception.Bindable var store = store
-            VStack {
-                Spacer()
-                TabView(selection: $store.currentPage.sending(\.pageChanged)) {
-                    ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
-                        OnboardingPageView(
-                            imageName: page.image,
-                            title: page.title,
-                            subtitle: page.subtitle
-                        )
-                        .tag(index)
+            NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+                // Root view of the navigation stack
+                VStack {
+                    Spacer()
+                    TabView(selection: $store.currentPage.sending(\.pageChanged)) {
+                        ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
+                            OnboardingPageView(imageName: page.image, title: page.title, subtitle: page.subtitle)
+                            .tag(index)
+                        }
                     }
+                    .frame(height: 386)
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    .animation(.easeInOut, value: store.currentPage)
+                    
+                    OnboardingPageIndicator(currentPage: store.currentPage, totalCount: pages.count)
+                    .padding(.top, 40)
+                    
+                    Spacer()
+                    VStack(spacing: 12) {
+                        AppButton(title: "회원가입") {
+                            store.send(.signupButtonTapped)
+                        }
+                        AppButton(title: "이미 가입했나요? 로그인", style: .text, underlineTarget: "로그인") {
+                            store.send(.loginButtonTapped)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
                 }
-                .frame(height: 386)
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .animation(.easeInOut, value: store.currentPage)
-
-                OnboardingPageIndicator(
-                    currentPage: store.currentPage,
-                    totalCount: pages.count
-                )
-                .padding(.top, 40)
-
-                Spacer()
-                VStack(spacing: 12) {
-                    AppButton(title: "회원가입") {
-                        store.send(.signupButtonTapped)
-                    }
-                    AppButton(title: "이미 가입했나요? 로그인", style: .text, underlineTarget: "로그인") {
-                        store.send(.loginButtonTapped)
-                    }
+            } destination: { store in
+                // A view for each case of the Path.State enum
+                switch store.case {
+                case .termsAgreement(let store): AgreeTermsView(store: store)
+                case .phoneAuth(let store): VerifyPhoneView(store: store)
+                case .createProfile(let store): CreateProfileView(store: store)
+                case .findAccount(let store): FindAccountView(store: store)
+                case .accountCheck(let store): CheckAccountView(store: store)
                 }
-                .padding(.horizontal, 20)
             }
         }
     }
