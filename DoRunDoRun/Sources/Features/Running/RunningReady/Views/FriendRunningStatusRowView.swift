@@ -1,5 +1,5 @@
 //
-//  FriendRunningStatusRow.swift
+//  FriendRunningStatusRowView.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 10/21/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// 유저 및 친구 러닝 상태를 표시하는 리스트 행(View)
-struct FriendRunningStatusRow: View {
+struct FriendRunningStatusRowView: View {
     let status: FriendRunningStatusViewState
     let city: String
     let isFocused: Bool
@@ -18,21 +18,21 @@ struct FriendRunningStatusRow: View {
     var cheerButtonTapped: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 0) {
             profileImageView
             infoSection
             Spacer()
             cheerButton
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
         .padding(.horizontal, 20)
-        .background(isFocused ? Color(hex: 0xD2DCFF).opacity(0.25) : Color.gray0)
+        .background(isFocused ? Color.gray10 : Color.gray0)
         .onTapGesture { friendTapped?() }
     }
 }
 
 // MARK: - Subviews
-private extension FriendRunningStatusRow {
+private extension FriendRunningStatusRowView {
     /// 프로필 이미지
     private var profileImageView: some View {
         ProfileImageView(
@@ -45,7 +45,7 @@ private extension FriendRunningStatusRow {
     /// 정보 영역 (이름, 시간, 거리, 위치)
     @ViewBuilder
     private var infoSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             // 상단 (이름 + 나 배지 + 시간)
             HStack {
                 TypographyText(text: status.name, style: .t2_700)
@@ -75,6 +75,7 @@ private extension FriendRunningStatusRow {
                 TypographyText(text: "아직 러닝 기록이 없어요...", style: .b2_500, color: .gray700)
             }
         }
+        .padding(.leading, 12)
     }
 
     /// 응원 버튼
@@ -82,21 +83,20 @@ private extension FriendRunningStatusRow {
     private var cheerButton: some View {
         if !status.isRunning {
             AppButton(
-                title: isSent ? "응원완료" : "응원하기",
-                style: .primary,
-                size: .small,
-                isDisabled: isSent
+                title: "깨우기",
+                style: isSent ? .disabled : .secondary,
+                size: .medium,
+                icon: isSent ? Image(.react, fill: .fill, size: .small) : Image(.react, fill: .fill, size: .small)
             ) {
                 cheerButtonTapped?()
             }
-            .frame(width: 75)
         }
     }
 }
 
 // MARK: - Preview
 #Preview {
-    FriendRunningStatusRow(
+    FriendRunningStatusRowView(
         status: FriendRunningStatusViewState(
             id: 1,
             name: "민희",

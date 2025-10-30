@@ -64,8 +64,8 @@ enum IconStyle: String {
     // MARK: - Pace
     case pace = "ic_pace"
     
-    // MARK: - Firends
-    case firends = "ic_firends"
+    // MARK: - Friends
+    case friends = "ic_friends"
     
     // MARK: - Emoji
     case emoji = "ic_emoji"

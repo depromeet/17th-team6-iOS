@@ -1,5 +1,5 @@
 //
-//  FriendRunningStatusSheet.swift
+//  FriendRunningStatusSheetView.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 10/21/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// 유저 및 친구 러닝 상태를 표시하는 하단 시트(View)
-struct FriendRunningStatusSheet: View {
+struct FriendRunningStatusSheetView: View {
     let statuses: [FriendRunningStatusViewState]
     let cityCache: [Int: String]
     let focusedFriendID: Int?
@@ -17,8 +17,8 @@ struct FriendRunningStatusSheet: View {
     @Binding var sheetOffset: CGFloat
     @Binding var currentOffset: CGFloat
     
-    var sheetHeight: CGFloat = 400
-    var collapsedOffset: CGFloat = 272
+    var sheetHeight: CGFloat = 446
+    var collapsedOffset: CGFloat = 281
     
     var friendListButtonTapped: (() -> Void)? = nil
     var friendTapped: ((Int) -> Void)? = nil
@@ -40,24 +40,24 @@ struct FriendRunningStatusSheet: View {
 }
 
 // MARK: - Subviews
-private extension FriendRunningStatusSheet {
+private extension FriendRunningStatusSheetView {
     var handleBar: some View {
         VStack(spacing: 0) {
             Capsule()
                 .frame(width: 32, height: 5)
                 .foregroundStyle(Color.gray100)
+                .padding(.vertical, 16)
         }
-        .frame(height: 24)
     }
 
     var header: some View {
         HStack {
-            TypographyText(text: "친구 두런 현황", style: .t1_700)
+            TypographyText(text: "친구 현황", style: .t1_700)
             Spacer()
             Button {
                 friendListButtonTapped?()
             } label: {
-                Image(systemName: "person.2.fill")
+                Image(.friends, fill: .fill, size: .medium)
                     .foregroundStyle(Color.gray800)
             }
         }
@@ -68,25 +68,45 @@ private extension FriendRunningStatusSheet {
     var friendList: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
-                ForEach(statuses) { status in
-                    FriendRunningStatusRow(
-                        status: status,
-                        city: cityCache[status.id] ?? "알 수 없음",
-                        isFocused: status.id == focusedFriendID,
-                        isSent: sentReactions.contains(status.id),
-                        friendTapped: { friendTapped?(status.id) },
-                        cheerButtonTapped: { cheerButtonTapped?(status.id) }
+                // 항상 '나'를 먼저 표시
+                if let me = statuses.first(where: { $0.isMe }) {
+                    FriendRunningStatusRowView(
+                        status: me,
+                        city: cityCache[me.id] ?? "알 수 없음",
+                        isFocused: me.id == focusedFriendID,
+                        isSent: sentReactions.contains(me.id),
+                        friendTapped: { friendTapped?(me.id) },
+                        cheerButtonTapped: { cheerButtonTapped?(me.id) }
                     )
                 }
 
+                // 친구 목록
+                let friends = statuses.filter { !$0.isMe }
+                if friends.isEmpty {
+                    FriendRunningStatusEmptyView()
+                        .padding(.top, 80)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    ForEach(friends) { status in
+                        FriendRunningStatusRowView(
+                            status: status,
+                            city: cityCache[status.id] ?? "알 수 없음",
+                            isFocused: status.id == focusedFriendID,
+                            isSent: sentReactions.contains(status.id),
+                            friendTapped: { friendTapped?(status.id) },
+                            cheerButtonTapped: { cheerButtonTapped?(status.id) }
+                        )
+                    }
+                }
             }
-            .padding(.bottom, 80)
+            .padding(.top, 8)
+            .padding(.bottom, 76)
         }
     }
 }
 
 // MARK: - Gesture
-private extension FriendRunningStatusSheet {
+private extension FriendRunningStatusSheetView {
     var dragGesture: some Gesture {
         DragGesture()
             .onChanged { value in
@@ -107,7 +127,7 @@ private extension FriendRunningStatusSheet {
 
 // MARK: - Preview
 #Preview {
-    FriendRunningStatusSheet(
+    FriendRunningStatusSheetView(
         statuses: [
             .init(
                 id: 1,
