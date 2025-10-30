@@ -10,11 +10,11 @@ struct RunningSnapshotViewStateMapper {
     static func map(from snapshot: RunningSnapshot) -> RunningSnapshotViewState {
         let distanceText = makeDistanceText(fromMeters: snapshot.metrics.totalDistanceMeters)
         let paceText = makePaceText(
-            avgPaceSecPerKm: snapshot.metrics.avgPaceSecPerKm,
+            avgPaceSecPerKm: snapshot.metrics.currentPaceSecPerKm,
             distanceMeters: snapshot.metrics.totalDistanceMeters
         )
         let durationText = makeDurationText(from: snapshot.metrics.elapsed)
-        let cadenceText = makeCadenceText(from: snapshot.metrics.cadenceSpm)
+        let cadenceText = makeCadenceText(from: snapshot.metrics.currentCadenceSpm)
         let lastCoordinate = makeLastCoordinate(from: snapshot)
 
         return RunningSnapshotViewState(

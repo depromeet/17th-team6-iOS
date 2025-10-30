@@ -28,6 +28,7 @@ actor RunningRepositoryImpl: RunningRepository {
     
     private var totalDistanceMeters: Double = 0
     private var latestCadenceSpm: Double = 0
+    private var latestCurrentPaceSecPerKm: Double = 0
     
     private var lastLocation: CLLocation?
     private var lastPedometer: CMPedometerData?
@@ -163,7 +164,18 @@ actor RunningRepositoryImpl: RunningRepository {
         case .pedometer(let ped):
             if let stepsPerSec = ped.currentCadence?.doubleValue {
                 latestCadenceSpm = stepsPerSec * 60.0
+            } else {
+                // 멈춤 상태 또는 데이터 없음 → 0으로 명시
+                latestCadenceSpm = 0
             }
+            
+            if let sPerMeter = ped.currentPace?.doubleValue {
+                latestCurrentPaceSecPerKm = sPerMeter * 1000.0
+            } else {
+                // 멈춤 상태 또는 데이터 없음 → 0으로 명시
+                latestCurrentPaceSecPerKm = 0
+            }
+            
             lastPedometer = ped
             yieldSnapshot(timestamp: ped.endDate)
         }
@@ -171,14 +183,12 @@ actor RunningRepositoryImpl: RunningRepository {
     
     private func yieldSnapshot(timestamp: Date) {
         let elapsedSec = elapsedNow()
-        let km = totalDistanceMeters / 1000.0
-        let avgPace: Double = km > 0 ? (elapsedSec / km) : 0
         
         let metrics = RunningMetrics(
             totalDistanceMeters: totalDistanceMeters,
             elapsed: .seconds(elapsedSec),
-            avgPaceSecPerKm: avgPace,
-            cadenceSpm: latestCadenceSpm
+            currentPaceSecPerKm: latestCurrentPaceSecPerKm,
+            currentCadenceSpm: latestCadenceSpm
         )
         
         let point = lastLocation.map { $0.toDomain() }

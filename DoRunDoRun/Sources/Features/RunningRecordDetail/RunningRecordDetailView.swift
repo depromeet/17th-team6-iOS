@@ -79,11 +79,7 @@ struct RunningRecordDetailView: View {
                 }
                 .padding()
             }
-            
-            
         }
-        
-        
     }
     
     private var paceColorBar: some View {

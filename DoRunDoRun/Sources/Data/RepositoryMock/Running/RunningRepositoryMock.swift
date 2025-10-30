@@ -178,8 +178,8 @@ actor RunningRepositoryMock: RunningRepository {
         let metrics = RunningMetrics(
             totalDistanceMeters: totalDistanceMeters,
             elapsed: .seconds(elapsedSec),
-            avgPaceSecPerKm: avgPaceSecPerKm,
-            cadenceSpm: cadenceSpm
+            currentPaceSecPerKm: avgPaceSecPerKm,
+            currentCadenceSpm: cadenceSpm
         )
 
         let point: RunningPoint = RunningPoint(

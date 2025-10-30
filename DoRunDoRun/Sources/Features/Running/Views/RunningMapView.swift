@@ -191,7 +191,6 @@ private extension RunningMapView {
         
         // 4) 지도에 부착
         context.coordinator.routeOverlay?.mapView = mapView
-
     }
     
     /// 러닝 경로를 지도에 표시하기 위한 `NMFPath` 오버레이를 생성하고 기본 스타일을 설정합니다.
