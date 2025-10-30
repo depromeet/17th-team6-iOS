@@ -11,6 +11,7 @@ struct InputVerificationCodeField: View {
     @Binding var code: String
     var placeholder: String = "인증번호 6자리"
     var timerText: String
+    var isResendDisabled: Bool = false
     var onResend: () -> Void
     @FocusState private var isFocused: Bool
 
@@ -60,8 +61,14 @@ struct InputVerificationCodeField: View {
             // MARK: - 타이머 + 재전송 버튼
             HStack(spacing: 12) {
                 TypographyText(text: timerText, style: .b2_400, color: .red)
-                AppButton(title: "재전송", style: .secondary, size: .small) {
-                    onResend()
+                AppButton(
+                    title: "재전송",
+                    style: isResendDisabled ? .disabled : .secondary,
+                    size: .small
+                ) {
+                    if !isResendDisabled {
+                        onResend()
+                    }
                 }
             }
             .padding(.trailing, 12)

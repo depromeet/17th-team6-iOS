@@ -34,6 +34,7 @@ struct AgreeTermsListView: View {
                         Spacer()
                     }
                     .clipShape(Rectangle())
+                    .background(Color.gray0)
                 }
                 .buttonStyle(.plain)
 

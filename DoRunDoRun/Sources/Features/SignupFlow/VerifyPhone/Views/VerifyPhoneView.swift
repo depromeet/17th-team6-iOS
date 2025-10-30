@@ -28,9 +28,9 @@ struct VerifyPhoneView: View {
                 popupSection
             }
             .task {
-                focusedField = store.enterPhoneNumber.isPhoneNumberEntered ? .verificationCode : .phoneNumber
+                focusedField = store.isPhoneNumberEntered ? .verificationCode : .phoneNumber
             }
-            .onChange(of: store.enterPhoneNumber.isPhoneNumberEntered) { newValue in
+            .onChange(of: store.isPhoneNumberEntered) { newValue in
                 focusedField = newValue ? .verificationCode : .phoneNumber
             }
             .navigationBarBackButtonHidden()
@@ -49,15 +49,15 @@ struct VerifyPhoneView: View {
     }
 }
 
-// MARK: Title
+// MARK: - Title
 private extension VerifyPhoneView {
     var titleSection: some View {
         TypographyText(
-            text: store.enterPhoneNumber.isPhoneNumberEntered
+            text: store.isPhoneNumberEntered
                 ? "인증번호 6자리를 입력해주세요."
                 : (store.mode == .signup
-                    ? "환영합니다!\n휴대폰 번호로 가입해주세요."
-                    : "휴대폰 번호를 입력해주세요."),
+                   ? "환영합니다!\n휴대폰 번호로 가입해주세요."
+                   : "휴대폰 번호를 입력해주세요."),
             style: .h2_700,
             alignment: .left
         )
@@ -66,26 +66,40 @@ private extension VerifyPhoneView {
     }
 }
 
-// MARK: Input
+// MARK: - Input
 private extension VerifyPhoneView {
     @ViewBuilder
     var inputSection: some View {
-        if store.enterPhoneNumber.isPhoneNumberEntered {
-            EnterVerificationCodeView(
-                store: store.scope(state: \.enterVerificationCode, action: \.enterVerificationCode)
+        VStack(spacing: 24) {
+            // 인증번호 입력 (전송 후 표시)
+            if store.isPhoneNumberEntered {
+                InputVerificationCodeField(
+                    code: $store.verificationCode,
+                    timerText: store.timer.timerText,
+                    isResendDisabled: store.isResendButtonDisabled,
+                    onResend: { store.send(.resendTapped) }
+                )
+                .padding(.top, 32)
+                .focused($focusedField, equals: .verificationCode)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            // 휴대폰 번호 입력
+            InputField(
+                keyboardType: .numberPad,
+                label: store.isPhoneNumberEntered ? "휴대폰 번호" : nil,
+                placeholder: "휴대폰 번호를 입력하세요",
+                text: $store.phoneNumber
             )
-            .focused($focusedField, equals: .verificationCode)
+            .padding(.top, store.isPhoneNumberEntered ? 24 : 32)
+            .focused($focusedField, equals: .phoneNumber)
+            .onChange(of: store.phoneNumber) { store.send(.phoneNumberChanged($0)) }
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
-        
-        EnterPhoneNumberView(
-            store: store.scope(state: \.enterPhoneNumber, action: \.enterPhoneNumber)
-        )
-        .focused($focusedField, equals: .phoneNumber)
-        
     }
 }
 
-// MARK: - ToastAndButton
+// MARK: - Toast & Button
 private extension VerifyPhoneView {
     @ViewBuilder
     var toastAndButtonSection: some View {
@@ -110,19 +124,16 @@ private extension VerifyPhoneView {
         }
         
         AppButton(
-            title: store.enterPhoneNumber.isPhoneNumberEntered ? "확인" : "인증문자 받기",
-            style: store.enterPhoneNumber.isPhoneNumberEntered
-                ? (store.enterVerificationCode.isBottomButtonEnabled ? .primary : .disabled)
-                : (store.enterPhoneNumber.isBottomButtonEnabled ? .primary : .disabled)
+            title: store.isPhoneNumberEntered ? "확인" : "인증문자 받기",
+            style: store.isBottomButtonEnabled ? .primary : .disabled
         ) {
-            if store.state.enterVerificationCode.isVerificationCodeEntered {
+            if store.state.isVerificationCodeEntered {
                 focusedField = nil
             }
             store.send(.bottomButtonTapped)
         }
         .padding(.bottom, focusedField == nil ? 24 : 12)
         .animation(.easeInOut(duration: 0.25), value: focusedField)
-
     }
 }
 
