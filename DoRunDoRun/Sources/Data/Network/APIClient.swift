@@ -39,15 +39,29 @@ final class APIClient: APIClientProtocol {
                 switch result {
                 case let .success(response):
                     do {
-                        let filtered = try response.filterSuccessfulStatusCodes()
-                        let decoded = try JSONDecoder().decode(T.self, from: filtered.data)
-                        continuation.resume(returning: decoded)
+                        // HTTP 상태 코드 확인
+                        if (200..<300).contains(response.statusCode) {
+                            let decoded = try JSONDecoder().decode(T.self, from: response.data)
+                            continuation.resume(returning: decoded)
+                        } else {
+                            // 여기서 statusCode 기반으로 APIError 변환
+                            let apiError = APIError.from(statusCode: response.statusCode)
+                            continuation.resume(throwing: apiError)
+                        }
                     } catch {
-                        continuation.resume(throwing: error)
+                        // JSON 디코딩 에러
+                        continuation.resume(throwing: APIError.decodingError)
                     }
 
                 case let .failure(error):
-                    continuation.resume(throwing: error)
+                    // 네트워크 오류 처리
+                    switch error {
+                    case .underlying(let nsError as NSError, _)
+                        where nsError.domain == NSURLErrorDomain:
+                        continuation.resume(throwing: APIError.networkError)
+                    default:
+                        continuation.resume(throwing: APIError.unknown)
+                    }
                 }
             }
         }
