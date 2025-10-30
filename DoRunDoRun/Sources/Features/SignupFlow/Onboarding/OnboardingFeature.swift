@@ -118,8 +118,7 @@ struct OnboardingFeature {
                 return .none
                 
             case .path(.element(id: _, action: .phoneAuth(.findAccountButtonTapped))):
-                // 로그인 화면에서 계정찾기 버튼 → 계정찾기 화면으로 이동 (기존 스택 초기화)
-                //state.path = StackState([.findAccount(FindAccountFeature.State())])
+                // 로그인 화면에서 계정찾기 버튼 → 계정찾기 화면으로 이동
                 state.path.append(.findAccount(FindAccountFeature.State()))
                 return .none
                 
@@ -136,27 +135,8 @@ struct OnboardingFeature {
                     }
                 }
                 return .none
-
-            case .path(.element(id: _, action: .findAccount(.completed))):
-                // 계정 찾기 화면에서 검색 버튼 → 계정 확인 화면으로 이동
-                state.path.append(.accountCheck(CheckAccountFeature.State()))
-                return .none
                 
             case .path(.element(id: _, action: .findAccount(.backButtonTapped))):
-                state.path.removeLast()
-                return .none
-                
-            case .path(.element(id: _, action: .accountCheck(.loginButtonTapped))):
-                // 계정확인 화면에서 로그인 버튼 → 휴대폰인증 화면으로 이동 (기존 스택 초기화)
-                state.path = StackState([.phoneAuth(VerifyPhoneFeature.State(mode: .login))])
-                return .none
-                
-            case .path(.element(id: _, action: .accountCheck(.signupButtonTapped))):
-                // 계정확인 화면에서 회원가입 버튼 → 약관동의 화면으로 이동 (기존 스택 초기화)
-                state.path = StackState([.termsAgreement(AgreeTermsFeature.State(type: .signUp))])
-                return .none
-                
-            case .path(.element(id: _, action: .accountCheck(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
                 
@@ -182,6 +162,5 @@ struct OnboardingFeature {
         case phoneAuth(VerifyPhoneFeature)
         case createProfile(CreateProfileFeature)
         case findAccount(FindAccountFeature)
-        case accountCheck(CheckAccountFeature)
     }
 }

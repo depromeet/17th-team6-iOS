@@ -68,7 +68,6 @@ struct OnboardingView: View {
                 case .phoneAuth(let store): VerifyPhoneView(store: store)
                 case .createProfile(let store): CreateProfileView(store: store)
                 case .findAccount(let store): FindAccountView(store: store)
-                case .accountCheck(let store): CheckAccountView(store: store)
                 }
             }
         }
