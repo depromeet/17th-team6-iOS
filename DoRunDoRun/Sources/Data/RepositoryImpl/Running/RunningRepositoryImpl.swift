@@ -30,6 +30,11 @@ actor RunningRepositoryImpl: RunningRepository {
     private var latestCadenceSpm: Double = 0
     private var latestCurrentPaceSecPerKm: Double = 0
     
+    // 최대값 저장
+    private var maxCadenceSpm: Double = 0
+    private var fastestPaceSecPerKm: Double = .infinity
+    private var coordinateAtMaxPace: RunningPoint?
+    
     private var lastLocation: CLLocation?
     private var lastPedometer: CMPedometerData?
     
@@ -177,6 +182,7 @@ actor RunningRepositoryImpl: RunningRepository {
             }
             
             lastPedometer = ped
+            updateMaxMetrics(location: lastLocation)
             yieldSnapshot(timestamp: ped.endDate)
         }
     }
@@ -209,6 +215,17 @@ actor RunningRepositoryImpl: RunningRepository {
         return max(0, now - totalPausedSec)
     }
     
+    private func updateMaxMetrics(location: CLLocation?) {
+        maxCadenceSpm = max(latestCadenceSpm, maxCadenceSpm)
+
+        if latestCurrentPaceSecPerKm > 0, latestCurrentPaceSecPerKm < fastestPaceSecPerKm {
+            fastestPaceSecPerKm = latestCurrentPaceSecPerKm
+            if let loc = location {
+                coordinateAtMaxPace = loc.toDomain()
+            }
+        }
+    }
+    
     private func resetAccumulators() {
         startAt = nil
         pausedAt = nil
@@ -216,6 +233,10 @@ actor RunningRepositoryImpl: RunningRepository {
         lastLocation = nil
         totalDistanceMeters = 0
         latestCadenceSpm = 0
+        latestCurrentPaceSecPerKm = 0
+        maxCadenceSpm = 0
+        fastestPaceSecPerKm = .infinity
+        coordinateAtMaxPace = nil
         lastPedometer = nil
     }
 }
