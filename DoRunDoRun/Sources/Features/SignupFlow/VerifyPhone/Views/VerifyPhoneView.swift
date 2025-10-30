@@ -9,6 +9,8 @@ import SwiftUI
 
 import ComposableArchitecture
 
+enum Field: Equatable { case phoneNumber, verificationCode, nickname }
+
 struct VerifyPhoneView: View {
     @Perception.Bindable var store: StoreOf<VerifyPhoneFeature>
     @FocusState private var focusedField: Field?
