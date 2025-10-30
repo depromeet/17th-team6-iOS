@@ -30,6 +30,9 @@ actor RunningRepositoryImpl: RunningRepository {
     private var latestCadenceSpm: Double = 0
     private var latestCurrentPaceSecPerKm: Double = 0
     
+    // 누적 걸음수 (일시정지 구간 제외, pedometer 이벤트 델타 기반)
+    private var totalSteps: Int = 0
+    
     // 최대값 저장
     private var maxCadenceSpm: Double = 0
     private var fastestPaceSecPerKm: Double = .infinity
@@ -91,18 +94,33 @@ actor RunningRepositoryImpl: RunningRepository {
         startTimerTick()
     }
     
-    func stopRun() async {
-        guard state == .running || state == .paused else { return }
+    func stopRun() async -> RunningSummary {
+        guard state == .running || state == .paused else {
+            // 이미 중지 상태라면, 현재 누적 데이터를 기준으로 요약 반환
+            let summary = makeSummary()
+            
+            await runningService.stop()
+            cancelConsumer()
+            cancelTimer()
+            continuation?.finish()
+            continuation = nil
+            resetAccumulators()
+            state = .stopped
+            return summary
+        }
+    
         state = .stopped
-        
+    
         await runningService.stop()
         cancelConsumer()
         cancelTimer()
-        
+    
         continuation?.finish()
         continuation = nil
-        
+    
+        let summary = makeSummary()
         resetAccumulators()
+        return summary
     }
     
     // MARK: Service subscription
@@ -181,6 +199,12 @@ actor RunningRepositoryImpl: RunningRepository {
                 latestCurrentPaceSecPerKm = 0
             }
             
+            // 누적 걸음수: 직전 측정치와의 차이를 더함 (첫 샘플은 델타 계산 제외)
+            if let prev = lastPedometer {
+                let delta = ped.numberOfSteps.intValue - prev.numberOfSteps.intValue
+                if delta > 0 { totalSteps += delta }
+            }
+            
             lastPedometer = ped
             updateMaxMetrics(location: lastLocation)
             yieldSnapshot(timestamp: ped.endDate)
@@ -209,6 +233,39 @@ actor RunningRepositoryImpl: RunningRepository {
     }
     
     // MARK: Helpers
+    private func averagePaceSecPerKm(
+        distanceMeters: Double,
+        elapsedSec: TimeInterval
+    ) -> Double {
+        let km = distanceMeters / 1000.0
+        return (km > 0 && elapsedSec > 0) ? (elapsedSec / km) : 0
+    }
+
+    private func averageCadenceSpm(
+        totalSteps: Int,
+        elapsedSec: TimeInterval
+    ) -> Double {
+        let minutes = elapsedSec / 60.0
+        return (minutes > 0) ? (Double(totalSteps) / minutes) : 0
+    }
+
+    private func makeSummary() -> RunningSummary {
+        let elapsedSec = elapsedNow()
+        let avgCadence = averageCadenceSpm(totalSteps: totalSteps, elapsedSec: elapsedSec)
+        let avgPace = averagePaceSecPerKm(distanceMeters: totalDistanceMeters, elapsedSec: elapsedSec)
+        let coord = coordinateAtMaxPace ?? lastLocation?.toDomain() ?? RunningPoint(timestamp: .now, coordinate: .init(latitude: 0, longitude: 0), altitude: 0, speedMps: 0)
+
+        return RunningSummary(
+            totalDistanceMeters: totalDistanceMeters,
+            elapsed: .seconds(elapsedSec),
+            avgPaceSecPerKm: avgPace,
+            avgCadenceSpm: avgCadence,
+            maxCadenceSpm: maxCadenceSpm,
+            fastestPaceSecPerKm: fastestPaceSecPerKm.isFinite ? fastestPaceSecPerKm : 0,
+            coordinateAtmaxPace: coord
+        )
+    }
+    
     private func elapsedNow() -> TimeInterval {
         guard let startAt else { return 0 }
         let now = Date().timeIntervalSince(startAt)
@@ -238,6 +295,7 @@ actor RunningRepositoryImpl: RunningRepository {
         fastestPaceSecPerKm = .infinity
         coordinateAtMaxPace = nil
         lastPedometer = nil
+        totalSteps = 0
     }
 }
 

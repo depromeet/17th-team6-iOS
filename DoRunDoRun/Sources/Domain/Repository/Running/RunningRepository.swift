@@ -15,5 +15,5 @@ protocol RunningRepository: AnyObject {
     /// 재개(누적 유지, 센서 재시작 및 재구독)
     func resume() async throws
     /// 종료(누적 초기화 및 스트림 종료)
-    func stopRun() async
+    func stopRun() async -> RunningSummary
 }
