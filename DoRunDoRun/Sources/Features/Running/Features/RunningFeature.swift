@@ -50,14 +50,15 @@ struct RunningFeature {
                 state.phase = .active
                 return .none
 
-            // Active 종료 
-            case .active(.stopConfirmButtonTapped):
-                // TODO: 최종 데이터 받아서 뷰 보이기
-                state.runningDetail = RunningDetailFeature.State()
+            // Active → Parent delegate: 최종 상세 결과 전달
+            case let .active(.delegate(.didFinish(final))):
+                state.runningDetail = RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: final))
                 
-                // 초기 상태로 돌리기
+                // 초기 상태로 복귀
                 UIApplication.shared.setTabBarHidden(false)
                 state.phase = .ready
+                state.active = RunningActiveFeature.State()
+                
                 return .none
                 
             // 외부에서 강제 phase 변경

@@ -11,6 +11,11 @@ struct RunningActiveFeature {
     // MARK: - Dependencies
     @Dependency(\.runningActiveUsecase) var runningActiveUseCase
     
+    // Parent notification
+    enum Delegate: Equatable {
+        case didFinish(final: RunningDetail)
+    }
+    
     @ObservableState
     struct State: Equatable {
         /// Entity -> ViewState 매핑 결과
@@ -47,6 +52,8 @@ struct RunningActiveFeature {
         
         case stopConfirmButtonTapped
         case stopCancelButtonTapped
+        
+        case delegate(Delegate)
         
         // Stream lifecycle
         case _startStream
@@ -96,16 +103,17 @@ struct RunningActiveFeature {
                 state.isShowingStopConfirm = false
                 
                 return .merge(
-                    .run { [useCase = self.runningActiveUseCase] _ in
-                        // TODO: RunningDetail -> view State -> 화면 띄우기 (TCA)
-                        await useCase.stop()
+                    .run { [useCase = self.runningActiveUseCase] send in
+                        let finalRunningDetail = await useCase.stop()
+                        await send(.delegate(.didFinish(final: finalRunningDetail)))
                     },
                     .cancel(id: CancelID.stream)
                 )
             case .gpsButtonTapped:
                 // TODO: 현재 위치 정렬
                 return .none
-
+            case .delegate:
+                return .none
                 //MARK: 러닝 스냅샷 스트림
             case ._startStream:
                 return .run { [useCase = self.runningActiveUseCase] send in
