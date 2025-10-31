@@ -10,7 +10,10 @@ import ComposableArchitecture
 @Reducer
 struct RunningDetailFeature {
     @ObservableState
-    struct State: Equatable {}
+    struct State: Equatable {
+        var detail: RunningDetailViewState
+    }
+    
     enum Action: Equatable {}
 
     var body: some ReducerOf<Self> {

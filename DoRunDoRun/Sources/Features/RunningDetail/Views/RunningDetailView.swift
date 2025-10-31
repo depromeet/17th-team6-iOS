@@ -20,10 +20,10 @@ struct RunningDetailView: View {
                         Image("Fill_S")
                             .resizable()
                             .frame(width: 20, height: 20)
-                        
-                        TypographyText(text: "2025.10.09·오전 10:11", style: .b2_500, color: .gray700)
-                        TypographyText(text: "·", style: .b2_500, color: .gray700)
-                        TypographyText(text: "오전 10:11", style: .b2_500, color: .gray700)
+                        TypographyText(
+                            text: store.detail.finishedAtText,
+                            style: .b2_500, color: .gray700
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 16)
@@ -32,12 +32,12 @@ struct RunningDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "달린 거리", style: .c1_400, color: .gray500)
-                                TypographyText(text: "8.02km", style: .h1_700, color: .gray900)
+                                TypographyText(text: store.detail.totalDistanceText, style: .h1_700, color: .gray900)
                             }
                             
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "평균 페이스", style: .c1_400, color: .gray500)
-                                TypographyText(text: "7’30’’", style: .t1_700, color: .gray900)
+                                TypographyText(text: store.detail.avgPaceText, style: .t1_700, color: .gray900)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -45,12 +45,12 @@ struct RunningDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "달린 시간", style: .c1_400, color: .gray500)
-                                TypographyText(text: "1:52:06", style: .h1_700, color: .gray900)
+                                TypographyText(text: store.detail.durationText, style: .h1_700, color: .gray900)
                             }
                             
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "평균 케이던스", style: .c1_400, color: .gray500)
-                                TypographyText(text: "144 spm", style: .t1_700, color: .gray900)
+                                TypographyText(text: store.detail.cadenceText, style: .t1_700, color: .gray900)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -140,7 +140,9 @@ struct RunningDetailView: View {
 #Preview {
     RunningDetailView(
         store: Store(
-            initialState: RunningDetailFeature.State(),
+            initialState: RunningDetailFeature.State(
+                detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock)
+            ),
             reducer: { RunningDetailFeature() }
         )
     )

@@ -7,7 +7,11 @@
 
 import Foundation
 
-struct RunningDetail {
+struct RunningDetail: Equatable {
+    /// 달리기 시작 시간
+    let startedAt: Date
+    /// 달리기 종료 시각
+    let finishedAt: Date
     /// 누적 이동거리 (m)
     let totalDistanceMeters: Double
     /// 누적 경과시간 (일시정지 제외)
@@ -22,11 +26,27 @@ struct RunningDetail {
     let fastestPaceSecPerKm: Double
     /// 최대 페이스 시점의 좌표 정보
     let coordinateAtmaxPace: RunningPoint
+    
+    // 지도 이미지?
+    let mapImageURL: URL?
+    
+    // MARK: - 우선 임시 작성 (피드 작업이 마무리 되면 바꾸기)
+    let feed: FeedSummary?
+}
+// MARK: - 우선 임시 작성 (피드 작업이 마무리 되면 바꾸기)
+struct FeedSummary: Equatable, Sendable {
+    let id: Int
+    let mapImageURL: URL?
+    let selfieImageURL: URL?
+    let content: String?
+    let createdAt: Date
 }
 
 #if DEBUG
 extension RunningDetail {
     static let mock = RunningDetail(
+        startedAt: Date(),
+        finishedAt: Date().addingTimeInterval(3600),
         totalDistanceMeters: 3210.5,
         elapsed: .seconds(900), // 15분
         avgPaceSecPerKm: 280.0, // 약 4분40초/km
@@ -38,7 +58,9 @@ extension RunningDetail {
             coordinate: RunningCoordinate(latitude: 37.5465, longitude: 127.0652),
             altitude: 25.0,
             speedMps: 3.8
-        )
+        ),
+        mapImageURL: nil,
+        feed: nil
     )
 }
 #endif
