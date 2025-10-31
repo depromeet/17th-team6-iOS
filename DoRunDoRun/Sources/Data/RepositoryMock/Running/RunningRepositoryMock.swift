@@ -88,14 +88,14 @@ actor RunningRepositoryMock: RunningRepository {
         startTicker()
     }
 
-    func stopRun() async -> RunningSummary {
-        guard state == .running || state == .paused else { return RunningSummary.mock }
+    func stopRun() async -> RunningDetail {
+        guard state == .running || state == .paused else { return RunningDetail.mock }
         state = .stopped
         stopTicker()
         finishStream()
         reset()
         
-        return RunningSummary.mock
+        return RunningDetail.mock
     }
 
     // MARK: - Ticker

@@ -94,10 +94,10 @@ actor RunningRepositoryImpl: RunningRepository {
         startTimerTick()
     }
     
-    func stopRun() async -> RunningSummary {
+    func stopRun() async -> RunningDetail {
         guard state == .running || state == .paused else {
             // 이미 중지 상태라면, 현재 누적 데이터를 기준으로 요약 반환
-            let summary = makeSummary()
+            let runningDetail = makeFinalRunningDetail()
             
             await runningService.stop()
             cancelConsumer()
@@ -106,7 +106,8 @@ actor RunningRepositoryImpl: RunningRepository {
             continuation = nil
             resetAccumulators()
             state = .stopped
-            return summary
+            
+            return runningDetail
         }
     
         state = .stopped
@@ -118,9 +119,9 @@ actor RunningRepositoryImpl: RunningRepository {
         continuation?.finish()
         continuation = nil
     
-        let summary = makeSummary()
+        let runningDetail = makeFinalRunningDetail()
         resetAccumulators()
-        return summary
+        return runningDetail
     }
     
     // MARK: Service subscription
@@ -249,13 +250,13 @@ actor RunningRepositoryImpl: RunningRepository {
         return (minutes > 0) ? (Double(totalSteps) / minutes) : 0
     }
 
-    private func makeSummary() -> RunningSummary {
+    private func makeFinalRunningDetail() -> RunningDetail {
         let elapsedSec = elapsedNow()
         let avgCadence = averageCadenceSpm(totalSteps: totalSteps, elapsedSec: elapsedSec)
         let avgPace = averagePaceSecPerKm(distanceMeters: totalDistanceMeters, elapsedSec: elapsedSec)
         let coord = coordinateAtMaxPace ?? lastLocation?.toDomain() ?? RunningPoint(timestamp: .now, coordinate: .init(latitude: 0, longitude: 0), altitude: 0, speedMps: 0)
 
-        return RunningSummary(
+        return RunningDetail(
             totalDistanceMeters: totalDistanceMeters,
             elapsed: .seconds(elapsedSec),
             avgPaceSecPerKm: avgPace,

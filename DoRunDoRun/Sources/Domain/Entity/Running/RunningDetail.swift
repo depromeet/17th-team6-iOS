@@ -1,5 +1,5 @@
 //
-//  RunnningSummary.swift
+//  RunningDetail.swift
 //  DoRunDoRun
 //
 //  Created by zaehorang on 10/31/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RunningSummary {
+struct RunningDetail {
     /// 누적 이동거리 (m)
     let totalDistanceMeters: Double
     /// 누적 경과시간 (일시정지 제외)
@@ -25,8 +25,8 @@ struct RunningSummary {
 }
 
 #if DEBUG
-extension RunningSummary {
-    static let mock = RunningSummary(
+extension RunningDetail {
+    static let mock = RunningDetail(
         totalDistanceMeters: 3210.5,
         elapsed: .seconds(900), // 15분
         avgPaceSecPerKm: 280.0, // 약 4분40초/km

@@ -1,5 +1,5 @@
 //
-//  RunningRecordDetailFeature.swift
+//  RunningDetailFeature.swift
 //  DoRunDoRun
 //
 //  Created by zaehorang on 10/29/25.
@@ -8,7 +8,7 @@
 import ComposableArchitecture
 
 @Reducer
-struct RunningRecordDetailFeature {
+struct RunningDetailFeature {
     @ObservableState
     struct State: Equatable {}
     enum Action: Equatable {}

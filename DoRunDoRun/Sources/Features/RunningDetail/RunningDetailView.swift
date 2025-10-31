@@ -1,5 +1,5 @@
 //
-//  RunningRecordDetailView.swift
+//  RunningDetailView.swift
 //  DoRunDoRun
 //
 //  Created by zaehorang on 10/29/25.
@@ -9,8 +9,8 @@ import SwiftUI
 
 import ComposableArchitecture
 
-struct RunningRecordDetailView: View {
-    let store: StoreOf<RunningRecordDetailFeature>
+struct RunningDetailView: View {
+    let store: StoreOf<RunningDetailFeature>
     
     var body: some View {
         WithPerceptionTracking {
@@ -138,10 +138,10 @@ struct RunningRecordDetailView: View {
 }
 
 #Preview {
-    RunningRecordDetailView(
+    RunningDetailView(
         store: Store(
-            initialState: RunningRecordDetailFeature.State(),
-            reducer: { RunningRecordDetailFeature() }
+            initialState: RunningDetailFeature.State(),
+            reducer: { RunningDetailFeature() }
         )
     )
 }
