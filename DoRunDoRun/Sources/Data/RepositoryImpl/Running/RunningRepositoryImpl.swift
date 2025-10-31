@@ -22,9 +22,11 @@ actor RunningRepositoryImpl: RunningRepository {
     private var timerTask: Task<Void, Never>?   // 매초 틱
     
     // 누적 변수
-    private var startAt: Date?
+    private var startedAt: Date?
     private var pausedAt: Date?
+    
     private var totalPausedSec: TimeInterval = 0
+    private var totalSec: TimeInterval = 0
     
     private var totalDistanceMeters: Double = 0
     private var latestCadenceSpm: Double = 0
@@ -40,7 +42,7 @@ actor RunningRepositoryImpl: RunningRepository {
     
     private var lastLocation: CLLocation?
     private var lastPedometer: CMPedometerData?
-    
+
     // MARK: Init
     init(runningService: RunningService = RunningServiceImpl()) {
         self.runningService = runningService
@@ -55,7 +57,7 @@ actor RunningRepositoryImpl: RunningRepository {
         resetAccumulators()
         
         state = .running
-        startAt = Date()
+        startedAt = Date()
         
         let (stream, cont) = AsyncThrowingStream<RunningSnapshot, Error>.makeStream()
         continuation = cont
@@ -213,11 +215,11 @@ actor RunningRepositoryImpl: RunningRepository {
     }
     
     private func yieldSnapshot(timestamp: Date) {
-        let elapsedSec = elapsedNow()
+        totalSec = elapsedNow()
         
         let metrics = RunningMetrics(
             totalDistanceMeters: totalDistanceMeters,
-            elapsed: .seconds(elapsedSec),
+            elapsed: .seconds(totalSec),
             currentPaceSecPerKm: latestCurrentPaceSecPerKm,
             currentCadenceSpm: latestCadenceSpm
         )
@@ -238,8 +240,10 @@ actor RunningRepositoryImpl: RunningRepository {
         distanceMeters: Double,
         elapsedSec: TimeInterval
     ) -> Double {
+        if distanceMeters < 1 { return 0 } // 1m 이상일 때만 계산
+        
         let km = distanceMeters / 1000.0
-        return (km > 0 && elapsedSec > 0) ? (elapsedSec / km) : 0
+        return elapsedSec / km
     }
 
     private func averageCadenceSpm(
@@ -251,25 +255,33 @@ actor RunningRepositoryImpl: RunningRepository {
     }
 
     private func makeFinalRunningDetail() -> RunningDetail {
-        let elapsedSec = elapsedNow()
-        let avgCadence = averageCadenceSpm(totalSteps: totalSteps, elapsedSec: elapsedSec)
-        let avgPace = averagePaceSecPerKm(distanceMeters: totalDistanceMeters, elapsedSec: elapsedSec)
-        let coord = coordinateAtMaxPace ?? lastLocation?.toDomain() ?? RunningPoint(timestamp: .now, coordinate: .init(latitude: 0, longitude: 0), altitude: 0, speedMps: 0)
+        let finishedAt = pausedAt ?? Date()
+        let avgCadence = averageCadenceSpm(totalSteps: totalSteps, elapsedSec: totalSec)
+        let avgPace = averagePaceSecPerKm(distanceMeters: totalDistanceMeters, elapsedSec: totalSec)
+        let coord = coordinateAtMaxPace
+        ?? lastLocation?.toDomain()
+        ?? RunningPoint(timestamp: .now, coordinate: .init(latitude: 0, longitude: 0), altitude: 0, speedMps: 0)
 
         return RunningDetail(
+            startedAt: startedAt ?? Date(),
+            finishedAt: finishedAt,
             totalDistanceMeters: totalDistanceMeters,
-            elapsed: .seconds(elapsedSec),
+            elapsed: .seconds(totalSec),
             avgPaceSecPerKm: avgPace,
             avgCadenceSpm: avgCadence,
             maxCadenceSpm: maxCadenceSpm,
             fastestPaceSecPerKm: fastestPaceSecPerKm.isFinite ? fastestPaceSecPerKm : 0,
-            coordinateAtmaxPace: coord
+            coordinateAtmaxPace: coord,
+            mapImageURL: nil,
+            feed: nil
         )
     }
     
     private func elapsedNow() -> TimeInterval {
-        guard let startAt else { return 0 }
-        let now = Date().timeIntervalSince(startAt)
+        guard let startedAt else { return 0 }
+        let finishedAt = pausedAt ?? Date()
+        let now = finishedAt.timeIntervalSince(startedAt)
+        
         return max(0, now - totalPausedSec)
     }
     
@@ -285,7 +297,7 @@ actor RunningRepositoryImpl: RunningRepository {
     }
     
     private func resetAccumulators() {
-        startAt = nil
+        startedAt = nil
         pausedAt = nil
         totalPausedSec = 0
         lastLocation = nil
@@ -297,6 +309,7 @@ actor RunningRepositoryImpl: RunningRepository {
         coordinateAtMaxPace = nil
         lastPedometer = nil
         totalSteps = 0
+        totalSec = 0
     }
 }
 
