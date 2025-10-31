@@ -4,7 +4,7 @@ import NMapsMap
 
 /// 러닝 전체 화면 (Ready → Countdown → Active)
 struct RunningView: View {
-    let store: StoreOf<RunningFeature>
+    @Perception.Bindable var store: StoreOf<RunningFeature>
     
     var body: some View {
         WithPerceptionTracking {
@@ -51,6 +51,10 @@ struct RunningView: View {
                         )
                     }
                 }
+            }
+            .navigationDestination(item: $store.scope(state: \.runningDetail, action: \.runningDetail)
+            ) { runningDetailStore in
+                    RunningDetailView(store: runningDetailStore)
             }
         }
     }

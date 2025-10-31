@@ -70,7 +70,7 @@ struct RunningActiveFeature {
             case .onDisappear:
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] _ in
-                        await useCase.stop()
+                         let _ = await useCase.stop()
                     },
                     .cancel(id: CancelID.stream)
                 )
@@ -97,6 +97,7 @@ struct RunningActiveFeature {
                 
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] _ in
+                        // TODO: RunningDetail -> view State -> 화면 띄우기 (TCA)
                         await useCase.stop()
                     },
                     .cancel(id: CancelID.stream)
