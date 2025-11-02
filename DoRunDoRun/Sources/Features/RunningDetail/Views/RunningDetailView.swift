@@ -10,7 +10,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RunningDetailView: View {
-    let store: StoreOf<RunningDetailFeature>
+    @Perception.Bindable var store: StoreOf<RunningDetailFeature>
     
     var body: some View {
         WithPerceptionTracking {
@@ -62,27 +62,54 @@ struct RunningDetailView: View {
                             .fill(Color.gray50)
                     }
                     .padding(.bottom, 16)
-                    
-                    Rectangle()
-                        .aspectRatio(1, contentMode: .fit)
-                        .cornerRadius(16)
-                        .padding(.bottom, 8)
-                        
-                    
+                     
+                    // 상태에 따라 이미지 or 지도
+                    Group {
+                        if let imageUrl = store.detail.mapImageURL { // 이전 기록을 보는 경우
+                            squareRouteImage(url: imageUrl)
+                        } else { // 런닝 종료 시
+                            SquareRouteMap(
+                                points: store.detail.points,
+                                outerPadding: 20,
+                                data: $store.detail.mapImageData)
+                            .onChange(of: store.detail.mapImageData) { _ in
+                                store.send(.getRouteImageData)
+                            }
+                        }
+                    }
+                    .cornerRadius(16)
+                    .padding(.bottom, 8)
+       
                     paceColorBar
                     
                     Spacer()
-                    
+
                     recordVerificationButton {
-                        print("버튼 눌림")
+                        store.send(.recordVerificationButtonTapped)
                     }
                 }
-                .padding()
+                .padding(.horizontal, 20)
             }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+              ToolbarItem(placement: .cancellationAction) {
+                  Button {
+                      store.send(.backButtonTapped)
+                  } label: {
+                      Image("Left_M")
+                  }
+              }
+            }
+            .navigationBarBackButtonHidden(true)
         }
     }
+}
+
+// MARK: - UI Components
+
+private extension RunningDetailView {
     
-    private var paceColorBar: some View {
+    var paceColorBar: some View {
         HStack(alignment: .center, spacing: 8) {
             TypographyText(text: "빠름", style: .b2_700, color: .blue600)
             
@@ -135,15 +162,44 @@ struct RunningDetailView: View {
             }
         }
     }
+    
+    func squareRouteImage(url: URL) -> some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .empty:
+                ZStack {
+                    Color.gray50
+                    ProgressView()
+                }
+
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+            case .failure:
+                ZStack {
+                    // TODO: 디자인 수정
+                    Color.gray50
+                    TypographyText(text: "이미지를 불러올 수 없어요", style: .c1_400, color: .gray500)
+                }
+
+            @unknown default:
+                EmptyView()
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
 }
 
 #Preview {
-    RunningDetailView(
-        store: Store(
-            initialState: RunningDetailFeature.State(
-                detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock)
-            ),
-            reducer: { RunningDetailFeature() }
+    NavigationStack {
+        RunningDetailView(
+            store: Store(
+                initialState: RunningDetailFeature.State(
+                    detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock)
+                ),
+                reducer: { RunningDetailFeature() }
+            )
         )
-    )
+    }
 }
