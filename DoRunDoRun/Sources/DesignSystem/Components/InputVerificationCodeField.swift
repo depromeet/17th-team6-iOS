@@ -60,7 +60,7 @@ struct InputVerificationCodeField: View {
 
             // MARK: - 타이머 + 재전송 버튼
             HStack(spacing: 12) {
-                TypographyText(text: timerText, style: .b2_400, color: .red)
+                TypographyText(text: timerText, style: .b2_400, color: .red, alignment: .right)
                 AppButton(
                     title: "재전송",
                     style: isResendDisabled ? .disabled : .secondary,

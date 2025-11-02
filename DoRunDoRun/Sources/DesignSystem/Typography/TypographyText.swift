@@ -12,6 +12,7 @@ struct TypographyText: View {
     let style: TypographyStyle
     var color: Color = .gray900
     var alignment: NSTextAlignment = .center
+    var fixedSize: Bool = true
 
     var body: some View {
         AttributedTextView(
@@ -23,6 +24,6 @@ struct TypographyText: View {
             ),
             alignment: alignment
         )
-        .frame(maxWidth: .infinity)
+        .fixedSize(horizontal: fixedSize, vertical: true)
     }
 }

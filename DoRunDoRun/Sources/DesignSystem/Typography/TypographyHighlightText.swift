@@ -17,13 +17,14 @@ struct TypographyHighlightText: View {
     var highlightColor: Color = .gray900
     
     var alignment: NSTextAlignment = .left
+    var fixedSize: Bool = true
 
     var body: some View {
         AttributedTextView(
             attributedText: makeHighlightedMessage(),
             alignment: alignment
         )
-        .frame(maxWidth: .infinity)
+        .fixedSize(horizontal: fixedSize, vertical: true)
     }
 
     private func makeHighlightedMessage() -> NSAttributedString {

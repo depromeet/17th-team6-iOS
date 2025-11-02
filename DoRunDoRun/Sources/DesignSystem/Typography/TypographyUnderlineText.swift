@@ -14,13 +14,14 @@ struct TypographyUnderlineText: View {
     var color: Color = .gray500
     var underlineColor: Color? = nil
     var alignment: NSTextAlignment = .center
+    var fixedSize: Bool = true
     
     var body: some View {
         AttributedTextView(
             attributedText: makeUnderlinedText(),
             alignment: alignment
         )
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: fixedSize, vertical: true)
     }
     
     private func makeUnderlinedText() -> NSAttributedString {
