@@ -12,8 +12,3 @@ struct RunningSnapshotViewState: Equatable, Sendable {
     let cadenceText: String
     let lastCoordinate: RunningCoordinateViewState?
 }
-
-struct RunningCoordinateViewState: Equatable, Sendable {
-    let latitude: Double
-    let longitude: Double
-}

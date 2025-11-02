@@ -14,6 +14,10 @@ struct RunningDetailViewState: Equatable {
     let durationText: String
     let cadenceText: String
     
+    let points: [RunningCoordinateViewState]
+    
+    var mapImageData: Data?
+    
     let mapImageURL: URL?
     let feed: FeedSummary?
 }

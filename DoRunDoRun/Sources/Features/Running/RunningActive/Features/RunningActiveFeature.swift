@@ -105,6 +105,7 @@ struct RunningActiveFeature {
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] send in
                         let finalRunningDetail = await useCase.stop()
+                        
                         await send(.delegate(.didFinish(final: finalRunningDetail)))
                     },
                     .cancel(id: CancelID.stream)
@@ -131,7 +132,10 @@ struct RunningActiveFeature {
                 
                 // 스냅샷 수신 -> ViewState로 매핑하여 축적
             case ._snapshotReceived(let snapshot):
-                state.statuses.append(RunningSnapshotViewStateMapper.map(from: snapshot))
+                state.statuses.append(
+                    RunningSnapshotViewStateMapper.map(from: snapshot)
+                )
+                
                 return .none
                 // 종료/에러 (필요 시 에러 상태 노출 가능)
             case ._streamFinished:

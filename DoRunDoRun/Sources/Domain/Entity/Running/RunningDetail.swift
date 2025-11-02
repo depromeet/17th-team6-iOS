@@ -26,8 +26,11 @@ struct RunningDetail: Equatable {
     let fastestPaceSecPerKm: Double
     /// 최대 페이스 시점의 좌표 정보
     let coordinateAtmaxPace: RunningPoint
+    /// 전체 경로 좌표 정도
+    let coordinates: [RunningCoordinate]
     
-    // 지도 이미지?
+    // 지도 이미지
+    var mapImageData: Data?
     let mapImageURL: URL?
     
     // MARK: - 우선 임시 작성 (피드 작업이 마무리 되면 바꾸기)
@@ -59,7 +62,8 @@ extension RunningDetail {
             altitude: 25.0,
             speedMps: 3.8
         ),
-        mapImageURL: nil,
+        coordinates: [],
+        mapImageData: nil, mapImageURL: nil,
         feed: nil
     )
 }

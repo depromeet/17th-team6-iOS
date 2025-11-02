@@ -196,9 +196,10 @@ private extension RunningMapView {
     /// 러닝 경로를 지도에 표시하기 위한 `NMFPath` 오버레이를 생성하고 기본 스타일을 설정합니다.
     func makeRouteOverlay() -> NMFPath {
         let routeOverlay = NMFPath()
-        
-        routeOverlay.outlineWidth = 2
         routeOverlay.color = .red
+        routeOverlay.width = 8
+        
+        routeOverlay.outlineColor = .clear
         
         return routeOverlay
     }

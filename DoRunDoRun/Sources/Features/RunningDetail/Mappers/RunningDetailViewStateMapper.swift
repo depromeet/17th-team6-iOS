@@ -24,12 +24,16 @@ struct RunningDetailViewStateMapper {
         // Cadence → "144 spm" 형식으로
         let cadenceText = "\(Int(detail.avgCadenceSpm)) spm"
         
+        let points = detail.coordinates.map { toViewState($0) }
+        
         return RunningDetailViewState(
             finishedAtText: finishedAtText,
             totalDistanceText: distanceText,
             avgPaceText: paceText,
             durationText: elapsedText,
             cadenceText: cadenceText,
+            points: points,
+            mapImageData: detail.mapImageData,
             mapImageURL: detail.mapImageURL,
             feed: detail.feed
         )
@@ -68,5 +72,12 @@ private extension RunningDetailViewStateMapper {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%d'%02d\"", minutes, seconds)
+    }
+    
+    static func toViewState(_ coordinate: RunningCoordinate) -> RunningCoordinateViewState {
+        RunningCoordinateViewState(
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude
+        )
     }
 }

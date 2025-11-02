@@ -52,7 +52,9 @@ struct RunningFeature {
 
             // Active → Parent delegate: 최종 상세 결과 전달
             case let .active(.delegate(.didFinish(final))):
-                state.runningDetail = RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: final))
+                state.runningDetail = RunningDetailFeature.State(
+                    detail: RunningDetailViewStateMapper.map(from: final)
+                )
                 
                 // 초기 상태로 복귀
                 UIApplication.shared.setTabBarHidden(false)

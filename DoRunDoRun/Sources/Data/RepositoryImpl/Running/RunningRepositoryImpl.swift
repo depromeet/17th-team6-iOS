@@ -32,6 +32,9 @@ actor RunningRepositoryImpl: RunningRepository {
     private var latestCadenceSpm: Double = 0
     private var latestCurrentPaceSecPerKm: Double = 0
     
+    // 전체 경로 좌표 정보
+    private var points: [RunningCoordinate] = []
+    
     // 누적 걸음수 (일시정지 구간 제외, pedometer 이벤트 델타 기반)
     private var totalSteps: Int = 0
     
@@ -226,6 +229,8 @@ actor RunningRepositoryImpl: RunningRepository {
         
         let point = lastLocation.map { $0.toDomain() }
         
+        if let point { points.append(point.coordinate) }
+        
         continuation?.yield(
             RunningSnapshot(
                 timestamp: timestamp,
@@ -272,6 +277,8 @@ actor RunningRepositoryImpl: RunningRepository {
             maxCadenceSpm: maxCadenceSpm,
             fastestPaceSecPerKm: fastestPaceSecPerKm.isFinite ? fastestPaceSecPerKm : 0,
             coordinateAtmaxPace: coord,
+            coordinates: points,
+            mapImageData: nil,
             mapImageURL: nil,
             feed: nil
         )
