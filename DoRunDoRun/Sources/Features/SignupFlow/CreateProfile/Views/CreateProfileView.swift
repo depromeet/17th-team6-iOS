@@ -67,7 +67,7 @@ extension CreateProfileView {
                         .frame(width: 97, height: 97)
                         .clipShape(Circle())
                 } else {
-                    Color.gray100
+                    Image(.profilePlaceholder)
                         .frame(width: 97, height: 97)
                         .clipShape(Circle())
                 }
@@ -112,7 +112,8 @@ extension CreateProfileView {
                 TypographyText(
                     text: "닉네임 2-8자",
                     style: .c1_500,
-                    color: store.isNicknameValid ? .blue600 : .gray400
+                    color: store.isNicknameValid ? .blue600 : .gray400,
+                    alignment: .left
                 )
             }
             .animation(.easeInOut(duration: 0.2), value: store.nickname)
