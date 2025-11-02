@@ -67,6 +67,8 @@ struct InputField: View {
                     text = "" // 입력 전체 삭제
                 } label: {
                     Image(.closeCircle, fill: .fill, size: .medium)
+                        .renderingMode(.template)
+                        .foregroundStyle(Color.gray300)
                 }
                 .opacity(state == .typing ? 1 : 0)
                 .padding(.trailing, 12)
