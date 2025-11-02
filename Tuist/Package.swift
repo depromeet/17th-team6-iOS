@@ -18,6 +18,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", branch: "main"),
         .package(url: "https://github.com/navermaps/SPM-NMapsMap", branch: "main"),
         .package(url: "https://github.com/Alamofire/Alamofire", from: "5.8.0"),
-        .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "15.0.0"))
+        .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "15.0.0")),
+        .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.6.0")
     ]
 )

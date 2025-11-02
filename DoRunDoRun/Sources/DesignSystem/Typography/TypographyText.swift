@@ -10,16 +10,19 @@ import SwiftUI
 struct TypographyText: View {
     let text: String
     let style: TypographyStyle
-    var color: Color = .primary
+    var color: Color = .gray900
     var alignment: NSTextAlignment = .center
 
     var body: some View {
         AttributedTextView(
-            text: text,
-            style: style,
-            color: UIColor(color),
+            attributedText: TypographyUtility.makeAttributedString(
+                text,
+                style: style,
+                color: UIColor(color),
+                alignment: alignment
+            ),
             alignment: alignment
         )
-        .fixedSize()
+        .frame(maxWidth: .infinity)
     }
 }
