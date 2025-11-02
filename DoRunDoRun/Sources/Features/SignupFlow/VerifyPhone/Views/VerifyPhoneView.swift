@@ -63,6 +63,7 @@ private extension VerifyPhoneView {
         )
         .padding(.top, 16)
         .transition(.opacity.combined(with: .slide))
+        .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
     }
 }
 
@@ -81,8 +82,8 @@ private extension VerifyPhoneView {
                 )
                 .padding(.top, 32)
                 .focused($focusedField, equals: .verificationCode)
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                .animation(.bouncy(duration: 0.3), value: store.isPhoneNumberEntered)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.9), value: store.isPhoneNumberEntered)
             }
 
             // 휴대폰 번호 입력
@@ -95,8 +96,8 @@ private extension VerifyPhoneView {
             .padding(.top, store.isPhoneNumberEntered ? 24 : 32)
             .focused($focusedField, equals: .phoneNumber)
             .onChange(of: store.phoneNumber) { store.send(.phoneNumberChanged($0)) }
-            .transition(.opacity.combined(with: .scale(scale: 0.98)))
-            .animation(.easeOut(duration: 0.3), value: store.isPhoneNumberEntered)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
         }
     }
 }
