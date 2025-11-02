@@ -48,8 +48,9 @@ struct CustomUITextField: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
-        uiView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        if uiView.text != text { uiView.text = text }
+        if uiView.markedTextRange == nil, uiView.text != text {
+            uiView.text = text
+        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -64,6 +65,7 @@ struct CustomUITextField: UIViewRepresentable {
         }
 
         @objc func textChanged(_ sender: UITextField) {
+            guard sender.markedTextRange == nil else { return }
             parent.text = sender.text ?? ""
         }
         
@@ -82,7 +84,6 @@ struct CustomUITextField: UIViewRepresentable {
                 return false
             }
             
-            parent.text = filtered
             return true
         }
     }
