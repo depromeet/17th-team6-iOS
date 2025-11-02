@@ -49,7 +49,8 @@ extension CreateProfileView {
     private var titleSection: some View {
         TypographyText(
             text: "프로필을 생성해주세요.",
-            style: .h2_700
+            style: .h2_700,
+            alignment: .left
         )
         .padding(.top, 16)
     }

@@ -30,7 +30,7 @@ struct AgreeTermsListView: View {
                                 .foregroundStyle(Color.gray300)
                                 .padding(4)
                         }
-                        TypographyText(text: "약관 전체 동의", style: .b1_700)
+                        TypographyText(text: "약관 전체 동의", style: .b1_700, alignment: .left)
                         Spacer()
                     }
                     .clipShape(Rectangle())
