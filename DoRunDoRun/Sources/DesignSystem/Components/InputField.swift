@@ -44,7 +44,7 @@ struct InputField: View {
         VStack(alignment: .leading, spacing: 8) {
             // Label
             if let label {
-                TypographyText(text: label, style: .b2_500, color: .gray700)
+                TypographyText(text: label, style: .b2_500, color: .gray700, alignment: .left)
             }
 
             HStack(spacing: 0) {
