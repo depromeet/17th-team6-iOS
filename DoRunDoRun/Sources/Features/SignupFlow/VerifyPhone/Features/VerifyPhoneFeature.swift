@@ -67,6 +67,12 @@ struct VerifyPhoneFeature {
             switch action {
             // MARK: 전화번호 입력
             case .phoneNumberChanged(let newValue):
+                if state.isPhoneNumberEntered {
+                    state.verificationCode = ""
+                    state.isPhoneNumberEntered = false
+                    state.isVerificationCodeEntered = false
+                    state.timer = TimerFeature.State()
+                }
                 state.phoneNumber = newValue.formattedPhoneNumber()
                 return .none
                 
