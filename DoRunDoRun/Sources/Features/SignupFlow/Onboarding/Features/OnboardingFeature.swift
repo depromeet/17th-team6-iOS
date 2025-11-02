@@ -9,10 +9,33 @@ import Foundation
 
 import ComposableArchitecture
 
+struct OnboardingPage: Equatable {
+    let image: GraphicStyle
+    let title: String
+    let subtitle: String
+}
+
 @Reducer
 struct OnboardingFeature {
     @ObservableState
     struct State {
+        var pages: [OnboardingPage] = [
+            OnboardingPage(
+                image: .onboarding1,
+                title: "함께라면 두런두런 즐겁게!",
+                subtitle: "혼자서는 어려운 러닝, 친구와 함께 달리며\n습관으로 만들어보세요."
+            ),
+            OnboardingPage(
+                image: .onboarding2,
+                title: "친구들의 러닝 현황을 확인해요",
+                subtitle: "지도에 표시된 친구들의 러닝 현황을 보며\n멀리서도 함께 뛰는 기분을 느껴요."
+            ),
+            OnboardingPage(
+                image: .onboarding3,
+                title: "오늘의 러닝, 피드에 인증해요",
+                subtitle: "오늘의 러닝을 피드에 남기고,\n친구와 리액션을 주고받으며 함께 달려요."
+            )
+        ]
         var currentPage = 0
         let totalPages = 3
         var path = StackState<Path.State>()
