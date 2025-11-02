@@ -1,5 +1,7 @@
 import SwiftUI
 
+import Kingfisher
+
 /// 프로필 이미지 스타일
 enum ProfileImageStyle {
     case plain          // 테두리 없음
@@ -24,22 +26,35 @@ enum ProfileImageSize {
 
 struct ProfileImageView: View {
     let image: Image?
+    let imageURL: String?
     let style: ProfileImageStyle
     let size: ProfileImageSize
     private let isZZZ: Bool
     
     // MARK: - Initializers
     /// 일반용 (small, medium, large 모두 가능)
-    init(image: Image?, style: ProfileImageStyle = .plain, size: ProfileImageSize) {
+    init(
+        image: Image? = nil,
+        imageURL: String? = nil,
+        style: ProfileImageStyle = .plain,
+        size: ProfileImageSize
+    ) {
         self.image = image
+        self.imageURL = imageURL
         self.style = style
         self.size = size
         self.isZZZ = false
     }
     
     /// large 전용 isZZZ 포함 initializer
-    init(image: Image?, style: ProfileImageStyle = .plain, isZZZ: Bool) {
+    init(
+        image: Image? = nil,
+        imageURL: String? = nil,
+        style: ProfileImageStyle = .plain,
+        isZZZ: Bool
+    ) {
         self.image = image
+        self.imageURL = imageURL
         self.style = style
         self.size = .large
         self.isZZZ = isZZZ
@@ -50,7 +65,6 @@ struct ProfileImageView: View {
             profileBase
                 .frame(width: size.size, height: size.size)
             
-            // isZZZ는 large 전용 init에서만 true 가능
             if isZZZ {
                 zzzOverlay
             }
@@ -60,7 +74,15 @@ struct ProfileImageView: View {
     // MARK: - 내부 구성
     @ViewBuilder
     private var profileBase: some View {
-        if let image {
+        if let urlString = imageURL, let url = URL(string: urlString) {
+            // 네트워크 이미지 우선
+            KFImage(url)
+                .resizable()
+                .scaledToFill()
+                .clipShape(Circle())
+                .overlay(borderOverlay)
+        } else if let image {
+            // 로컬 이미지 사용
             image
                 .resizable()
                 .scaledToFill()

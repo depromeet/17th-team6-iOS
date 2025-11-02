@@ -47,6 +47,7 @@ let project = Project(
                 .external(name: "NMapsMap"),
                 .external(name: "Alamofire"),
                 .external(name: "Moya"),
+                .external(name: "Kingfisher"),
             ],
             settings: .settings(
                 base: [:],
