@@ -30,7 +30,7 @@ struct AgreeTermsRowView: View {
                                 .foregroundStyle(Color.gray300)
                                 .padding(4)
                         }
-                        TypographyText(text: store.title, style: .b1_400)
+                        TypographyText(text: store.title, style: .b1_400, alignment: .left)
                         Spacer()
                     }
                     .clipShape(Rectangle())

@@ -63,6 +63,7 @@ private extension VerifyPhoneView {
         )
         .padding(.top, 16)
         .transition(.opacity.combined(with: .slide))
+        .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
     }
 }
 
@@ -70,7 +71,7 @@ private extension VerifyPhoneView {
 private extension VerifyPhoneView {
     @ViewBuilder
     var inputSection: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             // 인증번호 입력 (전송 후 표시)
             if store.isPhoneNumberEntered {
                 InputVerificationCodeField(
@@ -81,7 +82,8 @@ private extension VerifyPhoneView {
                 )
                 .padding(.top, 32)
                 .focused($focusedField, equals: .verificationCode)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.9), value: store.isPhoneNumberEntered)
             }
 
             // 휴대폰 번호 입력
@@ -94,7 +96,8 @@ private extension VerifyPhoneView {
             .padding(.top, store.isPhoneNumberEntered ? 24 : 32)
             .focused($focusedField, equals: .phoneNumber)
             .onChange(of: store.phoneNumber) { store.send(.phoneNumberChanged($0)) }
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
         }
     }
 }
