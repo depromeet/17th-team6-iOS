@@ -18,7 +18,7 @@ struct FriendRunningStatusViewState: Identifiable, Equatable {
     let isMe: Bool
 
     /// 친구의 프로필 이미지 URL (없을 경우 `nil`)
-    let profileImageURL: URL?
+    let profileImageURL: String?
 
     /// 가장 최근 러닝 시간 정보를 문자열 형태로 표시 (예: "1시간 전")
     let latestRanText: String?

@@ -51,7 +51,7 @@ extension FriendRunningStatusContentDTO {
             id: userId,
             nickname: nickname,
             isMe: isMe,
-            profileImageURL: URL(string: profileImage ?? ""),
+            profileImageURL: profileImage,
             latestRanAt: ISO8601DateFormatter().date(from: latestRanAt ?? ""),
             distance: distance,
             latitude: latitude,
