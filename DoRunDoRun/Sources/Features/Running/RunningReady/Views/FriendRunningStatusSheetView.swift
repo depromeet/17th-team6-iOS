@@ -20,7 +20,7 @@ struct FriendRunningStatusSheetView: View {
     
     var friendListButtonTapped: (() -> Void)? = nil
     var friendTapped: ((Int) -> Void)? = nil
-    var cheerButtonTapped: ((Int) -> Void)? = nil
+    var cheerButtonTapped: ((Int, String) -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,7 +72,7 @@ private extension FriendRunningStatusSheetView {
                         status: me,
                         isFocused: me.id == focusedFriendID,
                         friendTapped: { friendTapped?(me.id) },
-                        cheerButtonTapped: { cheerButtonTapped?(me.id) }
+                        cheerButtonTapped: { cheerButtonTapped?(me.id, me.name) }
                     )
                 }
 
@@ -88,7 +88,7 @@ private extension FriendRunningStatusSheetView {
                             status: status,
                             isFocused: status.id == focusedFriendID,
                             friendTapped: { friendTapped?(status.id) },
-                            cheerButtonTapped: { cheerButtonTapped?(status.id) }
+                            cheerButtonTapped: { cheerButtonTapped?(status.id, status.name) }
                         )
                     }
                 }

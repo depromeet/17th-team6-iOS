@@ -22,6 +22,7 @@ struct RunningReadyView: View {
                 ZStack(alignment: .bottom) {
                     friendSheet
                     startButton
+                    toast
                 }
                 .ignoresSafeArea(edges: .top)
                 .navigationBarHidden(true)
@@ -61,8 +62,8 @@ private extension RunningReadyView {
             friendTapped: { id in
                 store.send(.friendTapped(id))
             },
-            cheerButtonTapped: { id in
-                store.send(.cheerButtonTapped(id))
+            cheerButtonTapped: { id, name in
+                store.send(.cheerButtonTapped(id, name))
             }
         )
         .onAppear {
@@ -87,6 +88,18 @@ private extension RunningReadyView {
             )
         }
         .zIndex(2)
+    }
+    
+    /// Toast
+    @ViewBuilder
+    var toast: some View {
+        if store.toast.isVisible {
+            ActionToastView(message: store.toast.message)
+                .padding(.bottom, 88)
+                .frame(maxWidth: .infinity)
+                .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
+                .zIndex(3)
+        }
     }
 }
 

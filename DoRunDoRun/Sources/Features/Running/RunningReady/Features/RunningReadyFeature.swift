@@ -16,6 +16,8 @@ struct RunningReadyFeature {
     // MARK: - State
     @ObservableState
     struct State: Equatable {
+        var toast = ToastFeature.State()
+
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
         
@@ -25,12 +27,14 @@ struct RunningReadyFeature {
 
     // MARK: - Action
     enum Action: Equatable {
+        case toast(ToastFeature.Action)
+
         case onAppear
         case statusSuccess([FriendRunningStatus])
         case statusFailure(String)
         case friendTapped(Int)
-        case cheerButtonTapped(Int)
-        case reactionSuccess(Int)
+        case cheerButtonTapped(Int, String)
+        case reactionSuccess(Int, String)
         case reactionFailure(Int, String)
         case gpsButtonTapped
         case friendListButtonTapped
@@ -39,6 +43,8 @@ struct RunningReadyFeature {
 
     // MARK: - Reducer Body
     var body: some ReducerOf<Self> {
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
+
         Reduce { state, action in
             switch action {
 
@@ -76,22 +82,22 @@ struct RunningReadyFeature {
                 return .none
 
             // MARK: 응원 버튼 탭
-            case let .cheerButtonTapped(id):
+            case let .cheerButtonTapped(id, name):
                 return .run { send in
                     do {
                         try await reactionUseCase.sendReaction(to: id)
-                        await send(.reactionSuccess(id))
+                        await send(.reactionSuccess(id, name))
                     } catch {
                         await send(.reactionFailure(id, error.localizedDescription))
                     }
                 }
 
             // MARK: 응원 성공 → 상태 반영
-            case let .reactionSuccess(id):
+            case let .reactionSuccess(id, name):
                 if let index = state.statuses.firstIndex(where: { $0.id == id }) {
                     state.statuses[index].isCheerable = false
                 }
-                return .none
+                return .send(.toast(.show("잠자는 ’\(name)’님을 깨웠어요!")))
 
             // MARK: 응원 실패 (로깅)
             case let .reactionFailure(id, message):
@@ -112,6 +118,9 @@ struct RunningReadyFeature {
             case .startButtonTapped:
                 state.statuses = []
                 // 실제 러닝 시작 로직은 상위 Feature(RunningFeature)에서 담당
+                return .none
+                
+            default:
                 return .none
             }
         }
