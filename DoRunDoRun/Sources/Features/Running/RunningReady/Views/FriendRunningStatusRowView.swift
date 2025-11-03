@@ -10,9 +10,7 @@ import SwiftUI
 /// 유저 및 친구 러닝 상태를 표시하는 리스트 행(View)
 struct FriendRunningStatusRowView: View {
     let status: FriendRunningStatusViewState
-    let city: String
     let isFocused: Bool
-    let isSent: Bool
     
     var friendTapped: (() -> Void)? = nil
     var cheerButtonTapped: (() -> Void)? = nil
@@ -36,7 +34,8 @@ private extension FriendRunningStatusRowView {
     /// 프로필 이미지
     private var profileImageView: some View {
         ProfileImageView(
-            image: nil,
+            image: Image(.profilePlaceholder),
+            imageURL: status.profileImageURL,
             style: isFocused ? .blueBorder : .grayBorder,
             isZZZ: !status.isRunning
         )
@@ -69,7 +68,7 @@ private extension FriendRunningStatusRowView {
                 HStack(spacing: 4) {
                     TypographyText(text: distance, style: .b2_500, color: .gray700)
                     TypographyText(text: "/", style: .b2_500, color: .gray700)
-                    TypographyText(text: city, style: .b2_500, color: .gray700)
+                    TypographyText(text: status.address ?? "알 수 없음", style: .b2_500, color: .gray700)
                 }
             } else {
                 TypographyText(text: "아직 러닝 기록이 없어요...", style: .b2_500, color: .gray700)
@@ -84,11 +83,13 @@ private extension FriendRunningStatusRowView {
         if !status.isRunning {
             AppButton(
                 title: "깨우기",
-                style: isSent ? .disabled : .secondary,
+                style: status.isCheerable ? .secondary : .disabled,
                 size: .medium,
-                icon: isSent ? Image(.react, fill: .fill, size: .small) : Image(.react, fill: .fill, size: .small)
+                icon: Image(.react, fill: .fill, size: .small)
             ) {
-                cheerButtonTapped?()
+                if status.isCheerable {
+                    cheerButtonTapped?()
+                }
             }
         }
     }
@@ -103,13 +104,14 @@ private extension FriendRunningStatusRowView {
             isMe: true,
             profileImageURL: nil,
             latestRanText: "1시간 전",
+            latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
             isRunning: true,
+            isCheerable: true, // 응원한지 이틀 경과했기에 깨우기 가능
             distanceText: "5.01km",
             latitude: 37.4784,
-            longitude: 126.8641
+            longitude: 126.8641,
+            address: "서울 마포구"
         ),
-        city: "광명",
         isFocused: true,
-        isSent: true
     )
 }

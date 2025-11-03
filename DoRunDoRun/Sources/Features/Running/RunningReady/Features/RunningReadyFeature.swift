@@ -16,28 +16,25 @@ struct RunningReadyFeature {
     // MARK: - State
     @ObservableState
     struct State: Equatable {
+        var toast = ToastFeature.State()
+
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
         
-        /// 도시명 캐시 (userID: 도시명)
-        var cityCache: [Int: String] = [:]
-        
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
-        
-        /// 이미 응원한 친구 ID 목록 (중복 응원 방지)
-        var sentReactions: Set<Int> = []
     }
 
     // MARK: - Action
     enum Action: Equatable {
+        case toast(ToastFeature.Action)
+
         case onAppear
         case statusSuccess([FriendRunningStatus])
         case statusFailure(String)
-        case updateCityName(id: Int, city: String?)
         case friendTapped(Int)
-        case cheerButtonTapped(Int)
-        case reactionSuccess(Int)
+        case cheerButtonTapped(Int, String)
+        case reactionSuccess(Int, String)
         case reactionFailure(Int, String)
         case gpsButtonTapped
         case friendListButtonTapped
@@ -46,6 +43,8 @@ struct RunningReadyFeature {
 
     // MARK: - Reducer Body
     var body: some ReducerOf<Self> {
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
+
         Reduce { state, action in
             switch action {
 
@@ -70,24 +69,11 @@ struct RunningReadyFeature {
                     state.focusedFriendID = me.id
                 }
 
-                // 위치 정보 기반으로 도시명 비동기 로드
-                return .run { send in
-                    for friend in statuses {
-                        guard let lat = friend.latitude, let lng = friend.longitude else { continue }
-                        if let city = await statusUseCase.resolveCity(for: lat, lng: lng) {
-                            await send(.updateCityName(id: friend.id, city: city))
-                        }
-                    }
-                }
+                return .none
 
             // MARK: 러닝 상태 조회 실패
             case let .statusFailure(message):
                 print("Fetch Error:", message)
-                return .none
-
-            // MARK: 도시명 업데이트
-            case let .updateCityName(id, city):
-                state.cityCache[id] = city
                 return .none
 
             // MARK: 친구 셀 탭 (포커스 전환)
@@ -96,20 +82,22 @@ struct RunningReadyFeature {
                 return .none
 
             // MARK: 응원 버튼 탭
-            case let .cheerButtonTapped(id):
+            case let .cheerButtonTapped(id, name):
                 return .run { send in
                     do {
                         try await reactionUseCase.sendReaction(to: id)
-                        await send(.reactionSuccess(id))
+                        await send(.reactionSuccess(id, name))
                     } catch {
                         await send(.reactionFailure(id, error.localizedDescription))
                     }
                 }
 
             // MARK: 응원 성공 → 상태 반영
-            case let .reactionSuccess(id):
-                state.sentReactions.insert(id)
-                return .none
+            case let .reactionSuccess(id, name):
+                if let index = state.statuses.firstIndex(where: { $0.id == id }) {
+                    state.statuses[index].isCheerable = false
+                }
+                return .send(.toast(.show("잠자는 ’\(name)’님을 깨웠어요!")))
 
             // MARK: 응원 실패 (로깅)
             case let .reactionFailure(id, message):
@@ -130,6 +118,9 @@ struct RunningReadyFeature {
             case .startButtonTapped:
                 state.statuses = []
                 // 실제 러닝 시작 로직은 상위 Feature(RunningFeature)에서 담당
+                return .none
+                
+            default:
                 return .none
             }
         }

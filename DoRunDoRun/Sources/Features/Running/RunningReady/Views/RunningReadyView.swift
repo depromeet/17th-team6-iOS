@@ -22,6 +22,7 @@ struct RunningReadyView: View {
                 ZStack(alignment: .bottom) {
                     friendSheet
                     startButton
+                    toast
                 }
                 .ignoresSafeArea(edges: .top)
                 .navigationBarHidden(true)
@@ -52,9 +53,7 @@ private extension RunningReadyView {
     var friendSheet: some View {
         FriendRunningStatusSheetView(
             statuses: store.statuses,
-            cityCache: store.cityCache,
             focusedFriendID: store.focusedFriendID,
-            sentReactions: store.sentReactions,
             sheetOffset: $sheetOffset,
             currentOffset: $currentOffset,
             friendListButtonTapped: {
@@ -63,8 +62,8 @@ private extension RunningReadyView {
             friendTapped: { id in
                 store.send(.friendTapped(id))
             },
-            cheerButtonTapped: { id in
-                store.send(.cheerButtonTapped(id))
+            cheerButtonTapped: { id, name in
+                store.send(.cheerButtonTapped(id, name))
             }
         )
         .onAppear {
@@ -78,16 +77,29 @@ private extension RunningReadyView {
     var startButton: some View {
         VStack(spacing: 0) {
             Color.gray0
-            .frame(height: 80)
+            .frame(height: 76)
             .overlay(
                 AppButton(title: "러닝 시작하기") {
                     store.send(.startButtonTapped)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .padding(.horizontal, 20)
             )
         }
         .zIndex(2)
+    }
+    
+    /// Toast
+    @ViewBuilder
+    var toast: some View {
+        if store.toast.isVisible {
+            ActionToastView(message: store.toast.message)
+                .padding(.bottom, 88)
+                .frame(maxWidth: .infinity)
+                .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
+                .zIndex(3)
+        }
     }
 }
 

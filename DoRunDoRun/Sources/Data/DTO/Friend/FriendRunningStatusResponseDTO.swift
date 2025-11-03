@@ -27,9 +27,11 @@ struct FriendRunningStatusContentDTO: Decodable {
     let isMe: Bool
     let profileImage: String?
     let latestRanAt: String?
+    let latestCheeredAt: String?
     let distance: Double?
     let latitude: Double?
     let longitude: Double?
+    let address: String?
 }
 
 // MARK: - Meta
@@ -51,11 +53,13 @@ extension FriendRunningStatusContentDTO {
             id: userId,
             nickname: nickname,
             isMe: isMe,
-            profileImageURL: URL(string: profileImage ?? ""),
+            profileImageURL: profileImage,
             latestRanAt: ISO8601DateFormatter().date(from: latestRanAt ?? ""),
+            latestCheeredAt: ISO8601DateFormatter().date(from: latestCheeredAt ?? ""),
             distance: distance,
             latitude: latitude,
-            longitude: longitude
+            longitude: longitude,
+            address: address
         )
     }
 }

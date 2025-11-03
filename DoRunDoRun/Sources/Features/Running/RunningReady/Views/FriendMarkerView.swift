@@ -10,7 +10,7 @@ import SwiftUI
 /// 지도 위에 표시되는 유저 및 친구 마커(View)
 struct FriendMarkerView: View {
     let name: String
-    let profileImage: Image?
+    let profileImageURL: String?
     let isRunning: Bool
     let isFocused: Bool
 
@@ -44,7 +44,8 @@ private extension FriendMarkerView {
 
             // 프로필 이미지 (포커스 및 러닝 상태 반영)
             ProfileImageView(
-                image: profileImage,
+                image: Image(.profilePlaceholder),
+                imageURL: profileImageURL,
                 style: isFocused ? .blueBorder : .grayBorder,
                 isZZZ: !isRunning
             )
@@ -57,7 +58,7 @@ private extension FriendMarkerView {
 #Preview {
     FriendMarkerView(
         name: "민희",
-        profileImage: nil,
+        profileImageURL: nil,
         isRunning: true,
         isFocused: true
     )
