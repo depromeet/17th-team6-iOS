@@ -64,13 +64,15 @@ struct CreateProfileFeature {
                 
                 return .run { [state] send in
                     do {
+                        let fcmToken = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
+
                         let result = try await signupUseCase.execute(
                             phoneNumber: state.verifiedPhoneNumber,
                             nickname: state.nickname,
                             marketingConsentAt: state.marketingConsentAt,
                             locationConsentAt: state.locationConsentAt,
                             personalConsentAt: state.personalConsentAt,
-                            deviceToken: "device_token", // 이후 교체 예정
+                            deviceToken: fcmToken,
                             profileImage: state.profileImage
                         )
                         await send(.signupCompletedSuccess(result))

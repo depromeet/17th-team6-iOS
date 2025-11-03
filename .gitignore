@@ -73,3 +73,6 @@ Tuist/.build
 Configs/*
 !Configs/.gitkeep
 !Configs/*.example.xcconfig
+
+### Firebase ###
+GoogleService-Info.plist
