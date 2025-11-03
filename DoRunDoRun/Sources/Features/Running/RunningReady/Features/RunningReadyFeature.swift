@@ -19,9 +19,6 @@ struct RunningReadyFeature {
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
         
-        /// 도시명 캐시 (userID: 도시명)
-        var cityCache: [Int: String] = [:]
-        
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
         
@@ -34,7 +31,6 @@ struct RunningReadyFeature {
         case onAppear
         case statusSuccess([FriendRunningStatus])
         case statusFailure(String)
-        case updateCityName(id: Int, city: String?)
         case friendTapped(Int)
         case cheerButtonTapped(Int)
         case reactionSuccess(Int)
@@ -70,24 +66,11 @@ struct RunningReadyFeature {
                     state.focusedFriendID = me.id
                 }
 
-                // 위치 정보 기반으로 도시명 비동기 로드
-                return .run { send in
-                    for friend in statuses {
-                        guard let lat = friend.latitude, let lng = friend.longitude else { continue }
-                        if let city = await statusUseCase.resolveCity(for: lat, lng: lng) {
-                            await send(.updateCityName(id: friend.id, city: city))
-                        }
-                    }
-                }
+                return .none
 
             // MARK: 러닝 상태 조회 실패
             case let .statusFailure(message):
                 print("Fetch Error:", message)
-                return .none
-
-            // MARK: 도시명 업데이트
-            case let .updateCityName(id, city):
-                state.cityCache[id] = city
                 return .none
 
             // MARK: 친구 셀 탭 (포커스 전환)

@@ -10,7 +10,6 @@ import SwiftUI
 /// 유저 및 친구 러닝 상태를 표시하는 리스트 행(View)
 struct FriendRunningStatusRowView: View {
     let status: FriendRunningStatusViewState
-    let city: String
     let isFocused: Bool
     let isSent: Bool
     
@@ -70,7 +69,7 @@ private extension FriendRunningStatusRowView {
                 HStack(spacing: 4) {
                     TypographyText(text: distance, style: .b2_500, color: .gray700)
                     TypographyText(text: "/", style: .b2_500, color: .gray700)
-                    TypographyText(text: city, style: .b2_500, color: .gray700)
+                    TypographyText(text: status.address ?? "알 수 없음", style: .b2_500, color: .gray700)
                 }
             } else {
                 TypographyText(text: "아직 러닝 기록이 없어요...", style: .b2_500, color: .gray700)
@@ -107,9 +106,9 @@ private extension FriendRunningStatusRowView {
             isRunning: true,
             distanceText: "5.01km",
             latitude: 37.4784,
-            longitude: 126.8641
+            longitude: 126.8641,
+            address: "서울 마포구"
         ),
-        city: "광명",
         isFocused: true,
         isSent: true
     )

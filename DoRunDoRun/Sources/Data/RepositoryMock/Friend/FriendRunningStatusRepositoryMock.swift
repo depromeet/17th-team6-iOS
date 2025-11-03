@@ -19,7 +19,8 @@ final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
                 latestRanAt: Date().addingTimeInterval(-3600), // 1시간 전
                 distance: 5010,
                 latitude: 37.4784,
-                longitude: 126.8641
+                longitude: 126.8641,
+                address: "광명"
             ),
             FriendRunningStatus(
                 id: 2,
@@ -29,7 +30,8 @@ final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
                 latestRanAt: Date().addingTimeInterval(-1800), // 30분 전
                 distance: 5010,
                 latitude: 37.5665,
-                longitude: 126.9780
+                longitude: 126.9780,
+                address: "서울"
             ),
             FriendRunningStatus(
                 id: 3,
@@ -39,7 +41,8 @@ final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
                 latestRanAt: Date().addingTimeInterval(-36000), // 10시간 전
                 distance: 5010,
                 latitude: 37.5700,
-                longitude: 126.9820
+                longitude: 126.9820,
+                address: "서울"
             ),
             FriendRunningStatus(
                 id: 4,
@@ -49,7 +52,8 @@ final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
                 latestRanAt: Date().addingTimeInterval(-86400 * 3), // 3일 전
                 distance: 5010,
                 latitude: 37.4563,
-                longitude: 126.7052
+                longitude: 126.7052,
+                address: nil
             ),
             FriendRunningStatus(
                 id: 5,
@@ -59,7 +63,8 @@ final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
                 latestRanAt: Date().addingTimeInterval(-86400 * 12), // 12일 전
                 distance: 5010,
                 latitude: 37.4980,
-                longitude: 126.7830
+                longitude: 126.7830,
+                address: nil
             )
         ]
     }

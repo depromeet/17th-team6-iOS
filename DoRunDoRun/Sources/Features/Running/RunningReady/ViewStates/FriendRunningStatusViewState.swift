@@ -34,5 +34,8 @@ struct FriendRunningStatusViewState: Identifiable, Equatable {
 
     /// 친구의 경도 좌표 (지도 표시용)
     let longitude: Double?
+    
+    /// 친구의 주소 정보 (예: "서울 마포구")
+    let address: String?
 }
 

@@ -62,7 +62,8 @@ struct FriendRunningStatusViewStateMapper {
             isRunning: isRunning,
             distanceText: distanceText,
             latitude: entity.latitude,
-            longitude: entity.longitude
+            longitude: entity.longitude,
+            address: entity.address
         )
     }
 }

@@ -10,7 +10,6 @@ import SwiftUI
 /// 유저 및 친구 러닝 상태를 표시하는 하단 시트(View)
 struct FriendRunningStatusSheetView: View {
     let statuses: [FriendRunningStatusViewState]
-    let cityCache: [Int: String]
     let focusedFriendID: Int?
     let sentReactions: Set<Int>
     
@@ -72,7 +71,6 @@ private extension FriendRunningStatusSheetView {
                 if let me = statuses.first(where: { $0.isMe }) {
                     FriendRunningStatusRowView(
                         status: me,
-                        city: cityCache[me.id] ?? "알 수 없음",
                         isFocused: me.id == focusedFriendID,
                         isSent: sentReactions.contains(me.id),
                         friendTapped: { friendTapped?(me.id) },
@@ -90,7 +88,6 @@ private extension FriendRunningStatusSheetView {
                     ForEach(friends) { status in
                         FriendRunningStatusRowView(
                             status: status,
-                            city: cityCache[status.id] ?? "알 수 없음",
                             isFocused: status.id == focusedFriendID,
                             isSent: sentReactions.contains(status.id),
                             friendTapped: { friendTapped?(status.id) },
@@ -138,7 +135,8 @@ private extension FriendRunningStatusSheetView {
                 isRunning: true,
                 distanceText: "5.01km",
                 latitude: 37.4784,
-                longitude: 126.8641
+                longitude: 126.8641,
+                address: "경기"
             ),
             .init(
                 id: 2,
@@ -149,7 +147,8 @@ private extension FriendRunningStatusSheetView {
                 isRunning: true,
                 distanceText: "5.01km",
                 latitude: 37.5665,
-                longitude: 126.9780
+                longitude: 126.9780,
+                address: "서울"
             ),
             .init(
                 id: 3,
@@ -160,7 +159,8 @@ private extension FriendRunningStatusSheetView {
                 isRunning: true,
                 distanceText: "5.01km",
                 latitude: 37.5700,
-                longitude: 126.9820
+                longitude: 126.9820,
+                address: "서울"
             ),
             .init(
                 id: 4,
@@ -171,7 +171,8 @@ private extension FriendRunningStatusSheetView {
                 isRunning: false,
                 distanceText: nil,
                 latitude: nil,
-                longitude: nil
+                longitude: nil,
+                address: nil
             ),
             .init(
                 id: 5,
@@ -182,13 +183,9 @@ private extension FriendRunningStatusSheetView {
                 isRunning: false,
                 distanceText: nil,
                 latitude: nil,
-                longitude: nil
+                longitude: nil,
+                address: nil
             ),
-        ],
-        cityCache: [
-            1 : "광명",
-            2 : "서울",
-            3 : "서울"
         ],
         focusedFriendID: 1,
         sentReactions: [],

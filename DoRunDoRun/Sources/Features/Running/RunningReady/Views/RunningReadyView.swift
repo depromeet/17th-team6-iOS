@@ -52,7 +52,6 @@ private extension RunningReadyView {
     var friendSheet: some View {
         FriendRunningStatusSheetView(
             statuses: store.statuses,
-            cityCache: store.cityCache,
             focusedFriendID: store.focusedFriendID,
             sentReactions: store.sentReactions,
             sheetOffset: $sheetOffset,

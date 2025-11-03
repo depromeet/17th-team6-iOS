@@ -30,6 +30,7 @@ struct FriendRunningStatusContentDTO: Decodable {
     let distance: Double?
     let latitude: Double?
     let longitude: Double?
+    let address: String?
 }
 
 // MARK: - Meta
@@ -55,7 +56,8 @@ extension FriendRunningStatusContentDTO {
             latestRanAt: ISO8601DateFormatter().date(from: latestRanAt ?? ""),
             distance: distance,
             latitude: latitude,
-            longitude: longitude
+            longitude: longitude,
+            address: address
         )
     }
 }

@@ -17,4 +17,5 @@ struct FriendRunningStatus: Equatable, Identifiable {
     let distance: Double?
     let latitude: Double?
     let longitude: Double?
+    let address: String?
 }
