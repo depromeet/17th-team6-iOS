@@ -17,16 +17,19 @@ struct NotificationFeature {
     struct State: Equatable {
         var toast = ToastFeature.State()
         var notifications: [NotificationViewState] = []
-        var alertMessage: String? = nil
+        var currentPage = 0
+        var isLoading = false
+        var hasNextPage = true
     }
 
     enum Action: Equatable {
         case toast(ToastFeature.Action)
         case onAppear
-        case loadNotifications
+        case loadNotifications(page: Int)
         case notificationsSuccess([NotificationsResult])
         case markAsRead(Int)
         case notificationReadSuccess(Int)
+        case loadNextPageIfNeeded(currentItem: NotificationViewState?)
     }
 
     var body: some ReducerOf<Self> {
@@ -37,12 +40,15 @@ struct NotificationFeature {
 
             // MARK: - 알림 목록 요청
             case .onAppear:
-                return .send(.loadNotifications)
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
+                return .send(.loadNotifications(page: 0))
 
-            case .loadNotifications:
-                return .run { send in
+            case let .loadNotifications(page):
+                state.isLoading = true
+                return .run { [page] send in
                     do {
-                        let results = try await notificationsUseCase.execute(page: 0, size: 20)
+                        let results = try await notificationsUseCase.execute(page: page, size: 20)
                         await send(.notificationsSuccess(results))
                     } catch {
                         if let apiError = error as? APIError {
@@ -59,8 +65,37 @@ struct NotificationFeature {
                 }
 
             case let .notificationsSuccess(results):
-                state.notifications = results.map { NotificationViewStateMapper.map(from: $0) }
+                state.isLoading = false
+                if results.isEmpty {
+                    state.hasNextPage = false
+                } else {
+                    let mapped = results.map { NotificationViewStateMapper.map(from: $0) }
+                    if state.currentPage == 0 {
+                        // 첫 페이지
+                        state.notifications = mapped
+                    } else {
+                        // 다음 페이지 append
+                        state.notifications.append(contentsOf: mapped)
+                    }
+                    state.currentPage += 1
+                }
                 return .none
+                
+            case let .loadNextPageIfNeeded(currentItem):
+                guard let currentItem else { return .none }
+                guard !state.isLoading && state.hasNextPage else { return .none }
+
+                // 데이터 개수에 따라 thresholdIndex를 안전하게 계산
+                let threshold = max(state.notifications.count - 5, 0)
+                if let currentIndex = state.notifications.firstIndex(where: { $0.id == currentItem.id }),
+                   currentIndex >= threshold {
+                    let nextPage = state.currentPage + 1
+                    print("[DEBUG] 다음 페이지 요청: \(nextPage)")
+                    return .send(.loadNotifications(page: nextPage))
+                }
+                return .none
+
+
 
             // MARK: - 알림 읽음 처리
             case let .markAsRead(id):

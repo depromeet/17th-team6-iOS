@@ -19,11 +19,21 @@ struct NotificationView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        VStack(spacing: 0) {
+                        LazyVStack(spacing: 0) {
                             ForEach(store.notifications) { notification in
                                 NotificationRowView(notification: notification) {
                                     store.send(.markAsRead(notification.id))
                                 }
+                                .onAppear {
+                                    if notification.id == store.notifications.last?.id {
+                                        store.send(.loadNextPageIfNeeded(currentItem: notification))
+                                    }
+                                }
+                            }
+                            if store.isLoading && store.currentPage > 0 {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
                             }
                         }
                     }
