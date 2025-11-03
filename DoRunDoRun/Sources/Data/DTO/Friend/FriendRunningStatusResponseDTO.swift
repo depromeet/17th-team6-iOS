@@ -27,6 +27,7 @@ struct FriendRunningStatusContentDTO: Decodable {
     let isMe: Bool
     let profileImage: String?
     let latestRanAt: String?
+    let latestCheeredAt: String?
     let distance: Double?
     let latitude: Double?
     let longitude: Double?
@@ -54,6 +55,7 @@ extension FriendRunningStatusContentDTO {
             isMe: isMe,
             profileImageURL: profileImage,
             latestRanAt: ISO8601DateFormatter().date(from: latestRanAt ?? ""),
+            latestCheeredAt: ISO8601DateFormatter().date(from: latestCheeredAt ?? ""),
             distance: distance,
             latitude: latitude,
             longitude: longitude,

@@ -11,7 +11,6 @@ import SwiftUI
 struct FriendRunningStatusRowView: View {
     let status: FriendRunningStatusViewState
     let isFocused: Bool
-    let isSent: Bool
     
     var friendTapped: (() -> Void)? = nil
     var cheerButtonTapped: (() -> Void)? = nil
@@ -84,11 +83,13 @@ private extension FriendRunningStatusRowView {
         if !status.isRunning {
             AppButton(
                 title: "깨우기",
-                style: isSent ? .disabled : .secondary,
+                style: status.isCheerable ? .secondary : .disabled,
                 size: .medium,
-                icon: isSent ? Image(.react, fill: .fill, size: .small) : Image(.react, fill: .fill, size: .small)
+                icon: Image(.react, fill: .fill, size: .small)
             ) {
-                cheerButtonTapped?()
+                if status.isCheerable {
+                    cheerButtonTapped?()
+                }
             }
         }
     }
@@ -103,13 +104,14 @@ private extension FriendRunningStatusRowView {
             isMe: true,
             profileImageURL: nil,
             latestRanText: "1시간 전",
+            latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
             isRunning: true,
+            isCheerable: true, // 응원한지 이틀 경과했기에 깨우기 가능
             distanceText: "5.01km",
             latitude: 37.4784,
             longitude: 126.8641,
             address: "서울 마포구"
         ),
         isFocused: true,
-        isSent: true
     )
 }

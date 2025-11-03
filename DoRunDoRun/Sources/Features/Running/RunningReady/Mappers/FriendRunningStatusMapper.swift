@@ -18,6 +18,25 @@ struct FriendRunningStatusViewStateMapper {
             return Date().timeIntervalSince(latestRanAt) <= (48 * 3600)
         }()
         
+        // MARK: - 깨우기 가능 여부
+        let isCheerable: Bool = {
+            guard let lastRan = entity.latestRanAt else { return false }
+            let now = Date()
+            let hoursSinceRun = now.timeIntervalSince(lastRan) / 3600
+            
+            // 48시간 이상 러닝 안했는지 확인
+            guard hoursSinceRun >= 48 else { return false }
+            
+            // 마지막 응원 후 24시간 이상 지났는지 확인
+            if let lastCheer = entity.latestCheeredAt {
+                let hoursSinceCheer = now.timeIntervalSince(lastCheer) / 3600
+                return hoursSinceCheer >= 24
+            } else {
+                // 응원 이력이 없다면 즉시 가능
+                return true
+            }
+        }()
+        
         // MARK: - 마지막 러닝 시각 텍스트 변환
         /// 최근 러닝 시각을 '방금 전', '몇 시간 전', '어제', '며칠 전' 등으로 표시합니다.
         let latestRanText: String? = {
@@ -59,7 +78,9 @@ struct FriendRunningStatusViewStateMapper {
             isMe: entity.isMe,
             profileImageURL: entity.profileImageURL,
             latestRanText: latestRanText,
+            latestCheeredAt: entity.latestCheeredAt,
             isRunning: isRunning,
+            isCheerable: isCheerable,
             distanceText: distanceText,
             latitude: entity.latitude,
             longitude: entity.longitude,

@@ -14,6 +14,7 @@ struct FriendRunningStatus: Equatable, Identifiable {
     let isMe: Bool
     let profileImageURL: String?
     let latestRanAt: Date?
+    let latestCheeredAt: Date?
     let distance: Double?
     let latitude: Double?
     let longitude: Double?

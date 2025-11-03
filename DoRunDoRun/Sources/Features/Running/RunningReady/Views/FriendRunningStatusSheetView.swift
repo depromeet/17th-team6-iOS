@@ -11,7 +11,6 @@ import SwiftUI
 struct FriendRunningStatusSheetView: View {
     let statuses: [FriendRunningStatusViewState]
     let focusedFriendID: Int?
-    let sentReactions: Set<Int>
     
     @Binding var sheetOffset: CGFloat
     @Binding var currentOffset: CGFloat
@@ -72,7 +71,6 @@ private extension FriendRunningStatusSheetView {
                     FriendRunningStatusRowView(
                         status: me,
                         isFocused: me.id == focusedFriendID,
-                        isSent: sentReactions.contains(me.id),
                         friendTapped: { friendTapped?(me.id) },
                         cheerButtonTapped: { cheerButtonTapped?(me.id) }
                     )
@@ -89,7 +87,6 @@ private extension FriendRunningStatusSheetView {
                         FriendRunningStatusRowView(
                             status: status,
                             isFocused: status.id == focusedFriendID,
-                            isSent: sentReactions.contains(status.id),
                             friendTapped: { friendTapped?(status.id) },
                             cheerButtonTapped: { cheerButtonTapped?(status.id) }
                         )
@@ -132,7 +129,9 @@ private extension FriendRunningStatusSheetView {
                 isMe: true,
                 profileImageURL: nil,
                 latestRanText: "1시간 전",
+                latestCheeredAt: nil,
                 isRunning: true,
+                isCheerable: false,
                 distanceText: "5.01km",
                 latitude: 37.4784,
                 longitude: 126.8641,
@@ -144,7 +143,9 @@ private extension FriendRunningStatusSheetView {
                 isMe: false,
                 profileImageURL: nil,
                 latestRanText: "30분 전",
+                latestCheeredAt: nil,
                 isRunning: true,
+                isCheerable: false,
                 distanceText: "5.01km",
                 latitude: 37.5665,
                 longitude: 126.9780,
@@ -156,7 +157,9 @@ private extension FriendRunningStatusSheetView {
                 isMe: false,
                 profileImageURL: nil,
                 latestRanText: "10시간 전",
+                latestCheeredAt: nil,
                 isRunning: true,
+                isCheerable: false,
                 distanceText: "5.01km",
                 latitude: 37.5700,
                 longitude: 126.9820,
@@ -168,7 +171,9 @@ private extension FriendRunningStatusSheetView {
                 isMe: false,
                 profileImageURL: nil,
                 latestRanText: "3일 전",
+                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
                 isRunning: false,
+                isCheerable: true, // 응원한지 이틀 경과했기에 깨우기 가능
                 distanceText: nil,
                 latitude: nil,
                 longitude: nil,
@@ -180,7 +185,9 @@ private extension FriendRunningStatusSheetView {
                 isMe: false,
                 profileImageURL: nil,
                 latestRanText: "12일 전",
+                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
                 isRunning: false,
+                isCheerable: true,  // 응원한지 이틀 경과했기에 깨우기 가능
                 distanceText: nil,
                 latitude: nil,
                 longitude: nil,
@@ -188,7 +195,6 @@ private extension FriendRunningStatusSheetView {
             ),
         ],
         focusedFriendID: 1,
-        sentReactions: [],
         sheetOffset: .constant(0),
         currentOffset: .constant(0)
     )

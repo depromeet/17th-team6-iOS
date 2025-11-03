@@ -21,9 +21,6 @@ struct RunningReadyFeature {
         
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
-        
-        /// 이미 응원한 친구 ID 목록 (중복 응원 방지)
-        var sentReactions: Set<Int> = []
     }
 
     // MARK: - Action
@@ -91,7 +88,9 @@ struct RunningReadyFeature {
 
             // MARK: 응원 성공 → 상태 반영
             case let .reactionSuccess(id):
-                state.sentReactions.insert(id)
+                if let index = state.statuses.firstIndex(where: { $0.id == id }) {
+                    state.statuses[index].isCheerable = false
+                }
                 return .none
 
             // MARK: 응원 실패 (로깅)

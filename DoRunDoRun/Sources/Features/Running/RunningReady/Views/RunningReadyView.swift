@@ -53,7 +53,6 @@ private extension RunningReadyView {
         FriendRunningStatusSheetView(
             statuses: store.statuses,
             focusedFriendID: store.focusedFriendID,
-            sentReactions: store.sentReactions,
             sheetOffset: $sheetOffset,
             currentOffset: $currentOffset,
             friendListButtonTapped: {
