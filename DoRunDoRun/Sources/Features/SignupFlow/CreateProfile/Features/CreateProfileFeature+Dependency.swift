@@ -18,7 +18,7 @@ extension DependencyValues {
 // MARK: - Key
 private enum AuthSignupUseCaseKey: DependencyKey {
     static let liveValue: AuthSignupUseCaseProtocol = AuthSignupUseCase(
-        repository: AuthSignupRepositoryMock()
+        repository: AuthSignupRepositoryImpl()
     )
     static let testValue: AuthSignupUseCaseProtocol = AuthSignupUseCase(
         repository: AuthSignupRepositoryMock()

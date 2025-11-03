@@ -24,7 +24,7 @@ extension DependencyValues {
 // MARK: - Keys
 private enum AuthSendSMSUseCaseKey: DependencyKey {
     static let liveValue: AuthSendSMSUseCaseProtocol = AuthSendSMSUseCase(
-        repository: AuthSendSMSRepositoryMock()
+        repository: AuthSendSMSRepositoryImpl()
     )
     static let testValue: AuthSendSMSUseCaseProtocol = AuthSendSMSUseCase(
         repository: AuthSendSMSRepositoryMock()
@@ -33,7 +33,7 @@ private enum AuthSendSMSUseCaseKey: DependencyKey {
 
 private enum AuthVerifySMSUseCaseKey: DependencyKey {
     static let liveValue: AuthVerifySMSUseCaseProtocol = AuthVerifySMSUseCase(
-        repository: AuthVerifySMSRepositoryMock()
+        repository: AuthVerifySMSRepositoryImpl()
     )
     static let testValue: AuthVerifySMSUseCaseProtocol = AuthVerifySMSUseCase(
         repository: AuthVerifySMSRepositoryMock()
