@@ -40,10 +40,10 @@ private extension RunningCountdownView {
     /// “잠시 후 러닝 시작”만 표시하는 준비 상태
     var preparingContent: some View {
         VStack(spacing: 8) {
-            Image("graphic_congrats")
+            Image(.runningStart)
                 .resizable()
                 .frame(width: 72, height: 72)
-            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .lime600)
+            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .gray0)
         }
         .padding(.horizontal, 30)
     }
@@ -51,15 +51,15 @@ private extension RunningCountdownView {
     /// 숫자 카운트다운 표시
     func countdownContent(_ count: Int) -> some View {
         VStack(spacing: 32) {
-            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .lime600)
+            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .gray0)
 
             ZStack {
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(Color.lime600, style: StrokeStyle(lineWidth: 10, lineCap: .square))
+                    .stroke(Color.gray0, style: StrokeStyle(lineWidth: 10, lineCap: .square))
                     .rotationEffect(.degrees(-90))
 
-                TypographyText(text: "\(count)", style: .countdown_700, color: .lime600)
+                TypographyText(text: "\(count)", style: .countdown_700, color: .gray0)
             }
             .onAppear(perform: restartAnimation)
             .onChange(of: count) { _ in restartAnimation() }
