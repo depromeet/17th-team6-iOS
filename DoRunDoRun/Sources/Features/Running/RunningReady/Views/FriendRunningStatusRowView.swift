@@ -36,7 +36,8 @@ private extension FriendRunningStatusRowView {
     /// 프로필 이미지
     private var profileImageView: some View {
         ProfileImageView(
-            image: nil,
+            image: Image(.profilePlaceholder),
+            imageURL: status.profileImageURL,
             style: isFocused ? .blueBorder : .grayBorder,
             isZZZ: !status.isRunning
         )

@@ -70,7 +70,7 @@ private extension RunningMapView {
                 await Task.yield()
                 let customView = FriendMarkerView(
                     name: status.name,
-                    profileImage: nil,
+                    profileImageURL: status.profileImageURL,
                     isRunning: status.isRunning,
                     isFocused: status.id == focusedFriendID
                 )
