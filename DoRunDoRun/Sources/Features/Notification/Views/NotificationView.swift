@@ -63,7 +63,8 @@ struct NotificationView: View {
                             profileImageURL: "https://example.com/profile1.jpg",
                             selfieImageURL: "https://example.com/post1.jpg",
                             timeText: "1시간 전",
-                            isRead: false
+                            isRead: false,
+                            type: .feedReaction
                         ),
                         .init(
                             id: 2,
@@ -73,7 +74,8 @@ struct NotificationView: View {
                             profileImageURL: nil,
                             selfieImageURL: nil,
                             timeText: "2시간 전",
-                            isRead: true
+                            isRead: true,
+                            type: .runningProgressReminder
                         )
                     ]
                 ),

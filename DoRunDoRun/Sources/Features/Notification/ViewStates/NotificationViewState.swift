@@ -14,4 +14,5 @@ struct NotificationViewState: Equatable, Identifiable {
     let selfieImageURL: String?
     let timeText: String
     var isRead: Bool
+    let type: NotificationType
 }

@@ -20,6 +20,7 @@ struct NotificationViewStateMapper {
             selfieImageURL: entity.selfieImageURL,
             timeText: timeText,
             isRead: entity.isRead,
+            type: entity.type
         )
     }
 

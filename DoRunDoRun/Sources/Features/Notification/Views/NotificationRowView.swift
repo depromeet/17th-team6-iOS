@@ -15,20 +15,33 @@ struct NotificationRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                ProfileImageView(
-                    image: Image(.profilePlaceholder),
-                    imageURL: notification.profileImageURL,
-                    style: .grayBorder,
-                    size: .large
-                )
-                
+                switch notification.type {
+                case .runningProgressReminder:
+                    Image(.notification1)
+                        .frame(width: 52, height: 52)
+                case .newUserFriendReminder:
+                    Image(.notification2)
+                        .frame(width: 52, height: 52)
+                case .newUserRunningReminder:
+                    Image(.notification3)
+                        .frame(width: 52, height: 52)
+                default:
+                    ProfileImageView(
+                        image: Image(.profilePlaceholder),
+                        imageURL: notification.profileImageURL,
+                        style: .grayBorder,
+                        size: .large
+                    )
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     if let nickname = notification.senderName {
                         TypographyHighlightText(
                             text: notification.message, target: "\(nickname) 님",
-                            baseStyle: .b2_400, baseColor: .gray900,
+                            baseStyle: .b2_400,
+                            baseColor: .gray900,
                             highlightStyle: .b2_700,
                             highlightColor: .gray900,
+                            alignment: .left,
                             fixedSize: false
                         )
                     } else {
@@ -36,7 +49,7 @@ struct NotificationRowView: View {
                     }
                     TypographyText(text: notification.timeText, style: .c1_500, color: .gray500, alignment: .left)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 if let selfieImageURL = notification.selfieImageURL,
                     let urlString = URL(string: selfieImageURL) {
@@ -63,13 +76,14 @@ struct NotificationRowView: View {
     NotificationRowView(
         notification: NotificationViewState(
             id: 1,
-            title: "리액션 알림",
+            title: "피드 리액션",
             message: "이 회원님의 게시물에 리액션을 남겼습니다.",
             senderName: "두런두런두런두런",
             profileImageURL: "https://example.com/profile1.jpg",
             selfieImageURL: "https://example.com/post1.jpg",
             timeText: "1시간 전",
-            isRead: false
+            isRead: false,
+            type: .cheerFriend
         ),
         onTap: {}
     )
@@ -79,13 +93,14 @@ struct NotificationRowView: View {
     NotificationRowView(
         notification: NotificationViewState(
             id: 2,
-            title: "리액션 알림",
+            title: "피드 리액션",
             message: "이 회원님의 게시물에 리액션을 남겼습니다.",
             senderName: "두런두런두런두런",
             profileImageURL: "https://example.com/profile1.jpg",
             selfieImageURL: "https://example.com/post1.jpg",
             timeText: "1시간 전",
-            isRead: true
+            isRead: true,
+            type: .cheerFriend
         ),
         onTap: {}
     )
