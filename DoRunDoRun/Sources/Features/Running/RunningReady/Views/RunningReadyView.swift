@@ -78,13 +78,14 @@ private extension RunningReadyView {
     var startButton: some View {
         VStack(spacing: 0) {
             Color.gray0
-            .frame(height: 80)
+            .frame(height: 76)
             .overlay(
                 AppButton(title: "러닝 시작하기") {
                     store.send(.startButtonTapped)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .padding(.horizontal, 20)
             )
         }
         .zIndex(2)

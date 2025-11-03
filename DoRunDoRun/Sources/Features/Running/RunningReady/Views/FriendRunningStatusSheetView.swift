@@ -18,7 +18,7 @@ struct FriendRunningStatusSheetView: View {
     @Binding var currentOffset: CGFloat
     
     var sheetHeight: CGFloat = 446
-    var collapsedOffset: CGFloat = 281
+    var collapsedOffset: CGFloat = 289
     
     var friendListButtonTapped: (() -> Void)? = nil
     var friendTapped: ((Int) -> Void)? = nil
