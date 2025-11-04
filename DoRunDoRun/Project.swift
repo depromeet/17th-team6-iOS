@@ -2,6 +2,14 @@ import ProjectDescription
 
 let project = Project(
     name: "DoRunDoRun",
+    packages: [
+        .remote(url: "https://github.com/pointfreeco/swift-composable-architecture.git", requirement: .branch("main")),
+        .remote(url: "https://github.com/navermaps/SPM-NMapsMap", requirement: .branch("main")),
+        .remote(url: "https://github.com/Alamofire/Alamofire", requirement: .upToNextMajor(from: "5.8.0")),
+        .remote(url: "https://github.com/Moya/Moya.git", requirement: .upToNextMajor(from: "15.0.0")),
+        .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .upToNextMajor(from: "8.6.0")),
+        .remote(url: "https://github.com/firebase/firebase-ios-sdk.git", requirement: .upToNextMajor(from: "11.5.0")),
+    ],
     targets: [
         .target(
             name: "DoRunDoRun",
@@ -46,15 +54,18 @@ let project = Project(
             ],
             entitlements: "DoRunDoRun.entitlements",
             dependencies: [
-                .external(name: "ComposableArchitecture"),
-                .external(name: "NMapsMap"),
-                .external(name: "Alamofire"),
-                .external(name: "Moya"),
-                .external(name: "Kingfisher"),
-                .external(name: "FirebaseMessaging"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "NMapsMap"),
+                .package(product: "Alamofire"),
+                .package(product: "Moya"),
+                .package(product: "Kingfisher"),
+                .package(product: "FirebaseAnalytics"),
+                .package(product: "FirebaseMessaging"),
             ],
             settings: .settings(
-                base: [:],
+                base: [
+                    "OTHER_LDFLAGS": "-ObjC"
+                ],
                 configurations: [
                     .debug(name: "Debug", xcconfig: "../Configs/Debug.xcconfig"),
                     .release(name: "Release", xcconfig: "../Configs/Release.xcconfig"),
