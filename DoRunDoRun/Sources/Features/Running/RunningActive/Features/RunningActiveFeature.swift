@@ -11,17 +11,26 @@ struct RunningActiveFeature {
     // MARK: - Dependencies
     @Dependency(\.runningActiveUsecase) var runningActiveUseCase
     
+    // Parent notification
+    enum Delegate: Equatable {
+        case didFinish(final: RunningDetail)
+    }
+    
     @ObservableState
     struct State: Equatable {
         /// Entity -> ViewState 매핑 결과
         var statuses: [RunningSnapshotViewState] = []
+        var isRunningPaused: Bool = false
+        var isShowingStopConfirm: Bool = false
         
-        /// 마지막 스냅샷
-        var lastSnapshot: RunningSnapshotViewState? {
-            statuses.last
+        var routeCoordinates: [RunningCoordinateViewState] {
+            statuses.compactMap { $0.lastCoordinate }
         }
         
-        var isRunningPaused: Bool = false
+        /// 마지막 스냅샷
+       private var lastSnapshot: RunningSnapshotViewState? {
+            statuses.last
+        }
         
         /// UI 표시용
         var distanceText: String { lastSnapshot?.distanceText ?? "0.00km" }
@@ -40,6 +49,11 @@ struct RunningActiveFeature {
         case pauseButtonTapped
         case resumeButtonTapped
         case stopButtonTapped
+        
+        case stopConfirmButtonTapped
+        case stopCancelButtonTapped
+        
+        case delegate(Delegate)
         
         // Stream lifecycle
         case _startStream
@@ -63,7 +77,7 @@ struct RunningActiveFeature {
             case .onDisappear:
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] _ in
-                        await useCase.stop()
+                         let _ = await useCase.stop()
                     },
                     .cancel(id: CancelID.stream)
                 )
@@ -80,17 +94,27 @@ struct RunningActiveFeature {
                     try await useCase.resume()
                 }
             case .stopButtonTapped:
-                // TODO: 런닝 기록 종료 팝업 로직 추가
+                state.isShowingStopConfirm = true
+                return .none
+            case .stopCancelButtonTapped:
+                state.isShowingStopConfirm = false
+                return .none
+            case .stopConfirmButtonTapped:
+                state.isShowingStopConfirm = false
+                
                 return .merge(
-                    .run { [useCase = self.runningActiveUseCase] _ in
-                        await useCase.stop()
+                    .run { [useCase = self.runningActiveUseCase] send in
+                        let finalRunningDetail = await useCase.stop()
+                        
+                        await send(.delegate(.didFinish(final: finalRunningDetail)))
                     },
                     .cancel(id: CancelID.stream)
                 )
             case .gpsButtonTapped:
                 // TODO: 현재 위치 정렬
                 return .none
-
+            case .delegate:
+                return .none
                 //MARK: 러닝 스냅샷 스트림
             case ._startStream:
                 return .run { [useCase = self.runningActiveUseCase] send in
@@ -108,7 +132,10 @@ struct RunningActiveFeature {
                 
                 // 스냅샷 수신 -> ViewState로 매핑하여 축적
             case ._snapshotReceived(let snapshot):
-                state.statuses.append(RunningSnapshotViewStateMapper.map(from: snapshot))
+                state.statuses.append(
+                    RunningSnapshotViewStateMapper.map(from: snapshot)
+                )
+                
                 return .none
                 // 종료/에러 (필요 시 에러 상태 노출 가능)
             case ._streamFinished:

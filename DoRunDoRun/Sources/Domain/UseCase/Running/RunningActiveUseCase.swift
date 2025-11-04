@@ -10,7 +10,7 @@ protocol RunningActiveUseCaseProtocol {
     func start() async throws -> AsyncThrowingStream<RunningSnapshot, Error>
     func pause() async
     func resume() async throws
-    func stop() async
+    func stop() async -> RunningDetail
 }
 
 //TODO: Server에 데이터 전달하는 로직 추가
@@ -33,7 +33,7 @@ final class RunningActiveUseCase: RunningActiveUseCaseProtocol {
         try await repository.resume()
     }
     
-    func stop() async {
+    func stop() async -> RunningDetail {
         await repository.stopRun()
     }
 }

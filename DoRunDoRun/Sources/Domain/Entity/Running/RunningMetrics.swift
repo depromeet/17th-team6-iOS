@@ -13,8 +13,8 @@ struct RunningMetrics: Equatable {
     let totalDistanceMeters: Double
     /// 누적 경과시간 (일시정지 제외)
     let elapsed: Duration
-    /// 평균 페이스 (초/킬로미터)
-    let avgPaceSecPerKm: Double
+    /// 현재 페이스 (초/킬로미터)
+    let currentPaceSecPerKm: Double
     /// 현재 케이던스 (steps/min)
-    let cadenceSpm: Double
+    let currentCadenceSpm: Double
 }

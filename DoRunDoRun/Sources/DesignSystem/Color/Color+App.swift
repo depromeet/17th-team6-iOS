@@ -45,6 +45,7 @@ extension Color {
 
     // MARK: - Secondary
     static let lime600 = Color(hex: 0xD2FF3E)
+    static let paceRed = Color(hex: 0xFF0000)
 
     // MARK: - Grayscale
     static let gray900 = Color(hex: 0x232529)

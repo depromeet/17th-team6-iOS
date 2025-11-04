@@ -75,8 +75,7 @@ extension RunningActiveView {
                         TypographyText(text: paceText, style: .t1_700, color: .gray900)
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: .zero) {
@@ -89,7 +88,7 @@ extension RunningActiveView {
                         TypographyText(text: cadenceText, style: .t1_700, color: .gray900)
                     }
                 }
-                .frame(width: 150, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.bottom, 36)
             
@@ -118,15 +117,15 @@ extension RunningActiveView {
     ) -> some View {
         if isPaused {
             HStack(spacing: 12) {
-                AppButton(title: "기록 종료", style: .secondary, size: .medium) {
+                AppButton(title: "기록 종료", style: .cancel) {
                     onStop()
                 }
-                AppButton(title: "계속 달리기", style: .primary, size: .medium) {
+                AppButton(title: "계속 달리기") {
                     onResume()
                 }
             }
         } else {
-            AppButton(title: "기록정지", style: .primary, size: .large) {
+            AppButton(title: "기록정지") {
                 onPause()
             }
         }

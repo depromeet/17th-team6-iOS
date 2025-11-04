@@ -88,12 +88,14 @@ actor RunningRepositoryMock: RunningRepository {
         startTicker()
     }
 
-    func stopRun() async {
-        guard state == .running || state == .paused else { return }
+    func stopRun() async -> RunningDetail {
+        guard state == .running || state == .paused else { return RunningDetail.mock }
         state = .stopped
         stopTicker()
         finishStream()
         reset()
+        
+        return RunningDetail.mock
     }
 
     // MARK: - Ticker
@@ -178,8 +180,8 @@ actor RunningRepositoryMock: RunningRepository {
         let metrics = RunningMetrics(
             totalDistanceMeters: totalDistanceMeters,
             elapsed: .seconds(elapsedSec),
-            avgPaceSecPerKm: avgPaceSecPerKm,
-            cadenceSpm: cadenceSpm
+            currentPaceSecPerKm: avgPaceSecPerKm,
+            currentCadenceSpm: cadenceSpm
         )
 
         let point: RunningPoint = RunningPoint(
