@@ -67,7 +67,7 @@ extension RunningActiveView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: .zero) {
                         TypographyText(text: "거리", style: .b2_500, color: .gray500)
-                        TypographyText(text: distanceText, style: .h3_700, color: .blue800)
+                        TypographyText(text: distanceText, style: .h3_700, color: .blue600)
                     }
                     
                     VStack(alignment: .leading, spacing: .zero) {
