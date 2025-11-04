@@ -109,15 +109,20 @@ extension RunningAPI: TargetType {
     }
 
     var headers: [String: String]? {
+        // TODO: 나중에 header 관련 수정 필요
+        var baseHeaders: [String: String] = [
+            "Authorization": "Bearer 1"
+        ]
+
         switch self {
         case .complete:
             // multipart 업로드 시엔 Content-Type 자동 설정
-            return ["Accept": "application/json"]
+            baseHeaders["Accept"] = "application/json"
         default:
-            return [
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            ]
+            baseHeaders["Content-Type"] = "application/json"
+            baseHeaders["Accept"] = "application/json"
         }
+
+        return baseHeaders
     }
 }
