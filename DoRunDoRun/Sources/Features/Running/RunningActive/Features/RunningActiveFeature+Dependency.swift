@@ -19,13 +19,16 @@ extension DependencyValues {
 
 private enum RunningActiveUseCaseKey: DependencyKey {
     static let liveValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
-        repository: RunningRepositoryImpl()
+        trackingRepository: RunningTrackingRepositoryImpl(),
+        sessionRepository: RunningSessionRepositoryImpl()
     )
     static let testValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
-        repository: RunningRepositoryMock()
+        trackingRepository: RunningTrackingRepositoryMock(),
+        sessionRepository: RunningSessionRepositoryMock()
     )
     static let previewValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
-        repository: RunningRepositoryMock()
-      )
+        trackingRepository: RunningTrackingRepositoryMock(),
+        sessionRepository: RunningSessionRepositoryMock()
+    )
 }
 
