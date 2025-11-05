@@ -80,7 +80,7 @@ private extension FriendRunningStatusRowView {
     /// 응원 버튼
     @ViewBuilder
     private var cheerButton: some View {
-        if !status.isRunning {
+        if !status.isMe, !status.isRunning {
             AppButton(
                 title: "깨우기",
                 style: status.isCheerable ? .secondary : .disabled,
