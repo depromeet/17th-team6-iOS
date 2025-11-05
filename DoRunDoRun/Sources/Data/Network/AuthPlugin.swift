@@ -11,11 +11,7 @@ import Moya
 final class AuthPlugin: PluginType {
     func prepare(_ request: URLRequest, target: TargetType) -> URLRequest {
         var request = request
-
-        if let token = TokenManager.shared.accessToken {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
+        request.addValue("Bearer \(TokenManager.shared.accessToken)", forHTTPHeaderField: "Authorization")
         return request
     }
 }
