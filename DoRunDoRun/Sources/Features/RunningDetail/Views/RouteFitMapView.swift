@@ -50,35 +50,22 @@ struct RouteFitMapView: UIViewRepresentable {
         let map = view.mapView
         map.isUserInteractionEnabled = false
         map.logoInteractionEnabled = false
-        
-        // 경로 초기화
-        let path = NMFPath()
-        applyPathStyle(path)
-        path.mapView = map
-        context.coordinator.path = path
 
         return view
     }
 
     func updateUIView(_ uiView: NMFNaverMapView, context: Context) {
         guard coordinates.count >= 2 else { return }
-        
-        // 1️⃣ 경로 적용
-        let latlngs = makeLatLngs()
-        setPath(latlngs, on: uiView.mapView, context: context)
+
+        // 1️⃣ 구간별 경로 적용 (페이스 기반 색상)
+        createPathSegments(on: uiView.mapView, context: context)
 
         // 2️⃣ 전체 구간이 보이도록 카메라 맞춤
+        let latlngs = makeLatLngs()
         let bounds = makeBounds(from: latlngs)
         fitCamera(to: bounds, in: uiView.mapView)
-        
-        scheduleSnapshot(on: uiView)
-    }
 
-    // MARK: - 스타일
-    private func applyPathStyle(_ path: NMFPath) {
-        path.color = .red
-        path.width = 8
-        path.outlineColor = .clear
+        scheduleSnapshot(on: uiView)
     }
 
     // MARK: - Helper Methods
@@ -86,9 +73,39 @@ struct RouteFitMapView: UIViewRepresentable {
         coordinates.map { NMGLatLng(lat: $0.latitude, lng: $0.longitude) }
     }
 
-    private func setPath(_ latlngs: [AnyObject], on mapView: NMFMapView, context: Context) {
-        context.coordinator.path?.path = NMGLineString(points: latlngs)
-        context.coordinator.path?.mapView = mapView
+    /// 구간별 경로 세그먼트를 생성하고 페이스 기반 색상을 적용합니다.
+    private func createPathSegments(on mapView: NMFMapView, context: Context) {
+        // 기존 세그먼트 제거
+        clearPathSegments(context: context)
+
+        // 구간별 NMFPath 생성
+        for i in 0..<(coordinates.count - 1) {
+            let start = coordinates[i]
+            let end = coordinates[i + 1]
+
+            // 현재 구간의 페이스 색상 결정 (시작점의 페이스 사용)
+            let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
+
+            // 구간 경로 생성
+            let segment = NMFPath()
+            let startLatLng = NMGLatLng(lat: start.latitude, lng: start.longitude)
+            let endLatLng = NMGLatLng(lat: end.latitude, lng: end.longitude)
+            let lineString = NMGLineString(points: [startLatLng, endLatLng] as [AnyObject])
+
+            segment.path = lineString
+            segment.color = paceColor
+            segment.width = 8
+            segment.outlineColor = .clear
+            segment.mapView = mapView
+
+            context.coordinator.pathSegments.append(segment)
+        }
+    }
+
+    /// 기존 경로 세그먼트를 모두 제거합니다.
+    private func clearPathSegments(context: Context) {
+        context.coordinator.pathSegments.forEach { $0.mapView = nil }
+        context.coordinator.pathSegments.removeAll()
     }
 
     private func makeBounds(from latlngs: [AnyObject]) -> NMGLatLngBounds {
@@ -153,6 +170,6 @@ struct RouteFitMapView: UIViewRepresentable {
 
     // MARK: - Coordinator
     class Coordinator {
-        var path: NMFPath?
+        var pathSegments: [NMFPath] = []  // 구간별 경로 세그먼트 (페이스 기반 색상)
     }
 }
