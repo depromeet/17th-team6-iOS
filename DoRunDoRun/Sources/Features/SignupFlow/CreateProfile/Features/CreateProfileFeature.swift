@@ -82,7 +82,8 @@ struct CreateProfileFeature {
                 }
 
             case let .signupCompletedSuccess(result):
-                // TODO: result로 user/token 처리
+                TokenManager.shared.accessToken = result.token.accessToken
+                TokenManager.shared.refreshToken = result.token.refreshToken
                 return .send(.completed)
 
             case .signupCompletedFailure:

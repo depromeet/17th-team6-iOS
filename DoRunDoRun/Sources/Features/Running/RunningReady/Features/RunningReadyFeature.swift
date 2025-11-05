@@ -23,6 +23,11 @@ struct RunningReadyFeature {
         
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
+        
+        // 페이지네이션
+        var currentPage = 0
+        var isLoading = false
+        var hasNextPage = true
     }
 
     // MARK: - Action
@@ -30,6 +35,7 @@ struct RunningReadyFeature {
         case toast(ToastFeature.Action)
 
         case onAppear
+        case loadStatuses(page: Int)
         case statusSuccess([FriendRunningStatus])
         case statusFailure(String)
         case friendTapped(Int)
@@ -39,6 +45,8 @@ struct RunningReadyFeature {
         case gpsButtonTapped
         case friendListButtonTapped
         case startButtonTapped
+        
+        case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
     }
 
     // MARK: - Reducer Body
@@ -50,25 +58,55 @@ struct RunningReadyFeature {
 
             // MARK: 화면 진입 시 - 친구 현황 불러오기
             case .onAppear:
-                return .run { send in
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
+                return .send(.loadStatuses(page: 0))
+
+            case let .loadStatuses(page):
+                state.isLoading = true
+                return .run { [page] send in
                     do {
-                        let statuses = try await statusUseCase.fetchStatuses()
-                        await send(.statusSuccess(statuses))
+                        let results = try await statusUseCase.excute(page: page, size: 20)
+                        await send(.statusSuccess(results))
                     } catch {
                         await send(.statusFailure(error.localizedDescription))
                     }
                 }
-
+            
             // MARK: 러닝 상태 조회 성공
-            case let .statusSuccess(statuses):
-                // DTO(Entity) → ViewState 변환
-                state.statuses = statuses.map { FriendRunningStatusViewStateMapper.map(from: $0) }
-
-                // 본인(나)인 친구를 찾아 포커싱
-                if let me = statuses.first(where: { $0.isMe }) {
-                    state.focusedFriendID = me.id
+            case let .statusSuccess(results):
+                state.isLoading = false
+                if results.isEmpty {
+                    state.hasNextPage = false
+                } else {
+                    let mapped = results.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+                    if state.currentPage == 0 {
+                        // 첫 페이지
+                        state.statuses = mapped
+                        // 포커싱은 첫 로드 시 한 번만
+                        if let me = results.first(where: { $0.isMe }) {
+                            state.focusedFriendID = me.id
+                        }
+                    } else {
+                        // 다음 페이지 append
+                        state.statuses.append(contentsOf: mapped)
+                    }
+                    state.currentPage += 1
                 }
+                return .none
+                
+            case let .loadNextPageIfNeeded(currentItem):
+                guard let currentItem else { return .none }
+                guard !state.isLoading && state.hasNextPage else { return .none }
 
+                // 데이터 개수에 따라 thresholdIndex를 안전하게 계산
+                let threshold = max(state.statuses.count - 5, 0)
+                if let currentIndex = state.statuses.firstIndex(where: { $0.id == currentItem.id }),
+                   currentIndex >= threshold {
+                    let nextPage = state.currentPage + 1
+                    print("[DEBUG] 다음 페이지 요청: \(nextPage)")
+                    return .send(.loadStatuses(page: nextPage))
+                }
                 return .none
 
             // MARK: 러닝 상태 조회 실패

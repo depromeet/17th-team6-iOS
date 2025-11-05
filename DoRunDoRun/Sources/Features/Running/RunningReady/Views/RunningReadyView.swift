@@ -64,7 +64,11 @@ private extension RunningReadyView {
             },
             cheerButtonTapped: { id, name in
                 store.send(.cheerButtonTapped(id, name))
-            }
+            },
+            loadNextPageIfNeeded: { status in
+                store.send(.loadNextPageIfNeeded(currentItem: status))
+            },
+            isLoading: store.isLoading
         )
         .onAppear {
             store.send(.onAppear)

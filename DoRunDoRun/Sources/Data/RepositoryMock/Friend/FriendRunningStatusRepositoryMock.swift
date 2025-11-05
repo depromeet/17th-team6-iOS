@@ -10,68 +10,31 @@ import Foundation
 /// 유저 및 친구 러닝 상태 Repository 프로토콜의 Mock 구현체
 final class FriendRunningStatusRepositoryMock: FriendRunningStatusRepository {
     func fetchRunningStatuses(page: Int, size: Int) async throws -> [FriendRunningStatus] {
-        return [
-            FriendRunningStatus(
-                id: 1,
-                nickname: "민희",
-                isMe: true,
+        let actualPage = max(page, 1)
+        print("[Mock] \(actualPage)페이지 친구 러닝 상태 불러오기 성공")
+
+        // 3페이지까지만 데이터 제공
+        guard actualPage <= 3 else {
+            return []
+        }
+
+        // 페이지·사이즈 기반 Mock 데이터 생성
+        return (1...size).map { index in
+            let id = (actualPage - 1) * size + index
+            let isMe = id == 1 // 첫 번째 데이터만 ‘나’로 설정
+
+            return FriendRunningStatus(
+                id: id,
+                nickname: isMe ? "나(\(id))" : "친구 \(id)",
+                isMe: isMe,
                 profileImageURL: nil,
-                latestRanAt: Date().addingTimeInterval(-3600), // 1시간 전
-                latestCheeredAt: nil,
-                distance: 5010,
-                latitude: 37.4784,
-                longitude: 126.8641,
-                address: "광명"
-            ),
-            FriendRunningStatus(
-                id: 2,
-                nickname: "해준",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanAt: Date().addingTimeInterval(-1800),
-                latestCheeredAt: nil, // 30분 전
-                distance: 5010,
-                latitude: 37.5665,
-                longitude: 126.9780,
-                address: "서울"
-            ),
-            FriendRunningStatus(
-                id: 3,
-                nickname: "수연",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanAt: Date().addingTimeInterval(-36000), // 10시간 전
-                latestCheeredAt: nil,
-                distance: 5010,
-                latitude: 37.5700,
-                longitude: 126.9820,
-                address: "서울"
-            ),
-            FriendRunningStatus(
-                id: 4,
-                nickname: "달리는하니",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanAt: Date().addingTimeInterval(-86400 * 3), // 3일 전
-                latestCheeredAt: Date().addingTimeInterval(-86000),
-                distance: 5010,
-                latitude: 37.4563,
-                longitude: 126.7052,
-                address: nil
-            ),
-            FriendRunningStatus(
-                id: 5,
-                nickname: "땡땡",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanAt: Date().addingTimeInterval(-86400 * 12), // 12일 전
-                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -4, to: .now),
-                distance: 5010,
-                latitude: 37.4980,
-                longitude: 126.7830,
-                address: nil
+                latestRanAt: Date().addingTimeInterval(Double(-index * 3600 * actualPage)), // 시간차
+                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -Int.random(in: 1...5), to: .now),
+                distance: Double.random(in: 3000...10000),
+                latitude: 37.4 + Double.random(in: 0...0.2),
+                longitude: 126.8 + Double.random(in: 0...0.2),
+                address: ["서울", "광명", "인천", "부천"].randomElement()
             )
-        ]
+        }
     }
 }
-
