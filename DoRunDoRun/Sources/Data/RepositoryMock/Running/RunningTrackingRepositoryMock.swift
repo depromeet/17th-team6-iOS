@@ -1,15 +1,15 @@
 //
-//  RunningRepositoryMock.swift
+//  RunningTrackingRepositoryMock.swift
 //  DoRunDoRun
 //
-//  Created by zaehorang on 9/26/25.
+//  Created by zaehorang on 11/4/25.
 //
 
 import Foundation
 import CoreLocation
 
 /// 센서 없이 주기적으로 변하는 러닝 스냅샷을 방출하는 Mock 저장소
-actor RunningRepositoryMock: RunningRepository {
+actor RunningTrackingRepositoryMock: RunningTrackingRepository {
 
     // MARK: - 시작 좌표 (성수 일대)
     private let startLat: Double = 37.5465029
@@ -39,7 +39,7 @@ actor RunningRepositoryMock: RunningRepository {
     private var cadenceSpm: Double = 172.0
 
     // MARK: - API
-    func startRun() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
+    func startTracking() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
         guard state == .idle || state == .stopped else {
             throw RunningError.alreadyRunning
         }
@@ -66,7 +66,7 @@ actor RunningRepositoryMock: RunningRepository {
         return stream
     }
 
-    func pause() async {
+    func pauseTracking() async {
         guard state == .running else { return }
         state = .paused
         pausedAt = Date()
@@ -76,7 +76,7 @@ actor RunningRepositoryMock: RunningRepository {
         lastLocation = nil
     }
 
-    func resume() async throws {
+    func resumeTracking() async throws {
         guard state == .paused, let pausedAt else { return }
         state = .running
         totalPausedSec += Date().timeIntervalSince(pausedAt)
@@ -88,13 +88,13 @@ actor RunningRepositoryMock: RunningRepository {
         startTicker()
     }
 
-    func stopRun() async -> RunningDetail {
+    func stopTracking() async -> RunningDetail {
         guard state == .running || state == .paused else { return RunningDetail.mock }
         state = .stopped
         stopTicker()
         finishStream()
         reset()
-        
+
         return RunningDetail.mock
     }
 
@@ -227,4 +227,3 @@ actor RunningRepositoryMock: RunningRepository {
         cadenceSpm = 172.0
     }
 }
-

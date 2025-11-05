@@ -51,9 +51,10 @@ struct RunningFeature {
                 return .none
 
             // Active → Parent delegate: 최종 상세 결과 전달
-            case let .active(.delegate(.didFinish(final))):
+            case let .active(.delegate(.didFinish(final, sessionId))):
                 state.runningDetail = RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: final)
+                    detail: RunningDetailViewStateMapper.map(from: final),
+                    sessionId: sessionId
                 )
                 
                 // 초기 상태로 복귀

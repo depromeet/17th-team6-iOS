@@ -5,7 +5,6 @@ struct AppFeature {
     @ObservableState
     struct State {
         var isLoggedIn = false
-        
         // 로그인 전
         var onboarding = OnboardingFeature.State()
         

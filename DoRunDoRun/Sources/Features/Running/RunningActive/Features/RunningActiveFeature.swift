@@ -13,7 +13,7 @@ struct RunningActiveFeature {
     
     // Parent notification
     enum Delegate: Equatable {
-        case didFinish(final: RunningDetail)
+        case didFinish(final: RunningDetail, sessionId: Int?)
     }
     
     @ObservableState
@@ -101,12 +101,12 @@ struct RunningActiveFeature {
                 return .none
             case .stopConfirmButtonTapped:
                 state.isShowingStopConfirm = false
-                
+
                 return .merge(
                     .run { [useCase = self.runningActiveUseCase] send in
-                        let finalRunningDetail = await useCase.stop()
-                        
-                        await send(.delegate(.didFinish(final: finalRunningDetail)))
+                        let (detail, sessionId) = await useCase.stop()
+
+                        await send(.delegate(.didFinish(final: detail, sessionId: sessionId)))
                     },
                     .cancel(id: CancelID.stream)
                 )
