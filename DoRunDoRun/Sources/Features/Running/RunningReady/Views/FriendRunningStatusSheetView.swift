@@ -21,6 +21,8 @@ struct FriendRunningStatusSheetView: View {
     var friendListButtonTapped: (() -> Void)? = nil
     var friendTapped: ((Int) -> Void)? = nil
     var cheerButtonTapped: ((Int, String) -> Void)? = nil
+    var loadNextPageIfNeeded: ((FriendRunningStatusViewState?) -> Void)? = nil
+    var isLoading: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,8 +66,11 @@ private extension FriendRunningStatusSheetView {
     }
 
     var friendList: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 0) {
+        // friends를 ViewBuilder 바깥에서 선언
+        let friends = statuses.filter { !$0.isMe }
+
+        return ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 0) {
                 // 항상 '나'를 먼저 표시
                 if let me = statuses.first(where: { $0.isMe }) {
                     FriendRunningStatusRowView(
@@ -77,7 +82,6 @@ private extension FriendRunningStatusSheetView {
                 }
 
                 // 친구 목록
-                let friends = statuses.filter { !$0.isMe }
                 if friends.isEmpty {
                     FriendRunningStatusEmptyView()
                         .padding(.top, 80)
@@ -90,6 +94,18 @@ private extension FriendRunningStatusSheetView {
                             friendTapped: { friendTapped?(status.id) },
                             cheerButtonTapped: { cheerButtonTapped?(status.id, status.name) }
                         )
+                        // 마지막 셀 감지 (페이지네이션)
+                        .onAppear {
+                            if status.id == friends.last?.id {
+                                loadNextPageIfNeeded?(status)
+                            }
+                        }
+                    }
+                    // 로딩 인디케이터
+                    if isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                     }
                 }
             }
