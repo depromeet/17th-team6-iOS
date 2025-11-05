@@ -43,8 +43,7 @@ struct RunningMapView: UIViewRepresentable {
         mapView.mapView.minZoomLevel = CameraZoomLevel.min
         mapView.mapView.maxZoomLevel = CameraZoomLevel.max
         
-        // 경로 오버레이 초기 생성 + 스타일
-        context.coordinator.routeOverlay = makeRouteOverlay()
+        // 경로 세그먼트는 Active 단계에서 생성됨
         
         return mapView
     }
@@ -66,7 +65,7 @@ struct RunningMapView: UIViewRepresentable {
     class Coordinator {
         var markers: [NMFMarker] = []
         var currentFriendID: Int?
-        var routeOverlay: NMFPath?            // 경로 오버레이 보관
+        var routeSegments: [NMFPath] = []     // 구간별 경로 세그먼트 (색상별로 분리됨)
         var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
     }
 }
@@ -163,42 +162,44 @@ private extension RunningMapView {
         mapView.moveCamera(update)
     }
     
-    /// runningCoordinates를 이용해 경로를 업데이트한다.
+    /// runningCoordinates를 이용해 경로를 업데이트한다. (페이스 기반 색상 적용)
     func updateRunningRoute(on mapView: NMFMapView, context: Context) {
-        // 좌표가 없으면 기존 경로 제거
-        guard !runningCoordinates.isEmpty else {
-            context.coordinator.routeOverlay?.mapView = nil
-            context.coordinator.routeOverlay = nil
+        // 좌표가 2개 미만이면 경로를 그릴 수 없으므로 제거
+        guard runningCoordinates.count >= 2 else {
+            clearRouteSegments(context: context)
             return
         }
 
-        // 1) 없으면 생성
-        if context.coordinator.routeOverlay == nil {
-            context.coordinator.routeOverlay = makeRouteOverlay()
+        // 기존 세그먼트 제거
+        clearRouteSegments(context: context)
+
+        // 구간별 NMFPath 생성 (각 구간마다 페이스 기반 색상 적용)
+        for i in 0..<(runningCoordinates.count - 1) {
+            let start = runningCoordinates[i]
+            let end = runningCoordinates[i + 1]
+
+            // 현재 구간의 페이스 색상 결정 (시작점의 페이스 사용)
+            let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
+
+            // 구간 경로 생성
+            let segment = NMFPath()
+            let startLatLng = NMGLatLng(lat: start.latitude, lng: start.longitude)
+            let endLatLng = NMGLatLng(lat: end.latitude, lng: end.longitude)
+            let lineString = NMGLineString(points: [startLatLng, endLatLng] as [AnyObject])
+
+            segment.path = lineString
+            segment.color = paceColor
+            segment.width = 8
+            segment.outlineColor = .clear
+            segment.mapView = mapView
+
+            context.coordinator.routeSegments.append(segment)
         }
-        
-        // 2) 라인 구성
-        let latlngs = runningCoordinates
-            .map {
-                NMGLatLng(lat: $0.latitude, lng: $0.longitude)
-            } as [AnyObject]
-        let line = NMGLineString(points: latlngs)
-        
-        // 3) 경로 적용
-        context.coordinator.routeOverlay?.path = line
-        
-        // 4) 지도에 부착
-        context.coordinator.routeOverlay?.mapView = mapView
     }
-    
-    /// 러닝 경로를 지도에 표시하기 위한 `NMFPath` 오버레이를 생성하고 기본 스타일을 설정합니다.
-    func makeRouteOverlay() -> NMFPath {
-        let routeOverlay = NMFPath()
-        routeOverlay.color = .red
-        routeOverlay.width = 8
-        
-        routeOverlay.outlineColor = .clear
-        
-        return routeOverlay
+
+    /// 기존 경로 세그먼트를 모두 제거합니다.
+    func clearRouteSegments(context: Context) {
+        context.coordinator.routeSegments.forEach { $0.mapView = nil }
+        context.coordinator.routeSegments.removeAll()
     }
 }
