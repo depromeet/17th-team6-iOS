@@ -15,13 +15,7 @@ enum AuthAPI {
 }
 
 extension AuthAPI: TargetType {
-    var baseURL: URL {
-        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
-              let url = URL(string: urlString) else {
-            fatalError("🚨 BASE_URL not found or invalid in Info.plist")
-        }
-        return url
-    }
+    var baseURL: URL { APIConfig.baseURL }
 
     var path: String {
         switch self {
@@ -89,13 +83,10 @@ extension AuthAPI: TargetType {
     var headers: [String: String]? {
         switch self {
         case .signup:
-            // multipart 업로드 시엔 JSON이 아니라 multipart/form-data 헤더를 자동으로 설정하므로 Content-Type 제외
-            return ["Accept": "application/json"]
+            // multipart/form-data 업로드 시 Content-Type은 자동 지정됨
+            return HTTPHeader.multipart.value
         default:
-            return [
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            ]
+            return HTTPHeader.json.value
         }
     }
 }

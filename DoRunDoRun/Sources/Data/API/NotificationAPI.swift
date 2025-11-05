@@ -14,13 +14,7 @@ enum NotificationAPI {
 }
 
 extension NotificationAPI: TargetType {
-    var baseURL: URL {
-        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
-              let url = URL(string: urlString) else {
-            fatalError("🚨 BASE_URL not found or invalid in Info.plist")
-        }
-        return url
-    }
+    var baseURL: URL { APIConfig.baseURL }
 
     var path: String {
         switch self {
@@ -52,9 +46,6 @@ extension NotificationAPI: TargetType {
     }
 
     var headers: [String: String]? {
-        [
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        ]
+        HTTPHeader.json.value
     }
 }
