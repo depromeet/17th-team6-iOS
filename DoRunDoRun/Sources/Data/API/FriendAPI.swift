@@ -16,13 +16,7 @@ enum FriendAPI {
 
 extension FriendAPI: TargetType {
     // MARK: - Base URL
-    var baseURL: URL {
-        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
-              let url = URL(string: urlString) else {
-            fatalError("🚨 BASE_URL not found or invalid in Info.plist")
-        }
-        return url
-    }
+    var baseURL: URL { APIConfig.baseURL }
 
     // MARK: - Path
     var path: String {
@@ -64,10 +58,7 @@ extension FriendAPI: TargetType {
     }
 
     // MARK: - Headers
-    var headers: [String : String]? {
-        [
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        ]
+    var headers: [String: String]? {
+        HTTPHeader.json.value
     }
 }

@@ -19,17 +19,25 @@ protocol APIClientProtocol {
 /// Moya 기반 API 호출 담당 클래스
 final class APIClient: APIClientProtocol {
     private let provider: MoyaProvider<MultiTarget>
-
+    
     init(stub: Bool = false) {
+        // 공통 플러그인 리스트 정의
+        var plugins: [PluginType] = [
+            NetworkLoggerPlugin(configuration: .init(logOptions: .verbose))
+        ]
+        
+        // accessToken이 존재하면 AuthPlugin을 함께 등록
+        if TokenManager.shared.accessToken != nil {
+            plugins.append(AuthPlugin())
+        }
+        
         if stub {
             provider = MoyaProvider<MultiTarget>(stubClosure: MoyaProvider.immediatelyStub)
         } else {
-            provider = MoyaProvider<MultiTarget>(
-                plugins: [NetworkLoggerPlugin(configuration: .init(logOptions: .verbose))]
-            )
+            provider = MoyaProvider<MultiTarget>(plugins: plugins)
         }
     }
-
+    
     func request<T: Decodable, Target: TargetType>(
         _ target: Target,
         responseType: T.Type
@@ -52,7 +60,7 @@ final class APIClient: APIClientProtocol {
                         // JSON 디코딩 에러
                         continuation.resume(throwing: APIError.decodingError)
                     }
-
+                    
                 case let .failure(error):
                     // 네트워크 오류 처리
                     switch error {
