@@ -45,7 +45,8 @@ struct FriendRunningStatusViewStateMapper {
             let minutes = Int(interval / 60)
             let hours = Int(interval / 3600)
             let days = Int(interval / 86400)
-            
+            let years = days / 365
+
             switch interval {
             case ..<60:
                 return "방금 전"
@@ -53,14 +54,10 @@ struct FriendRunningStatusViewStateMapper {
                 return "\(minutes)분 전"
             case ..<86400:
                 return "\(hours)시간 전"
-            case ..<(86400 * 2):
-                return "어제"
-            case ..<(86400 * 7):
+            case ..<(86400 * 365):
                 return "\(days)일 전"
             default:
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MM/dd HH:mm"
-                return formatter.string(from: date)
+                return "\(years)년 전"
             }
         }()
         
