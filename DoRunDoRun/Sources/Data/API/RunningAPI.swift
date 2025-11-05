@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 import Moya
 
 enum RunningAPI {
@@ -17,13 +18,7 @@ enum RunningAPI {
 }
 
 extension RunningAPI: TargetType {
-    var baseURL: URL {
-        guard let urlString = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String,
-              let url = URL(string: urlString) else {
-            fatalError("🚨 BASE_URL not found or invalid in Info.plist")
-        }
-        return url
-    }
+    var baseURL: URL { APIConfig.baseURL }
 
     var path: String {
         switch self {
@@ -109,20 +104,12 @@ extension RunningAPI: TargetType {
     }
 
     var headers: [String: String]? {
-        // TODO: 나중에 header 관련 수정 필요
-        var baseHeaders: [String: String] = [
-            "Authorization": "Bearer 1"
-        ]
-
         switch self {
         case .complete:
-            // multipart 업로드 시엔 Content-Type 자동 설정
-            baseHeaders["Accept"] = "application/json"
+            // multipart/form-data: Content-Type은 Moya가 자동 설정
+            return HTTPHeader.multipart.value
         default:
-            baseHeaders["Content-Type"] = "application/json"
-            baseHeaders["Accept"] = "application/json"
+            return HTTPHeader.json.value
         }
-
-        return baseHeaders
     }
 }
