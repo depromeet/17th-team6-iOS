@@ -8,8 +8,8 @@
 struct PhoneVerificationResult: Equatable {
     let phoneNumber: String
     let isExistingUser: Bool
-    let user: User?
-    let token: Token?
+    let user: User
+    let token: Token
 }
 
 struct User: Equatable {
