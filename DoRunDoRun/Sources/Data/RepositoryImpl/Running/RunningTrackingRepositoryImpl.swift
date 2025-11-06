@@ -200,8 +200,14 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
             if let sPerMeter = ped.currentPace?.doubleValue {
                 latestCurrentPaceSecPerKm = sPerMeter * 1000.0
             } else {
-                // 멈춤 상태 또는 데이터 없음 → 0으로 명시
-                latestCurrentPaceSecPerKm = 0
+                // currentPace가 없으면 평균 페이스 계산 (fallback)
+                let avgPaceSecPerKm: Double
+                if totalDistanceMeters > 0 && totalSec > 0 {
+                    avgPaceSecPerKm = (totalSec / (totalDistanceMeters / 1000.0))
+                } else {
+                    avgPaceSecPerKm = 0
+                }
+                latestCurrentPaceSecPerKm = avgPaceSecPerKm
             }
 
             // 누적 걸음수: 직전 측정치와의 차이를 더함 (첫 샘플은 델타 계산 제외)
