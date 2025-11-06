@@ -24,7 +24,7 @@ extension DependencyValues {
 // MARK: - Keys
 private enum RunningSessionFetcherKey: DependencyKey {
     static let liveValue: RunningSessionFetcherProtocol =
-        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
+        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryImpl())
 
     static let testValue: RunningSessionFetcherProtocol =
         RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
@@ -32,7 +32,7 @@ private enum RunningSessionFetcherKey: DependencyKey {
 
 private enum SelfieFeedsUseCaseKey: DependencyKey {
     static let liveValue: SelfieFeedsUseCaseProtocol =
-        SelfieFeedsUseCase(repository: SelfieFeedRepositoryMock())
+        SelfieFeedsUseCase(repository: SelfieFeedRepositoryImpl())
     
     static let testValue: SelfieFeedsUseCaseProtocol =
         SelfieFeedsUseCase(repository: SelfieFeedRepositoryMock())
