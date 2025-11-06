@@ -6,16 +6,22 @@ struct MyView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            VStack(spacing: 0) {
-                navigationSection
-                profileSection
-                tabHeaderSection
-                tabContentSection
+            NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+                VStack(spacing: 0) {
+                    navigationSection
+                    profileSection
+                    tabHeaderSection
+                    tabContentSection
+                }
+                .onAppear {
+                    store.send(.onAppear)
+                }
+                .toolbar(.hidden, for: .navigationBar)
+            } destination: { store in
+                switch store.case {
+                case .runningDetail(let store): RunningDetailView(store: store)
+                }
             }
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .toolbar(.hidden, for: .navigationBar)
         }
     }
     
@@ -138,7 +144,12 @@ struct MyView: View {
                  if store.filteredSessions.isEmpty {
                      MySessionEmptyView()
                  } else {
-                     MySessionView(sessions: store.filteredSessions)
+                     MySessionView(
+                         sessions: store.filteredSessions,
+                         onSessionTap: { session in
+                             store.send(.sessionTapped(session))
+                         }
+                     )
                  }
              }
              .tag(MyFeature.State.Tab.record.rawValue)

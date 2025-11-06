@@ -7,7 +7,9 @@ struct MyFeature {
     @Dependency(\.runSessionsUseCase) var runSessionsUseCase
 
     @ObservableState
-    struct State: Equatable {
+    struct State {
+        var path = StackState<Path.State>()
+
         enum Tab: Int, CaseIterable {
             case certification
             case record
@@ -32,7 +34,10 @@ struct MyFeature {
             }
         }
     }
-    enum Action: Equatable {
+    enum Action {
+        case path(StackActionOf<Path>)
+        case sessionTapped(RunningSessionSummaryViewState)
+
         case pageChanged(Int)
         case certificationTapped
         case recordTapped
@@ -54,6 +59,14 @@ struct MyFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case let .sessionTapped(session):
+                state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session))))
+                return .none
+                
+            case .path(.element(id: _, action: .runningDetail(.backButtonTapped))):
+                state.path.removeLast()
+                return .none
+                
             case let .pageChanged(index):
                 state.currentTap = index
                 return .none
@@ -167,7 +180,16 @@ struct MyFeature {
                     state.currentMonth = newDate
                 }
                 return .none
+                
+            default:
+                return .none
             }
         }
+        .forEach(\.path, action: \.path)
+    }
+    
+    @Reducer
+    enum Path {
+        case runningDetail(RunningDetailFeature)
     }
 }

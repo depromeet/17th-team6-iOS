@@ -9,73 +9,79 @@ import SwiftUI
 
 struct MySessionCardView: View {
     let session: RunningSessionSummaryViewState
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                // MARK: - 상단 시간 + 태그
-                HStack {
-                    TypographyText(text: session.timeText, style: .b2_500, color: .gray700)
+        Button {
+            onTap?()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    // MARK: - 상단 시간 + 태그
+                    HStack {
+                        TypographyText(text: session.timeText, style: .b2_500, color: .gray700)
 
-                    switch session.tagStatus {
-                    case .possible:
-                        TagLabel(status: .possible)
-                    case .completed:
-                        TagLabel(status: .completed)
-                    case .none:
-                        EmptyView()
+                        switch session.tagStatus {
+                        case .possible:
+                            TagLabel(status: .possible)
+                        case .completed:
+                            TagLabel(status: .completed)
+                        case .none:
+                            EmptyView()
+                        }
+
+                        Spacer()
                     }
 
-                    Spacer()
+                    // MARK: - 거리
+                    TypographyText(
+                        text: session.distanceText,
+                        style: .h2_700,
+                        color: .gray900
+                    )
+
+                    // MARK: - 하단 상세 정보
+                    HStack(spacing: 8) {
+                        TypographyText(
+                            text: session.durationText,
+                            style: .b1_400,
+                            color: .gray700
+                        )
+                        Rectangle()
+                            .frame(width: 1, height: 14)
+                            .foregroundStyle(Color.gray100)
+                        TypographyText(
+                            text: session.paceText,
+                            style: .b1_400,
+                            color: .gray700
+                        )
+                        Rectangle()
+                            .frame(width: 1, height: 14)
+                            .foregroundStyle(Color.gray100)
+                        TypographyText(
+                            text: session.spmText,
+                            style: .b1_400,
+                            color: .gray700
+                        )
+                    }
                 }
+                Spacer()
 
-                // MARK: - 거리
-                TypographyText(
-                    text: session.distanceText,
-                    style: .h2_700,
-                    color: .gray900
-                )
-
-                // MARK: - 하단 상세 정보
-                HStack(spacing: 8) {
-                    TypographyText(
-                        text: session.durationText,
-                        style: .b1_400,
-                        color: .gray700
-                    )
-                    Rectangle()
-                        .frame(width: 1, height: 14)
-                        .foregroundStyle(Color.gray100)
-                    TypographyText(
-                        text: session.paceText,
-                        style: .b1_400,
-                        color: .gray700
-                    )
-                    Rectangle()
-                        .frame(width: 1, height: 14)
-                        .foregroundStyle(Color.gray100)
-                    TypographyText(
-                        text: session.spmText,
-                        style: .b1_400,
-                        color: .gray700
-                    )
+                if session.tagStatus == .completed {
+                    Image(.runningVerified)
+                        .resizable()
+                        .frame(width: 72, height: 72)
                 }
             }
-            Spacer()
-
-            // MARK: - 인증 완료 이미지
-            if session.tagStatus == .completed {
-                Image(.runningVerified)
-                    .resizable()
-                    .frame(width: 72, height: 72)
-            }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.gray100, lineWidth: 1)
+            )
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray100, lineWidth: 1)
-        )
+        .buttonStyle(.plain)
     }
 }
 

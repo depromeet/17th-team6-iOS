@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MySessionView: View {
     let sessions: [RunningSessionSummaryViewState]
+    var onSessionTap: ((RunningSessionSummaryViewState) -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -18,7 +19,9 @@ struct MySessionView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         TypographyText(text: dateText, style: .b2_500, color: .gray500)
                         ForEach(groupedSessions[dateText] ?? []) { session in
-                            MySessionCardView(session: session)
+                            MySessionCardView(session: session) {
+                                onSessionTap?(session)
+                            }
                         }
                     }
                 }
