@@ -78,12 +78,12 @@ struct RouteFitMapView: UIViewRepresentable {
         // 기존 세그먼트 제거
         clearPathSegments(context: context)
 
-        // 구간별 NMFPath 생성
+        // 구간별 NMFPath 생성 (원본 좌표 사용)
         for i in 0..<(coordinates.count - 1) {
             let start = coordinates[i]
             let end = coordinates[i + 1]
 
-            // 현재 구간의 페이스 색상 결정 (시작점의 페이스 사용)
+            // 현재 구간의 페이스 색상 결정
             let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
 
             // 구간 경로 생성

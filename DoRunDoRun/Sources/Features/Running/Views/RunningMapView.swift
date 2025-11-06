@@ -173,12 +173,12 @@ private extension RunningMapView {
         // 기존 세그먼트 제거
         clearRouteSegments(context: context)
 
-        // 구간별 NMFPath 생성 (각 구간마다 페이스 기반 색상 적용)
+        // 구간별 NMFPath 생성 (원본 좌표 사용)
         for i in 0..<(runningCoordinates.count - 1) {
             let start = runningCoordinates[i]
             let end = runningCoordinates[i + 1]
 
-            // 현재 구간의 페이스 색상 결정 (시작점의 페이스 사용)
+            // 현재 구간의 페이스 색상 결정
             let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
 
             // 구간 경로 생성
