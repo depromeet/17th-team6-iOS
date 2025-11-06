@@ -10,7 +10,7 @@ import Foundation
 struct SelfieFeedViewState: Identifiable, Equatable {
     enum Kind: Equatable {
         case monthHeader(year: String, month: String)
-        case certification(SelfieFeedItem)
+        case feed(SelfieFeedItem)
     }
 
     let id: String

@@ -24,7 +24,7 @@ extension DependencyValues {
 // MARK: - Keys
 private enum RunningSessionFetcherKey: DependencyKey {
     static let liveValue: RunningSessionFetcherProtocol =
-        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryImpl())
+        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
 
     static let testValue: RunningSessionFetcherProtocol =
         RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
