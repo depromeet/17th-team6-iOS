@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct MyFeedItemView: View {
     let item: SelfieFeedItem

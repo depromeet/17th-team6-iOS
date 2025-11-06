@@ -67,7 +67,7 @@ struct SelfieFeedViewStateMapper {
                     cells.append(
                         .init(
                             id: "feed-\(feed.id)-\(feed.date)",
-                            kind: .certification(item)
+                            kind: .feed(item)
                         )
                     )
                 }

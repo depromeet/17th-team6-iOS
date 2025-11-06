@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Kingfisher
 
 struct MyFeedView: View {
     let feeds: [SelfieFeedViewState]
