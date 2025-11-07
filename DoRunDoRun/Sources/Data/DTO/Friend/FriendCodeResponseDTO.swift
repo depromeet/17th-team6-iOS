@@ -9,6 +9,6 @@ struct FriendCodeResponseDTO: Codable {
     let data: FriendCodeDataDTO
 
     struct FriendCodeDataDTO: Codable {
-        let userId: Int
+        let nickname: String
     }
 }

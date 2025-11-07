@@ -7,6 +7,6 @@
 
 final class FriendCodeRepositoryMock: FriendCodeRepository {
     func addFriendByCode(_ code: String) async throws -> FriendCode {
-        return FriendCode(userId: 123)
+        return FriendCode(nickname: "두런두런")
     }
 }

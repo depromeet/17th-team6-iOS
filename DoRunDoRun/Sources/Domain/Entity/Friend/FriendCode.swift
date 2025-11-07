@@ -6,5 +6,5 @@
 //
 
 struct FriendCode: Equatable {
-    let userId: Int
+    let nickname: String
 }

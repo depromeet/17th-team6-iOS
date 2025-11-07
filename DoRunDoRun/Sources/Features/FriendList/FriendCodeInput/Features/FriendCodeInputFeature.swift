@@ -27,7 +27,7 @@ struct FriendCodeInputFeature {
         
         case codeChanged(String)
         case submitButtonTapped
-        case submitSuccess
+        case submitSuccess(FriendCode)
 
         case backButtonTapped
     }
@@ -47,8 +47,8 @@ struct FriendCodeInputFeature {
                 guard state.isButtonEnabled else { return .none }
                 return .run { [code = state.code] send in
                     do {
-                        _ = try await friendCodeUseCase.execute(code)
-                        await send(.submitSuccess)
+                        let result = try await friendCodeUseCase.execute(code)
+                        await send(.submitSuccess(result))
                     } catch {
                         if let apiError = error as? APIError {
                             print(apiError.userMessage)
@@ -58,7 +58,8 @@ struct FriendCodeInputFeature {
                     }
                 }
                 
-            case .submitSuccess:
+            case let .submitSuccess(result):
+                print(result.nickname)
                 return .none
                 
             default:

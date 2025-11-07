@@ -13,7 +13,7 @@ struct FriendListView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            NavigationStack {
                 ZStack(alignment: .bottom) {
                     VStack(alignment: .leading) {
                         headerSection
@@ -40,9 +40,10 @@ struct FriendListView: View {
                         }
                     }
                 }
-            } destination: { store in
-                switch store.case {
-                case .friendCodeInput(let store): FriendCodeInputView(store: store)
+                .navigationDestination(
+                    item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
+                ) { store in
+                    FriendCodeInputView(store: store)
                 }
             }
         }

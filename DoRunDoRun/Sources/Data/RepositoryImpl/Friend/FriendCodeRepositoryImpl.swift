@@ -14,6 +14,6 @@ final class FriendCodeRepositoryImpl: FriendCodeRepository {
 
     func addFriendByCode(_ code: String) async throws -> FriendCode {
         let response = try await service.addFriendByCode(code: code)
-        return FriendCode(userId: response.data.userId)
+        return FriendCode(nickname: response.data.nickname)
     }
 }

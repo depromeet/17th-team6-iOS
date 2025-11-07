@@ -16,9 +16,9 @@ struct FriendListFeature {
     @Dependency(\.myFriendCodeUseCase) var myFriendCodeUseCase
 
     @ObservableState
-    struct State {
-        var path = StackState<Path.State>()
-        
+    struct State: Equatable {
+        @Presents var friendCodeInput: FriendCodeInputFeature.State?
+
         var toast = ToastFeature.State()
         var popup = PopupFeature.State()
         
@@ -27,9 +27,9 @@ struct FriendListFeature {
         var needsReloadAfterFriendAdd = false    // 친구 추가 후 복귀 시 갱신 여부
     }
 
-    enum Action {
-        case path(StackActionOf<Path>)
-        
+    enum Action: Equatable {
+        case friendCodeInput(PresentationAction<FriendCodeInputFeature.Action>)
+
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
         
@@ -139,16 +139,15 @@ struct FriendListFeature {
                 return .send(.toast(.show("클립보드에 내 코드가 복사되었어요!")))
                 
             case .friendCodeInputButtonTapped:
-                state.path.append(.friendCodeInput(FriendCodeInputFeature.State()))
+                state.friendCodeInput = FriendCodeInputFeature.State()
                 return .none
-
-            case .path(.element(id: _, action: .friendCodeInput(.submitSuccess))):
-                state.path.removeAll()
-                state.needsReloadAfterFriendAdd = true
-                return .send(.toast(.show("친구가 추가되었어요!")))
                 
-            case .path(.element(id: _, action: .friendCodeInput(.backButtonTapped))):
-                state.path.removeLast()
+            case let .friendCodeInput(.presented(.submitSuccess(friendCode))):
+                state.friendCodeInput = nil
+                return .send(.toast(.show("'\(friendCode.nickname)' 친구가 추가되었어요!")))
+                
+            case .friendCodeInput(.presented(.backButtonTapped)):
+                state.friendCodeInput = nil
                 return .none
 
             default:
@@ -156,11 +155,8 @@ struct FriendListFeature {
 
             }
         }
-        .forEach(\.path, action: \.path)
-    }
-    
-    @Reducer
-    enum Path {
-        case friendCodeInput(FriendCodeInputFeature)
+        .ifLet(\.$friendCodeInput, action: \.friendCodeInput) {
+            FriendCodeInputFeature()
+        }
     }
 }
