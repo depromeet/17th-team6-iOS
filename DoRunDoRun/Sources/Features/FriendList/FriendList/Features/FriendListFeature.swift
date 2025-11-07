@@ -98,7 +98,8 @@ struct FriendListFeature {
                 if friends.isEmpty {
                     state.hasNextPage = false
                 } else {
-                    let mapped = friends.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+                    let filteredFriends = friends.filter { !$0.isMe }
+                    let mapped = filteredFriends.map { FriendRunningStatusViewStateMapper.map(from: $0) }
                     if state.currentPage == 0 {
                         // 첫 페이지
                         state.friends = mapped
