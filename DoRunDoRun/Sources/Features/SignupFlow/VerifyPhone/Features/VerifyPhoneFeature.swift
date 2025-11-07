@@ -124,6 +124,9 @@ struct VerifyPhoneFeature {
                                 guard let token = response.token else { return }
                                 TokenManager.shared.accessToken = token.accessToken
                                 TokenManager.shared.refreshToken = token.refreshToken
+                                guard let user = response.user else { return }
+                                UserManager.shared.userId = user.id
+                                UserManager.shared.nickname = user.nickname
                                 await send(.completed(phoneNumber: phoneNumber))
                             case .signup:
                                 // 회원가입 중인데 기존 회원 → 계정찾기 유도
