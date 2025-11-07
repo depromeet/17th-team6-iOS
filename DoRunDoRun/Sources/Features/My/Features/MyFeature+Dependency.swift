@@ -15,7 +15,7 @@ extension DependencyValues {
     }
     
     // MARK: - 인증 피드 조회
-    var selfieFeedsUseCase: SelfieFeedsUseCaseProtocol {
+    var selfieFeedsUseCase: SelfieFeedUseCaseProtocol {
         get { self[SelfieFeedsUseCaseKey.self] }
         set { self[SelfieFeedsUseCaseKey.self] = newValue }
     }
@@ -24,16 +24,16 @@ extension DependencyValues {
 // MARK: - Keys
 private enum RunningSessionFetcherKey: DependencyKey {
     static let liveValue: RunningSessionFetcherProtocol =
-        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
+        RunningSessionFetcher(sessionRepository: RunningSessionRepositoryImpl())
 
     static let testValue: RunningSessionFetcherProtocol =
         RunningSessionFetcher(sessionRepository: RunningSessionRepositoryMock())
 }
 
 private enum SelfieFeedsUseCaseKey: DependencyKey {
-    static let liveValue: SelfieFeedsUseCaseProtocol =
-        SelfieFeedsUseCase(repository: SelfieFeedRepositoryMock())
+    static let liveValue: SelfieFeedUseCaseProtocol =
+        SelfieFeedUseCase(repository: SelfieFeedRepositoryImpl())
     
-    static let testValue: SelfieFeedsUseCaseProtocol =
-        SelfieFeedsUseCase(repository: SelfieFeedRepositoryMock())
+    static let testValue: SelfieFeedUseCaseProtocol =
+        SelfieFeedUseCase(repository: SelfieFeedRepositoryMock())
 }

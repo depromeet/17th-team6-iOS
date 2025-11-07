@@ -1,15 +1,15 @@
 //
-//  SelfieFeedsUseCase.swift
+//  SelfieFeedUseCase.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 11/6/25.
 //
 
-protocol SelfieFeedsUseCaseProtocol {
+protocol SelfieFeedUseCaseProtocol {
     func execute(currentDate: String?, userId: Int?, page: Int, size: Int) async throws -> SelfieFeedResult
 }
 
-final class SelfieFeedsUseCase: SelfieFeedsUseCaseProtocol {
+final class SelfieFeedUseCase: SelfieFeedUseCaseProtocol {
     private let repository: SelfieFeedRepository
 
     init(repository: SelfieFeedRepository = SelfieFeedRepositoryImpl()) {

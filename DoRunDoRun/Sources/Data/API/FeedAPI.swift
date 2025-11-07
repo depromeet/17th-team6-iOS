@@ -10,6 +10,7 @@ import Moya
 
 enum FeedAPI {
     case getFeedsByDate(currentDate: String?, userId: Int?, page: Int, size: Int)
+    case postReaction(feedId: Int, emojiType: String)
 }
 
 extension FeedAPI: TargetType {
@@ -19,11 +20,18 @@ extension FeedAPI: TargetType {
         switch self {
         case .getFeedsByDate:
             return "/api/selfie/feeds"
+        case .postReaction:
+            return "/api/selfie/feeds/reaction"
         }
     }
 
     var method: Moya.Method {
-        return .get
+        switch self {
+        case .getFeedsByDate:
+            return .get
+        case .postReaction:
+            return .post
+        }
     }
 
     var task: Task {
@@ -35,8 +43,11 @@ extension FeedAPI: TargetType {
             ]
             if let currentDate = currentDate { params["currentDate"] = currentDate }
             if let userId = userId { params["userId"] = userId }
-
             return .requestParameters(parameters: params, encoding: URLEncoding.queryString)
+
+        case let .postReaction(feedId, emojiType):
+            let body = SelfieFeedReactionRequestDTO(feedId: feedId, emojiType: emojiType)
+            return .requestJSONEncodable(body)
         }
     }
 

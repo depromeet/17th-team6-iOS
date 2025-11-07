@@ -8,9 +8,9 @@ struct DoRunDoRunApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MyView(
-                store: Store(initialState: MyFeature.State()) {
-                    MyFeature()
+            AppView(
+                store: Store(initialState: AppFeature.State()) {
+                    AppFeature()
                 }
             )
         }

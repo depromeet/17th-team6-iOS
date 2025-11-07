@@ -10,19 +10,28 @@ import ComposableArchitecture
 
 @Reducer
 struct MyFeedDetailFeature {
+    // MARK: - Dependencies
+    /// 리액션 관련 서버 통신을 담당하는 유즈케이스
+    @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
+
     // MARK: - State
     @ObservableState
     struct State: Equatable {
         /// 현재 표시 중인 피드 아이템
         var feed: SelfieFeedItem
+        
         /// 리액션 상세 시트 상태
         var reactionDetail = ReactionDetailSheetFeature.State()
+        
         /// 리액션 추가(피커) 시트 상태
         var reactionPicker = ReactionPickerSheetFeature.State()
+        
         /// 리액션 상세 시트 표시 여부
         var isReactionDetailPresented = false
+        
         /// 리액션 추가 시트 표시 여부
         var isReactionPickerPresented = false
+        
         /// 상단에 표시할 최대 3개의 리액션 (최근 + 많이 사용된 순)
         var displayedReactions: [ReactionViewState] {
             let formatter = ISO8601DateFormatter()
@@ -37,11 +46,13 @@ struct MyFeedDetailFeature {
             }
             return Array((sortedNew + existingReactions).prefix(3))
         }
+
         /// 표시되지 않는 나머지 리액션 개수
         var extraReactionCount: Int {
             max(0, feed.reactions.count - 3)
         }
-        /// 숨겨진 리액션 목록
+
+        /// 숨겨진 리액션 목록 (상세 시트에서 표시)
         var hiddenReactions: [ReactionViewState] {
             Array(feed.reactions.dropFirst(3))
         }
@@ -51,16 +62,28 @@ struct MyFeedDetailFeature {
     enum Action: Equatable {
         /// 리액션 상세 시트 액션
         case reactionDetail(ReactionDetailSheetFeature.Action)
+        
         /// 리액션 추가 피커 시트 액션
         case reactionPicker(ReactionPickerSheetFeature.Action)
-        /// 리액션 탭
+        
+        /// 리액션 탭 (이미 존재하는 리액션을 토글)
         case reactionTapped(ReactionViewState)
+        
+        /// 리액션 탭 서버 응답 성공
+        case reactionSuccess(SelfieFeedReaction)
+        
         /// 리액션 롱탭 (상세 시트 표시)
         case reactionLongPressed(ReactionViewState)
+        
         /// 리액션 추가 버튼 탭
         case addReactionTapped
-        /// 시트 닫기
+        
+        /// 리액션 추가 서버 응답 성공
+        case addReactionSuccess(SelfieFeedReaction)
+        
+        /// 시트 전체 닫기
         case dismissSheet
+        
         /// 상단 뒤로가기 버튼 탭
         case backButtonTapped
     }
@@ -74,15 +97,36 @@ struct MyFeedDetailFeature {
         Reduce { state, action in
             switch action {
                 
-            // MARK: - 리액션 탭: 토글 처리
+            // MARK: - 리액션 탭 (기존 리액션 토글)
             case let .reactionTapped(reaction):
+                let feedId = state.feed.feedID
+
+                // 서버 요청 (성공 시 reactionSuccess로 처리)
+                return .run { send in
+                    do {
+                        let result = try await selfieFeedReactionUseCase.execute(
+                            feedId: feedId,
+                            emojiType: reaction.emojiType.rawValue
+                        )
+                        await send(.reactionSuccess(result))
+                    } catch {
+                        if let apiError = error as? APIError {
+                            print(apiError.userMessage)
+                        } else {
+                            print(APIError.unknown.userMessage)
+                        }
+                    }
+                }
+                
+            // MARK: - 리액션 토글 성공 (UI 업데이트)
+            case let .reactionSuccess(result):
                 state.feed.reactions = MyFeedDetailFeature.toggleReaction(
                     in: state.feed.reactions,
-                    for: reaction.emojiType
+                    for: result.emojiType
                 )
                 return .none
 
-            // MARK: - 리액션 롱탭: 상세 시트 표시
+            // MARK: - 리액션 롱탭 (상세 시트 표시)
             case let .reactionLongPressed(reaction):
                 state.isReactionDetailPresented = true
                 state.reactionDetail = .init(
@@ -92,26 +136,48 @@ struct MyFeedDetailFeature {
                 )
                 return .none
                 
-            // 상세 시트 닫기 요청
+            // MARK: - 리액션 상세 시트 닫기
             case .reactionDetail(.dismissRequested):
                 state.isReactionDetailPresented = false
                 return .none
                 
-            // MARK: - 리액션 추가 버튼 탭
+            // MARK: - 리액션 추가 버튼 탭 (피커 표시)
             case .addReactionTapped:
                 state.isReactionPickerPresented = true
                 return .none
                 
             // MARK: - 피커에서 리액션 선택 시
             case let .reactionPicker(.reactionSelected(emoji)):
+                state.isReactionPickerPresented = false
+
+                let feedId = state.feed.feedID
+
+                // 서버 요청 (성공 시 addReactionSuccess로 처리)
+                return .run { send in
+                    do {
+                        let result = try await selfieFeedReactionUseCase.execute(
+                            feedId: feedId,
+                            emojiType: emoji.rawValue
+                        )
+                        await send(.addReactionSuccess(result))
+                    } catch {
+                        if let apiError = error as? APIError {
+                            print(apiError.userMessage)
+                        } else {
+                            print(APIError.unknown.userMessage)
+                        }
+                    }
+                }
+                
+            // MARK: - 리액션 추가 성공 (UI 업데이트)
+            case let .addReactionSuccess(result):
                 state.feed.reactions = MyFeedDetailFeature.addOrToggleReaction(
                     in: state.feed.reactions,
-                    emoji: emoji
+                    emoji: result.emojiType
                 )
-                state.isReactionPickerPresented = false
                 return .none
 
-            // 피커 닫기 요청
+            // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
                 state.isReactionPickerPresented = false
                 return .none
@@ -122,7 +188,7 @@ struct MyFeedDetailFeature {
                 state.isReactionPickerPresented = false
                 return .none
 
-            // 뒤로가기 버튼 탭
+            // MARK: - 뒤로가기 버튼 탭
             case .backButtonTapped:
                 return .none
                 
@@ -136,6 +202,7 @@ struct MyFeedDetailFeature {
 // MARK: - Private Reaction Handling Logic
 private extension MyFeedDetailFeature {
     /// 리액션 탭 시 상태를 토글합니다.
+    /// - 이미 내가 누른 상태면 취소하고, 아니라면 추가합니다.
     static func toggleReaction(in reactions: [ReactionViewState], for emoji: EmojiType) -> [ReactionViewState] {
         var updatedReactions = reactions.map { item -> ReactionViewState in
             var updated = item
@@ -154,11 +221,13 @@ private extension MyFeedDetailFeature {
             }
             return updated
         }
+        // totalCount가 0이 된 리액션은 제거
         updatedReactions.removeAll(where: { $0.totalCount == 0 })
         return updatedReactions
     }
     
     /// 피커에서 선택된 리액션을 추가하거나 토글합니다.
+    /// - 이미 존재하면 토글, 없으면 새로 추가합니다.
     static func addOrToggleReaction(in reactions: [ReactionViewState], emoji: EmojiType) -> [ReactionViewState] {
         var updatedReactions = reactions
         if let index = updatedReactions.firstIndex(where: { $0.emojiType == emoji }) {
@@ -184,6 +253,7 @@ private extension MyFeedDetailFeature {
             )
             updatedReactions.append(newReaction)
         }
+        // totalCount가 0이 된 리액션은 제거
         updatedReactions.removeAll(where: { $0.totalCount == 0 })
         return updatedReactions
     }
