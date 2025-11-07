@@ -91,9 +91,12 @@ extension CreateProfileView {
         .onChange(of: selectedItem) { newItem in
             guard let item = newItem else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    store.send(.imagePicked(image))
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    // 프로필용 권장 크기 (ex: 300x300pt)
+                    let targetSize = CGSize(width: 300, height: 300)
+                    if let downsampledImage = ImageDownsampler.downsample(imageData: data, to: targetSize) {
+                        store.send(.imagePicked(downsampledImage))
+                    }
                 }
             }
         }
