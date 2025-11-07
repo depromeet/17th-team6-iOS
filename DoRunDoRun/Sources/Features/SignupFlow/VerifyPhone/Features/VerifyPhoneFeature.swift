@@ -121,8 +121,9 @@ struct VerifyPhoneFeature {
                             switch mode {
                             case .login:
                                 // 로그인 플로우 → 기존 회원 로그인 완료
-                                TokenManager.shared.accessToken = response.token.accessToken
-                                TokenManager.shared.refreshToken = response.token.refreshToken
+                                guard let token = response.token else { return }
+                                TokenManager.shared.accessToken = token.accessToken
+                                TokenManager.shared.refreshToken = token.refreshToken
                                 await send(.completed(phoneNumber: phoneNumber))
                             case .signup:
                                 // 회원가입 중인데 기존 회원 → 계정찾기 유도

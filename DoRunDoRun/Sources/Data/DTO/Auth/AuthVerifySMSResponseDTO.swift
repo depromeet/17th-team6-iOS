@@ -15,8 +15,8 @@ struct AuthVerifySMSResponseDTO: Decodable {
 struct AuthVerifySMSDataDTO: Decodable {
     let phoneNumber: String
     let isExistingUser: Bool
-    let user: AuthUserDTO
-    let token: AuthTokenDTO
+    let user: AuthUserDTO?
+    let token: AuthTokenDTO?
 }
 
 struct AuthUserDTO: Decodable {
@@ -35,8 +35,8 @@ extension AuthVerifySMSDataDTO {
         .init(
             phoneNumber: phoneNumber,
             isExistingUser: isExistingUser,
-            user: User(id: user.id, nickname: user.nickname),
-            token: Token(accessToken: token.accessToken, refreshToken: token.refreshToken)
+            user: user.map { User(id: $0.id, nickname: $0.nickname) },
+            token: token.map { Token(accessToken: $0.accessToken, refreshToken: $0.refreshToken) }
         )
     }
 }
