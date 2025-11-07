@@ -11,6 +11,9 @@ import Foundation
 protocol FriendService {
     func getRunningStatus(page: Int, size: Int) async throws -> FriendRunningStatusResponseDTO
     func postReaction(userId: Int) async throws -> FriendReactionResponseDTO
+    func deleteFriends(ids: [Int]) async throws -> FriendDeleteResponseDTO
+    func generateMyFriendCode() async throws -> MyCodeResponseDTO
+    func addFriendByCode(code: String) async throws -> FriendCodeResponseDTO
 }
 
 /// 실제 네트워크 요청 구현체
@@ -32,6 +35,27 @@ final class FriendServiceImpl: FriendService {
         try await apiClient.request(
             FriendAPI.reaction(userId: userId),
             responseType: FriendReactionResponseDTO.self
+        )
+    }
+    
+    func deleteFriends(ids: [Int]) async throws -> FriendDeleteResponseDTO {
+        try await apiClient.request(
+            FriendAPI.deleteFriends(ids: ids),
+            responseType: FriendDeleteResponseDTO.self
+        )
+    }
+    
+    func generateMyFriendCode() async throws -> MyCodeResponseDTO {
+        try await apiClient.request(
+            FriendAPI.generateMyFriendCode,
+            responseType: MyCodeResponseDTO.self
+        )
+    }
+    
+    func addFriendByCode(code: String) async throws -> FriendCodeResponseDTO {
+        try await apiClient.request(
+            FriendAPI.addFriendByCode(code: code),
+            responseType: FriendCodeResponseDTO.self
         )
     }
 }

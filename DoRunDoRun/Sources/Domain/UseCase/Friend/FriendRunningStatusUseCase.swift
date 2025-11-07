@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 
 protocol FriendRunningStatusUseCaseProtocol {
-    func excute(page: Int, size: Int) async throws -> [FriendRunningStatus]
+    func execute(page: Int, size: Int) async throws -> [FriendRunningStatus]
 }
 
 final class FriendRunningStatusUseCase: FriendRunningStatusUseCaseProtocol {
@@ -21,7 +21,7 @@ final class FriendRunningStatusUseCase: FriendRunningStatusUseCaseProtocol {
     }
     
     /// 서버로부터 친구 러닝 현황 조회
-    func excute(page: Int, size: Int) async throws -> [FriendRunningStatus] {
+    func execute(page: Int, size: Int) async throws -> [FriendRunningStatus] {
         try await repository.fetchRunningStatuses(page: page, size: size)
     }
 }
