@@ -14,8 +14,12 @@ struct AccountInfoView: View {
     var body: some View {
         WithPerceptionTracking {
             VStack(alignment: .leading, spacing: 0) {
-                infoRow(title: "가입 휴대폰 번호", value: store.phoneNumber)
-                infoRow(title: "가입일자", value: store.signUpDate)
+                if store.isLoading {
+                    ProgressView("불러오는 중...")
+                } else if let profile = store.profile {
+                    infoRow(title: "가입 휴대폰 번호", value: profile.phoneNumber)
+                    infoRow(title: "가입일자", value: profile.signUpDate)
+                }
                 Spacer()
             }
             .padding(.top, 16)
