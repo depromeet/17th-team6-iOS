@@ -77,6 +77,8 @@ struct MyFeature {
         case feedItemTapped(SelfieFeedItem)
         /// 세션 셀 탭 시 (러닝 상세 화면 이동)
         case sessionCardTapped(RunningSessionSummaryViewState)
+        /// 설정 버튼 탭 시(설정 화면 이동)
+        case settingButtonTapped
 
         // MARK: Tabs
         /// 페이지 인덱스 변경 시 (TabView 전환 시점)
@@ -133,6 +135,16 @@ struct MyFeature {
 
             // 러닝 상세 → 뒤로가기 시
             case .path(.element(id: _, action: .runningDetail(.backButtonTapped))):
+                state.path.removeLast()
+                return .none
+                
+            // MARK: - 설정 버튼 탭
+            case .settingButtonTapped:
+                state.path.append(.setting(SettingFeature.State()))
+                return .none
+                
+                // 설정 → 뒤로가기 시
+            case .path(.element(id: _, action: .setting(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
 
@@ -269,5 +281,8 @@ struct MyFeature {
         case myFeedDetail(MyFeedDetailFeature)
         /// 러닝 상세 화면
         case runningDetail(RunningDetailFeature)
+        /// 설정 화면
+        case setting(SettingFeature)
+
     }
 }

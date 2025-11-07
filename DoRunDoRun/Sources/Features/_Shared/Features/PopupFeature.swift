@@ -11,7 +11,14 @@ import ComposableArchitecture
 struct PopupFeature {
     @ObservableState
     struct State: Equatable {
-        enum PopupAction: Equatable { case none, signup,findAccount }
+        enum PopupAction: Equatable {
+            case none
+            case signup
+            case findAccount
+            case marketingOff
+            case logout
+            case withdraw
+        }
         var action: PopupAction = .none
         var isVisible = false
         var title = ""
