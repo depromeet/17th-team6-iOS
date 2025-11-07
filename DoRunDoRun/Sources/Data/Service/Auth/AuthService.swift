@@ -11,6 +11,8 @@ protocol AuthService {
     func sendSMS(phoneNumber: String) async throws -> AuthSendSMSResponseDTO
     func verifySMS(phoneNumber: String, verificationCode: String) async throws -> AuthVerifySMSResponseDTO
     func signup(request: AuthSignupRequestDTO, profileImageData: Data?) async throws -> AuthSignupResponseDTO
+    func logout() async throws
+    func withdraw() async throws
 }
 
 final class AuthServiceImpl: AuthService {
@@ -38,6 +40,22 @@ final class AuthServiceImpl: AuthService {
         try await apiClient.request(
             AuthAPI.signup(request: request, profileImageData: profileImageData),
             responseType: AuthSignupResponseDTO.self
+        )
+    }
+
+    func logout() async throws {
+        struct EmptyResponse: Decodable {}
+        _ = try await apiClient.request(
+            AuthAPI.logout,
+            responseType: EmptyResponse.self
+        )
+    }
+
+    func withdraw() async throws {
+        struct EmptyResponse: Decodable {}
+        _ = try await apiClient.request(
+            AuthAPI.withdraw,
+            responseType: EmptyResponse.self
         )
     }
 }

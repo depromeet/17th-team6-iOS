@@ -167,7 +167,7 @@ private extension VerifyPhoneView {
                         case .findAccount:
                             store.send(.popup(.hide))
                             store.send(.findAccountButtonTapped)
-                        case .none:
+                        default:
                             break
                         }
                     },

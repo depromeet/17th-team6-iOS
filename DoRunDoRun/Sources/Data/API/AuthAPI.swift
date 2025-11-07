@@ -12,6 +12,8 @@ enum AuthAPI {
     case sendSMS(phoneNumber: String)
     case verifySMS(phoneNumber: String, verificationCode: String)
     case signup(request: AuthSignupRequestDTO, profileImageData: Data?)
+    case logout
+    case withdraw
 }
 
 extension AuthAPI: TargetType {
@@ -25,11 +27,18 @@ extension AuthAPI: TargetType {
             return "/api/auth/sms/verify"
         case .signup:
             return "/api/auth/signup"
+        case .logout:
+            return "/api/auth/logout"
+        case .withdraw:
+            return "/api/auth/withdraw"
         }
     }
 
     var method: Moya.Method {
-        return .post
+        switch self {
+        case .logout, .withdraw, .sendSMS, .verifySMS, .signup:
+            return .post
+        }
     }
 
     var task: Task {
@@ -50,10 +59,8 @@ extension AuthAPI: TargetType {
             )
 
         case let .signup(request, profileImageData):
-            // 1. JSON 데이터를 data 필드로 감싸서 multipart로 인코딩
             var multipartData: [MultipartFormData] = []
 
-            // JSON 인코딩된 request
             if let jsonData = try? JSONEncoder().encode(request) {
                 multipartData.append(
                     MultipartFormData(
@@ -64,7 +71,6 @@ extension AuthAPI: TargetType {
                 )
             }
 
-            // 2. 프로필 이미지가 있다면 추가
             if let imageData = profileImageData {
                 multipartData.append(
                     MultipartFormData(
@@ -77,6 +83,9 @@ extension AuthAPI: TargetType {
             }
 
             return .uploadMultipart(multipartData)
+
+        case .logout, .withdraw:
+            return .requestPlain
         }
     }
 

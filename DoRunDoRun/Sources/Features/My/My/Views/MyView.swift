@@ -21,6 +21,7 @@ struct MyView: View {
                 switch store.case {
                 case .myFeedDetail(let store): MyFeedDetailView(store: store)
                 case .runningDetail(let store): RunningDetailView(store: store)
+                case .setting(let store): SettingView(store: store)
                 }
             }
         }
@@ -32,7 +33,7 @@ struct MyView: View {
             TypographyText(text: "마이", style: .t1_700, color: .gray900)
             Spacer()
             Button {
-                // 설정 버튼
+                store.send(.settingButtonTapped)
             } label: {
                 Image(.setting, fill: .fill, size: .medium)
             }
