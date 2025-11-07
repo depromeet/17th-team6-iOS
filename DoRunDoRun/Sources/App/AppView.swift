@@ -31,17 +31,36 @@ struct MainTabView: View {
             NavigationStack {
                 TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
                     RunningView(store: store.scope(state: \.running, action: \.running))
-                        .tabItem { Label("러닝", systemImage: "figure.run") }
+                        .tabItem {
+                            VStack {
+                                Image(.running, fill: .fill, size: .medium)
+                                    .renderingMode(.template)
+                                Text("러닝")
+                            }
+                        }
                         .tag(AppFeature.State.Tab.running)
                     
                     FeedView(store: store.scope(state: \.feed, action: \.feed))
-                        .tabItem { Label("피드", systemImage: "list.bullet.rectangle") }
+                        .tabItem {
+                            VStack {
+                                Image(.feed, fill: .fill, size: .medium)
+                                    .renderingMode(.template)
+                                Text("인증피드")
+                            }
+                        }
                         .tag(AppFeature.State.Tab.feed)
                     
                     MyView(store: store.scope(state: \.my, action: \.my))
-                        .tabItem { Label("마이", systemImage: "person.circle") }
+                        .tabItem {
+                            VStack {
+                                Image(.profile, fill: .fill, size: .medium)
+                                    .renderingMode(.template)
+                                Text("마이")
+                            }
+                        }
                         .tag(AppFeature.State.Tab.my)
                 }
+                .tint(Color.gray900)
             }
         }
     }
