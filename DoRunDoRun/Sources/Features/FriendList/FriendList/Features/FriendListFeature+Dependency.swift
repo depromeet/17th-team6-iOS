@@ -29,7 +29,7 @@ extension DependencyValues {
 // MARK: - Keys
 private enum FriendRunningStatusUseCaseKey: DependencyKey {
     static let liveValue: FriendRunningStatusUseCaseProtocol = FriendRunningStatusUseCase(
-        repository: FriendRunningStatusRepositoryMock()
+        repository: FriendRunningStatusRepositoryImpl()
     )
     static let testValue: FriendRunningStatusUseCaseProtocol = FriendRunningStatusUseCase(
         repository: FriendRunningStatusRepositoryMock()
@@ -38,7 +38,7 @@ private enum FriendRunningStatusUseCaseKey: DependencyKey {
 
 private enum FriendDeleteUseCaseKey: DependencyKey {
     static let liveValue: FriendDeleteUseCaseProtocol = FriendDeleteUseCase(
-        repository: FriendDeleteRepositoryMock()
+        repository: FriendDeleteRepositoryImpl()
     )
 
     static let testValue: FriendDeleteUseCaseProtocol = FriendDeleteUseCase(

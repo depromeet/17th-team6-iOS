@@ -16,7 +16,7 @@ extension DependencyValues {
 
 private enum FriendRequestUseCaseKey: DependencyKey {
     static let liveValue: FriendCodeUseCase = FriendCodeUseCase(
-        repository: FriendCodeRepositoryMock()
+        repository: FriendCodeRepositoryImpl()
     )
     static let testValue: FriendCodeUseCase = FriendCodeUseCase(
         repository: FriendCodeRepositoryMock()
