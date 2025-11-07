@@ -59,6 +59,10 @@ struct SettingFeature {
                 state.editProfile = EditProfileFeature.State()
                 return .none
                 
+            case .editProfile(.presented(.completed)):
+                state.editProfile = nil
+                return .none
+                
             case .editProfile(.presented(.backButtonTapped)):
                 state.editProfile = nil
                 return .none

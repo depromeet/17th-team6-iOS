@@ -9,6 +9,7 @@ import Foundation
 
 protocol UserService {
     func fetchProfile() async throws -> UserProfileResponseDTO
+    func updateProfile(request: UserProfileUpdateRequestDTO, profileImageData: Data?) async throws -> UserProfileUpdateResponseDTO
 }
 
 final class UserServiceImpl: UserService {
@@ -19,9 +20,10 @@ final class UserServiceImpl: UserService {
     }
 
     func fetchProfile() async throws -> UserProfileResponseDTO {
-        try await apiClient.request(
-            UserAPI.fetchProfile,
-            responseType: UserProfileResponseDTO.self
-        )
+        try await apiClient.request(UserAPI.fetchProfile, responseType: UserProfileResponseDTO.self)
+    }
+
+    func updateProfile(request: UserProfileUpdateRequestDTO, profileImageData: Data?) async throws -> UserProfileUpdateResponseDTO {
+        try await apiClient.request(UserAPI.updateProfile(request: request, profileImageData: profileImageData), responseType: UserProfileUpdateResponseDTO.self)
     }
 }
