@@ -20,6 +20,9 @@ struct AppView: View {
                 .id("onboarding")
             }
         }
+        .task {
+            store.send(.appStarted)   // 앱 시작 시 자동 로그인 검사
+        }
     }
 }
 

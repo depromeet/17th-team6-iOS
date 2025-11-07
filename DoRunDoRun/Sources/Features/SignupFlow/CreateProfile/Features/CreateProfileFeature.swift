@@ -84,6 +84,8 @@ struct CreateProfileFeature {
             case let .signupCompletedSuccess(result):
                 TokenManager.shared.accessToken = result.token.accessToken
                 TokenManager.shared.refreshToken = result.token.refreshToken
+                UserManager.shared.userId = result.user.id
+                UserManager.shared.nickname = result.user.nickname
                 return .send(.completed)
 
             case .signupCompletedFailure:
