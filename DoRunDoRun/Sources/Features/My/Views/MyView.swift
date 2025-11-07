@@ -19,6 +19,7 @@ struct MyView: View {
                 .toolbar(.hidden, for: .navigationBar)
             } destination: { store in
                 switch store.case {
+                case .myFeedDetail(let store): MyFeedDetailView(store: store)
                 case .runningDetail(let store): RunningDetailView(store: store)
                 }
             }
@@ -83,8 +84,8 @@ struct MyView: View {
     // MARK: - 탭 헤더
     private var tabHeaderSection: some View {
         HStack {
-            tabButton(title: "인증", index: MyFeature.State.Tab.certification.rawValue)
-            tabButton(title: "기록", index: MyFeature.State.Tab.record.rawValue)
+            tabButton(title: "인증", index: MyFeature.State.Tab.feed.rawValue)
+            tabButton(title: "기록", index: MyFeature.State.Tab.session.rawValue)
         }
         .padding(.top, 16)
         .padding(.horizontal, 20)
@@ -98,7 +99,7 @@ struct MyView: View {
 
     private func tabButton(title: String, index: Int) -> some View {
         Button {
-            store.send(index == 0 ? .certificationTapped : .recordTapped)
+            store.send(index == 0 ? .feedTapped : .sessionTapped)
         } label: {
             VStack(spacing: 0) {
                 TypographyText(
@@ -128,11 +129,14 @@ struct MyView: View {
                         loadNextPageIfNeeded: { feed in
                             store.send(.loadNextPageIfNeeded(currentItem: feed))
                         },
-                        isLoading: store.isLoading
+                        isLoading: store.isLoading,
+                        onFeedTap: { feed in
+                            store.send(.feedItemTapped(feed))
+                        }
                     )
                 }
             }
-            .tag(MyFeature.State.Tab.certification.rawValue)
+            .tag(MyFeature.State.Tab.feed.rawValue)
             
             VStack(spacing: 0) {
                  MonthNavigationHeaderView(
@@ -147,12 +151,12 @@ struct MyView: View {
                      MySessionView(
                          sessions: store.filteredSessions,
                          onSessionTap: { session in
-                             store.send(.sessionTapped(session))
+                             store.send(.sessionCardTapped(session))
                          }
                      )
                  }
              }
-             .tag(MyFeature.State.Tab.record.rawValue)
+             .tag(MyFeature.State.Tab.session.rawValue)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .animation(.easeInOut, value: store.currentTap)
