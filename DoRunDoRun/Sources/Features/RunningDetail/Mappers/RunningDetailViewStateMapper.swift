@@ -72,6 +72,47 @@ struct RunningDetailViewStateMapper {
             feed: viewState.feed
         )
     }
+    
+    /// ViewState(RunningSessionSummary) → ViewState(RunningDetail)
+    static func map(from summary: RunningSessionSummaryViewState) -> RunningDetailViewState {
+        let distanceValue = Double(summary.distanceText
+            .replacingOccurrences(of: "km", with: "")
+            .trimmingCharacters(in: .whitespaces)) ?? 0.0
+
+        return RunningDetailViewState(
+            // MARK: - 표시용 텍스트
+            finishedAtText: summary.timeText,
+            totalDistanceText: summary.distanceText,
+            avgPaceText: summary.paceText,
+            durationText: summary.durationText,
+            cadenceText: summary.spmText,
+
+            // MARK: - 원본 데이터
+            startedAt: summary.date,
+            finishedAt: summary.date,
+            totalDistanceMeters: distanceValue * 1000,
+            elapsed: .seconds(0),
+            avgPaceSecPerKm: 0,
+            avgCadenceSpm: 0,
+            maxCadenceSpm: 0,
+            fastestPaceSecPerKm: 0,
+            coordinateAtmaxPace: RunningPoint(
+                timestamp: Date(),
+                coordinate: RunningCoordinate(latitude: 0, longitude: 0),
+                altitude: 0,
+                speedMps: 0
+            ),
+
+            // MARK: - 지도 관련
+            points: [],
+            coordinates: [],
+            mapImageData: nil,
+            mapImageURL: summary.mapImageURL.flatMap(URL.init(string:)),
+
+            // MARK: - 기타
+            feed: nil
+        )
+    }
 }
 
 // MARK: - Formatter Helpers
