@@ -12,6 +12,9 @@ import Moya
 enum FriendAPI {
     case runningStatus(page: Int, size: Int)
     case reaction(userId: Int)
+    case deleteFriends(ids: [Int])
+    case generateMyFriendCode
+    case addFriendByCode(code: String)
 }
 
 extension FriendAPI: TargetType {
@@ -25,6 +28,12 @@ extension FriendAPI: TargetType {
             return "/api/friends/running/status"
         case .reaction:
             return "/api/friends/reaction"
+        case .deleteFriends:
+            return "/api/friends/delete"
+        case .generateMyFriendCode:
+            return "/api/friends/will-you-friend-me"
+        case .addFriendByCode:
+            return "/api/friends/will-you-friend-me"
         }
     }
 
@@ -34,6 +43,12 @@ extension FriendAPI: TargetType {
         case .runningStatus:
             return .get
         case .reaction:
+            return .post
+        case .deleteFriends:
+            return .post
+        case .generateMyFriendCode:
+            return .get
+        case .addFriendByCode:
             return .post
         }
     }
@@ -54,6 +69,15 @@ extension FriendAPI: TargetType {
                 parameters: ["userId": userId],
                 encoding: JSONEncoding.default
             )
+            
+        case let .deleteFriends(ids):
+            return .requestJSONEncodable(FriendDeleteRequestDTO(friendIds: ids))
+            
+        case .generateMyFriendCode:
+            return .requestPlain
+            
+        case let .addFriendByCode(code):
+            return .requestJSONEncodable(FriendCodeRequestDTO(code: code))
         }
     }
 
