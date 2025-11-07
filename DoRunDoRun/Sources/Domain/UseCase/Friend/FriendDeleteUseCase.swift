@@ -6,7 +6,7 @@
 //
 
 protocol FriendDeleteUseCaseProtocol {
-    func execute(ids: [Int]) async throws
+    func execute(ids: [Int]) async throws -> FriendDeleteResult
 }
 
 final class FriendDeleteUseCase: FriendDeleteUseCaseProtocol {
@@ -16,7 +16,7 @@ final class FriendDeleteUseCase: FriendDeleteUseCaseProtocol {
         self.repository = repository
     }
 
-    func execute(ids: [Int]) async throws {
+    func execute(ids: [Int]) async throws -> FriendDeleteResult {
         try await repository.deleteFriends(ids: ids)
     }
 }

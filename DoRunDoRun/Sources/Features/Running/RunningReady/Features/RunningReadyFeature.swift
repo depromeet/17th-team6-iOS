@@ -66,7 +66,7 @@ struct RunningReadyFeature {
                 state.isLoading = true
                 return .run { [page] send in
                     do {
-                        let results = try await statusUseCase.excute(page: page, size: 20)
+                        let results = try await statusUseCase.execute(page: page, size: 20)
                         await send(.statusSuccess(results))
                     } catch {
                         await send(.statusFailure(error.localizedDescription))

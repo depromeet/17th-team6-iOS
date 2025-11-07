@@ -12,7 +12,8 @@ final class FriendDeleteRepositoryImpl: FriendDeleteRepository {
         self.service = service
     }
 
-    func deleteFriends(ids: [Int]) async throws {
-        _ = try await service.deleteFriends(ids: ids)
+    func deleteFriends(ids: [Int]) async throws -> FriendDeleteResult {
+        let dto = try await service.deleteFriends(ids: ids)
+        return dto.toDomain()
     }
 }

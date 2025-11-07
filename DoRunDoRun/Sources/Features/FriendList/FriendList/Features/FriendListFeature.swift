@@ -39,7 +39,7 @@ struct FriendListFeature {
         
         case showDeletePopup(Int)
         case confirmDelete(Int)
-        case deleteSuccess
+        case deleteSuccess(FriendDeleteResult)
         
         case copyMyCodeButtonTapped
         case copyMyCodeSuccess(String)
@@ -76,7 +76,7 @@ struct FriendListFeature {
             case .loadFriends:
                 return .run { send in
                     do {
-                        let friends = try await friendListUseCase.excute(page: 0, size: 20)
+                        let friends = try await friendListUseCase.execute(page: 0, size: 20)
                         await send(.loadFriendsSuccess(friends))
                     } catch {
                         if let apiError = error as? APIError {
@@ -106,8 +106,8 @@ struct FriendListFeature {
             case let .confirmDelete(friendID):
                 return .run { send in
                     do {
-                        try await friendDeleteUseCase.execute(ids: [friendID])
-                        await send(.deleteSuccess)
+                        let result = try await friendDeleteUseCase.execute(ids: [friendID])
+                        await send(.deleteSuccess(result))
                     } catch {
                         if let apiError = error as? APIError {
                             print(apiError.userMessage)
@@ -117,8 +117,12 @@ struct FriendListFeature {
                     }
                 }
 
-            case .deleteSuccess:
-                return .send(.loadFriends)
+            case let .deleteSuccess(result):
+                let deletedNames = result.deletedFriends.map(\.nickname).joined(separator: ", ")
+                return .merge(
+                    .send(.loadFriends),
+                    .send(.toast(.show("'\(deletedNames)' 친구가 삭제되었어요.")))
+                )
                 
             case .copyMyCodeButtonTapped:
                 return .run { send in
@@ -144,6 +148,7 @@ struct FriendListFeature {
                 
             case let .friendCodeInput(.presented(.submitSuccess(friendCode))):
                 state.friendCodeInput = nil
+                state.needsReloadAfterFriendAdd = true
                 return .send(.toast(.show("'\(friendCode.nickname)' 친구가 추가되었어요!")))
                 
             case .friendCodeInput(.presented(.backButtonTapped)):

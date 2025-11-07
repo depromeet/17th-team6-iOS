@@ -6,5 +6,5 @@
 //
 
 protocol FriendDeleteRepository {
-    func deleteFriends(ids: [Int]) async throws
+    func deleteFriends(ids: [Int]) async throws -> FriendDeleteResult
 }
