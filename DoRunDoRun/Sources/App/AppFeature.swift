@@ -17,6 +17,9 @@ struct AppFeature {
     }
 
     enum Action {
+        // 앱 시작
+        case appStarted
+        
         // 로그인 전
         case onboarding(OnboardingFeature.Action)
         
@@ -35,6 +38,10 @@ struct AppFeature {
 
         Reduce { state, action in
             switch action {
+            case .appStarted:
+                let hasValidToken = !(TokenManager.shared.accessToken.isEmpty)
+                state.isLoggedIn = hasValidToken
+                return .none
             case .onboarding(.finished):
                 // 온보딩 완료 → 메인 탭으로 전환
                 state.isLoggedIn = true
