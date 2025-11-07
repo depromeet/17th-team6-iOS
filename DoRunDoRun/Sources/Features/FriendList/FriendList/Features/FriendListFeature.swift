@@ -25,6 +25,10 @@ struct FriendListFeature {
         var friends: [FriendRunningStatusViewState] = []
         var hasAppearedOnce = false              // 최초 진입 감지
         var needsReloadAfterFriendAdd = false    // 친구 추가 후 복귀 시 갱신 여부
+        
+        var currentPage = 0
+        var isLoading = false
+        var hasNextPage = true
     }
 
     enum Action: Equatable {
@@ -34,8 +38,9 @@ struct FriendListFeature {
         case popup(PopupFeature.Action)
         
         case onAppear
-        case loadFriends
+        case loadFriends(page: Int)
         case loadFriendsSuccess([FriendRunningStatus])
+        case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
         
         case showDeletePopup(Int)
         case confirmDelete(Int)
@@ -60,23 +65,24 @@ struct FriendListFeature {
                 // 처음 들어올 때
                 if !state.hasAppearedOnce {
                     state.hasAppearedOnce = true
-                    return .send(.loadFriends)
+                    return .send(.loadFriends(page: 0))
                 }
                 
                 // 친구 추가 후 돌아왔을 때
                 if state.needsReloadAfterFriendAdd {
                     state.needsReloadAfterFriendAdd = false
-                    return .send(.loadFriends)
+                    return .send(.loadFriends(page: 0))
                 }
                 
                 // 그 외의 경우 (단순 복귀)
                 return .none
 
             // MARK: - Load Friends
-            case .loadFriends:
-                return .run { send in
+            case let .loadFriends(page):
+                state.isLoading = true
+                return .run { [page] send in
                     do {
-                        let friends = try await friendListUseCase.execute(page: 0, size: 20)
+                        let friends = try await friendListUseCase.execute(page: page, size: 20)
                         await send(.loadFriendsSuccess(friends))
                     } catch {
                         if let apiError = error as? APIError {
@@ -88,7 +94,34 @@ struct FriendListFeature {
                 }
 
             case let .loadFriendsSuccess(friends):
-                state.friends = friends.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+                state.isLoading = false
+                if friends.isEmpty {
+                    state.hasNextPage = false
+                } else {
+                    let mapped = friends.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+                    if state.currentPage == 0 {
+                        // 첫 페이지
+                        state.friends = mapped
+                    } else {
+                        // 다음 페이지 append
+                        state.friends.append(contentsOf: mapped)
+                    }
+                    state.currentPage += 1
+                }
+                return .none
+                
+            case let .loadNextPageIfNeeded(currentItem):
+                guard let currentItem else { return .none }
+                guard !state.isLoading && state.hasNextPage else { return .none }
+
+                // 데이터 개수에 따라 thresholdIndex를 안전하게 계산
+                let threshold = max(state.friends.count - 5, 0)
+                if let currentIndex = state.friends.firstIndex(where: { $0.id == currentItem.id }),
+                   currentIndex >= threshold {
+                    let nextPage = state.currentPage + 1
+                    print("[DEBUG] 다음 페이지 요청: \(nextPage)")
+                    return .send(.loadFriends(page: nextPage))
+                }
                 return .none
 
             // MARK: - Delete Flow
@@ -120,7 +153,7 @@ struct FriendListFeature {
             case let .deleteSuccess(result):
                 let deletedNames = result.deletedFriends.map(\.nickname).joined(separator: ", ")
                 return .merge(
-                    .send(.loadFriends),
+                    .send(.loadFriends(page: 0)),
                     .send(.toast(.show("'\(deletedNames)' 친구가 삭제되었어요.")))
                 )
                 

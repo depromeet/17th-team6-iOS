@@ -16,7 +16,12 @@ struct FriendListRowView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack(spacing: 12) {
-                ProfileImageView(imageURL: friend.profileImageURL, style: .grayBorder, size: .large)
+                ProfileImageView(
+                    image: Image(.profilePlaceholder),
+                    imageURL: friend.profileImageURL,
+                    style: .grayBorder,
+                    size: .large
+                )
                 VStack(alignment: .leading, spacing: 2) {
                     TypographyText(text: friend.name, style: .t2_700, color: .gray900)
                     if let latestRanText = friend.latestRanText {

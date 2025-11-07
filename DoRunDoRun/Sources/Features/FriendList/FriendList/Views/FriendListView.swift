@@ -77,8 +77,19 @@ private extension FriendListView {
                         FriendListRowView(friend: friend) {
                             store.send(.showDeletePopup(friend.id))
                         }
+                        .onAppear {
+                            if friend.id == store.friends.last?.id {
+                                store.send(.loadNextPageIfNeeded(currentItem: friend))
+                            }
+                        }
+                    }
+                    if store.isLoading && store.currentPage > 0 {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                     }
                 }
+                .padding(.bottom, 129)
             }
         }
     }
