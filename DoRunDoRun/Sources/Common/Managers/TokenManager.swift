@@ -12,12 +12,12 @@ final class TokenManager {
     static let shared = TokenManager()
     private init() {}
 
-    @UserDefault(key: "ACCESS_TOKEN", defaultValue: "")
-    var accessToken: String
+    @UserDefault(key: "accessToken", defaultValue: nil)
+    var accessToken: String?
 
-    @UserDefault(key: "REFRESH_TOKEN", defaultValue: "")
-    var refreshToken: String
-
+    @UserDefault(key: "refreshToken", defaultValue: nil)
+    var refreshToken: String?
+    
     func clear() {
         accessToken = ""
         refreshToken = ""

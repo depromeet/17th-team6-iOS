@@ -14,6 +14,7 @@ enum AuthAPI {
     case signup(request: AuthSignupRequestDTO, profileImageData: Data?)
     case logout
     case withdraw
+    case refreshToken(refreshToken: String)
 }
 
 extension AuthAPI: TargetType {
@@ -31,12 +32,14 @@ extension AuthAPI: TargetType {
             return "/api/auth/logout"
         case .withdraw:
             return "/api/auth/withdraw"
+        case .refreshToken:
+            return "/api/auth/refresh"
         }
     }
 
     var method: Moya.Method {
         switch self {
-        case .logout, .withdraw, .sendSMS, .verifySMS, .signup:
+        case .logout, .withdraw, .sendSMS, .verifySMS, .signup, .refreshToken:
             return .post
         }
     }
@@ -86,6 +89,12 @@ extension AuthAPI: TargetType {
 
         case .logout, .withdraw:
             return .requestPlain
+            
+        case let .refreshToken(refreshToken):
+            return .requestParameters(
+                parameters: ["refreshToken": refreshToken],
+                encoding: JSONEncoding.default
+            )
         }
     }
 

@@ -21,20 +21,22 @@ final class APIClient: APIClientProtocol {
     private let provider: MoyaProvider<MultiTarget>
     
     init(stub: Bool = false) {
-        // 공통 플러그인 리스트 정의
-        var plugins: [PluginType] = [
+        // MARK: - 공통 플러그인 (로깅 등)
+        let plugins: [PluginType] = [
             NetworkLoggerPlugin(configuration: .init(logOptions: .verbose))
         ]
-        
-        // accessToken이 존재하면 AuthPlugin을 함께 등록
-        if TokenManager.shared.accessToken != nil {
-            plugins.append(AuthPlugin())
-        }
-        
+
+        // MARK: - TokenInterceptor 연결된 Session 생성
+        let session = Session(interceptor: TokenInterceptor())
+
+        // MARK: - Provider 초기화
         if stub {
             provider = MoyaProvider<MultiTarget>(stubClosure: MoyaProvider.immediatelyStub)
         } else {
-            provider = MoyaProvider<MultiTarget>(plugins: plugins)
+            provider = MoyaProvider<MultiTarget>(
+                session: session,
+                plugins: plugins
+            )
         }
     }
     
