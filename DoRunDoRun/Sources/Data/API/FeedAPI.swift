@@ -54,4 +54,8 @@ extension FeedAPI: TargetType {
     var headers: [String: String]? {
         HTTPHeader.json.value
     }
+    
+    var validationType: ValidationType {
+        return .successCodes
+    }
 }
