@@ -16,9 +16,37 @@ struct RunningReadyView: View {
 
     var body: some View {
         WithPerceptionTracking {
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension RunningReadyView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension RunningReadyView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
             VStack(alignment: .trailing, spacing: 0) {
                 gpsButton
-                
+
                 ZStack(alignment: .bottom) {
                     friendSheet
                     startButton
@@ -34,10 +62,7 @@ struct RunningReadyView: View {
             }
         }
     }
-}
-
-// MARK: - Subviews
-private extension RunningReadyView {
+    
     /// GPS 버튼
     var gpsButton: some View {
         Button {
@@ -54,7 +79,7 @@ private extension RunningReadyView {
         .offset(y: sheetOffset - 16) // 시트 위치 따라 이동 (위로 16)
     }
     
-    /// 친구 현황 시트 섹션
+    /// 친구 러닝 현황 시트 섹션
     var friendSheet: some View {
         FriendRunningStatusSheetView(
             statuses: store.statuses,
@@ -79,27 +104,27 @@ private extension RunningReadyView {
             store.send(.onAppear)
         }
         .zIndex(1)
-        
     }
-
-    /// “오늘의 러닝 시작” 버튼 섹션
+    
+    /// “러닝 시작하기” 버튼 섹션
     var startButton: some View {
         VStack(spacing: 0) {
             Color.gray0
-            .frame(height: 76)
-            .overlay(
-                AppButton(title: "러닝 시작하기") {
-                    store.send(.startButtonTapped)
-                }
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-                .padding(.horizontal, 20)
-            )
+                .frame(height: 76)
+                .overlay(
+                    AppButton(title: "러닝 시작하기") {
+                        store.send(.startButtonTapped)
+                    }
+                        .padding(.top, 8)
+                        .padding(.bottom, 12)
+                        .padding(.horizontal, 20)
+                )
         }
+        .background(Color.gray0.ignoresSafeArea(edges: .bottom))
         .zIndex(2)
     }
     
-    /// Toast
+    /// 각종 Toast
     @ViewBuilder
     var toast: some View {
         if store.toast.isVisible {
@@ -108,6 +133,25 @@ private extension RunningReadyView {
                 .frame(maxWidth: .infinity)
                 .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
                 .zIndex(3)
+        }
+    }
+}
+
+// MARK: - Network Error Popup Section
+private extension RunningReadyView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
         }
     }
 }

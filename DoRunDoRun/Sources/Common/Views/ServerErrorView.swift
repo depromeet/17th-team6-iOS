@@ -7,12 +7,13 @@
 
 import SwiftUI
 
+enum ServerErrorType {
+    case notFound           //404
+    case internalServer     //500
+    case badGateway         //502
+}
+
 struct ServerErrorView: View {
-    enum ServerErrorType {
-        case notFound           //404
-        case internalServer     //500
-        case badGateway         //502
-    }
     let serverErrorType: ServerErrorType
     let onAction: () -> Void
     
