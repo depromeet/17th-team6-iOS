@@ -14,7 +14,6 @@ struct RunningView: View {
                     phase: store.phase,
                     statuses: store.ready.statuses,
                     focusedFriendID: store.ready.focusedFriendID,
-                    myLocation: store.ready.myLocation,
                     isFollowingLocation: store.active.isFollowingLocation,
                     onMapGestureDetected: { store.send(.active(.mapGestureDetected)) },
                     runningCoordinates: store.active.routeCoordinates
