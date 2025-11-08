@@ -199,9 +199,9 @@ struct MyFeature {
                         await send(.fetchSelfieFeedsSuccess(feeds))
                     } catch {
                         if let apiError = error as? APIError {
-                            await send(.fetchSessionsFailure(apiError))
+                            await send(.fetchSelfieFeedsFailure(apiError))
                         } else {
-                            await send(.fetchSessionsFailure(.unknown))
+                            await send(.fetchSelfieFeedsFailure(.unknown))
                         }
                     }
                 }
@@ -289,9 +289,9 @@ struct MyFeature {
                         await send(.fetchSessionsSuccess(sessions))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.fetchSessionsFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.fetchSessionsFailure(.unknown))
                         }
                     }
                 }
@@ -341,6 +341,11 @@ struct MyFeature {
                     state.currentMonth = newDate
                 }
                 return .send(.fetchSessions)
+                
+            // MARK: 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                    .serverError(.retryButtonTapped):
+                return .send(.onAppear)
 
             default:
                 return .none

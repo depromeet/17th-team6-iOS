@@ -148,6 +148,7 @@ struct RunningReadyFeature {
                     return .send(.toast(.show(apiError.userMessage)))
                 }
                 
+            // MARK: 재시도
             case .networkErrorPopup(.retryButtonTapped),
                  .serverError(.retryButtonTapped):
                 return .send(.onAppear)

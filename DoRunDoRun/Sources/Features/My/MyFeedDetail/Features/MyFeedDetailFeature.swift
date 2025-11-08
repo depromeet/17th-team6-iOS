@@ -20,6 +20,12 @@ struct MyFeedDetailFeature {
         /// 현재 표시 중인 피드 아이템
         var feed: SelfieFeedItem
         
+        /// 네트워크 에러 팝업 상태
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        
+        /// 서버 에러 상태
+        var serverError = ServerErrorFeature.State()
+        
         /// 리액션 상세 시트 상태
         var reactionDetail = ReactionDetailSheetFeature.State()
         
@@ -56,10 +62,23 @@ struct MyFeedDetailFeature {
         var hiddenReactions: [ReactionViewState] {
             Array(feed.reactions.dropFirst(3))
         }
+        
+        enum FailedRequestType: Equatable {
+            case toggleReaction(ReactionViewState)
+            case addReaction(EmojiType)
+        }
+        
+        var lastFailedRequest: FailedRequestType? = nil
     }
 
     // MARK: - Action
     enum Action: Equatable {
+        /// 네트워크 에러 팝업 액션
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        
+        /// 서버 에러 액션
+        case serverError(ServerErrorFeature.Action)
+        
         /// 리액션 상세 시트 액션
         case reactionDetail(ReactionDetailSheetFeature.Action)
         
@@ -72,6 +91,9 @@ struct MyFeedDetailFeature {
         /// 리액션 탭 서버 응답 성공
         case reactionSuccess(SelfieFeedReaction)
         
+        /// 리액션 탭 서버 응답 실패
+        case reactionFailure(APIError)
+        
         /// 리액션 롱탭 (상세 시트 표시)
         case reactionLongPressed(ReactionViewState)
         
@@ -80,6 +102,9 @@ struct MyFeedDetailFeature {
         
         /// 리액션 추가 서버 응답 성공
         case addReactionSuccess(SelfieFeedReaction)
+        
+        /// 리액션 추가 서버 응답 실패
+        case addReactionFailure(APIError)
         
         /// 시트 전체 닫기
         case dismissSheet
@@ -91,6 +116,8 @@ struct MyFeedDetailFeature {
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
         // 하위 피처 연결
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature()}
         Scope(state: \.reactionDetail, action: \.reactionDetail) { ReactionDetailSheetFeature() }
         Scope(state: \.reactionPicker, action: \.reactionPicker) { ReactionPickerSheetFeature() }
         
@@ -111,9 +138,9 @@ struct MyFeedDetailFeature {
                         await send(.reactionSuccess(result))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.reactionFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.reactionFailure(.unknown))
                         }
                     }
                 }
@@ -125,6 +152,11 @@ struct MyFeedDetailFeature {
                     for: result.emojiType
                 )
                 return .none
+                
+            // MARK: - 리액션 토글 실패
+            case let .reactionFailure(apiError):
+                state.lastFailedRequest = .toggleReaction(state.feed.reactions.first(where: { $0.isReactedByMe }) ?? .init(emojiType: .heart, totalCount: 0, isReactedByMe: false, users: []))
+                return handleAPIError(apiError)
 
             // MARK: - 리액션 롱탭 (상세 시트 표시)
             case let .reactionLongPressed(reaction):
@@ -162,9 +194,9 @@ struct MyFeedDetailFeature {
                         await send(.addReactionSuccess(result))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.addReactionFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.addReactionFailure(.unknown))
                         }
                     }
                 }
@@ -176,6 +208,13 @@ struct MyFeedDetailFeature {
                     emoji: result.emojiType
                 )
                 return .none
+                
+            // MARK: - 리액션 추가 실패
+            case let .addReactionFailure(apiError):
+                if let pickerEmoji = state.reactionPicker.selectedEmoji {
+                    state.lastFailedRequest = .addReaction(pickerEmoji)
+                }
+                return handleAPIError(apiError)
 
             // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
@@ -192,9 +231,37 @@ struct MyFeedDetailFeature {
             case .backButtonTapped:
                 return .none
                 
+            // MARK: 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                 .serverError(.retryButtonTapped):
+                guard let failed = state.lastFailedRequest else { return .none }
+
+                switch failed {
+                case let .toggleReaction(reaction):
+                    return .send(.reactionTapped(reaction))
+                case let .addReaction(emoji):
+                    return .send(.reactionPicker(.reactionSelected(emoji)))
+                }
+
             default:
                 return .none
             }
+        }
+    }
+    
+    private func handleAPIError(_ apiError: APIError) -> Effect<Action> {
+        switch apiError {
+        case .networkError:
+            return .send(.networkErrorPopup(.show))
+        case .notFound:
+            return .send(.serverError(.show(.notFound)))
+        case .internalServer:
+            return .send(.serverError(.show(.internalServer)))
+        case .badGateway:
+            return .send(.serverError(.show(.badGateway)))
+        default:
+            print(apiError.userMessage)
+            return .none
         }
     }
 }
