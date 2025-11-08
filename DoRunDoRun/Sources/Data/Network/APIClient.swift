@@ -7,6 +7,7 @@
 
 import Foundation
 
+import Alamofire
 import Moya
 
 protocol APIClientProtocol {
@@ -64,14 +65,34 @@ final class APIClient: APIClientProtocol {
                     }
                     
                 case let .failure(error):
-                    // 네트워크 오류 처리
-                    switch error {
-                    case .underlying(let nsError as NSError, _)
-                        where nsError.domain == NSURLErrorDomain:
-                        continuation.resume(throwing: APIError.networkError)
-                    default:
-                        continuation.resume(throwing: APIError.unknown)
+                    // 1. MoyaError 내부의 AFError 추출
+                    if case let .underlying(afError, _) = error,
+                       let afError = afError as? AFError {
+
+                        // 2. AFError 내부의 NSError 추출
+                        if case let .sessionTaskFailed(innerError) = afError,
+                           let nsError = innerError as NSError? {
+
+                            // 3 NSURLErrorDomain && -1009 (인터넷 연결 끊김) 확인
+                            if nsError.domain == NSURLErrorDomain {
+                                switch nsError.code {
+                                case NSURLErrorNotConnectedToInternet,
+                                     NSURLErrorNetworkConnectionLost,
+                                     NSURLErrorCannotFindHost,
+                                     NSURLErrorCannotConnectToHost,
+                                     NSURLErrorTimedOut:
+                                    continuation.resume(throwing: APIError.networkError)
+                                    return
+                                default:
+                                    break
+                                }
+                            }
+                        }
                     }
+
+                    // 4. 위 조건에 안 걸리면 unknown 처리
+                    continuation.resume(throwing: APIError.unknown)
+
                 }
             }
         }
