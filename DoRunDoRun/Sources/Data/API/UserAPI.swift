@@ -75,4 +75,8 @@ extension UserAPI: TargetType {
             return HTTPHeader.json.value
         }
     }
+    
+    var validationType: ValidationType {
+        return .successCodes
+    }
 }

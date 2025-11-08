@@ -13,7 +13,7 @@ import Alamofire
 actor TokenRefresher {
     static let shared = TokenRefresher()
     private(set) var isRefreshing = false
-    private var pendingCompletions: [(RetryResult) -> Void] = []   // Alamofire.RetryResult 사용
+    private var pendingCompletions: [(RetryResult) -> Void] = []
 
     // MARK: - Pending
     func addPending(_ completion: @escaping (RetryResult) -> Void) {
@@ -28,7 +28,7 @@ actor TokenRefresher {
     // MARK: - Refresh Logic
     func tryRefresh() async -> Bool {
         guard let refreshToken = TokenManager.shared.refreshToken, !refreshToken.isEmpty else {
-            print("No refresh token found.")
+            print("❌ [TokenRefresher] No refresh token found.")
             return false
         }
 
@@ -36,33 +36,52 @@ actor TokenRefresher {
         defer { isRefreshing = false }
 
         do {
-            // MoyaProvider<AuthAPI>를 사용해 refresh 요청
-            let provider = MoyaProvider<AuthAPI>()
+            print("🔄 [TokenRefresher] Start refresh with token: \(refreshToken.prefix(10))...")
+
+            // refresh 요청용 provider (인터셉터 없이)
+            let session = Session() // interceptor 없는 세션
+            let provider = MoyaProvider<AuthAPI>(session: session, plugins: [NetworkLoggerPlugin(configuration: .init(logOptions: .verbose))])
+
+            // 서버 요청
             let response = try await withCheckedThrowingContinuation { continuation in
                 provider.request(.refreshToken(refreshToken: refreshToken)) { result in
                     switch result {
                     case let .success(res):
+                        print("✅ [TokenRefresher] Server responded with statusCode: \(res.statusCode)")
+                        print("📦 [TokenRefresher] Response data:", String(data: res.data, encoding: .utf8) ?? "nil")
                         continuation.resume(returning: res)
                     case let .failure(err):
+                        print("❌ [TokenRefresher] Network error:", err)
                         continuation.resume(throwing: err)
                     }
                 }
             }
 
-            // 응답 디코딩
+            // 디코딩 시도
             let decoded = try JSONDecoder().decode(AuthRefreshResponseDTO.self, from: response.data)
-            let newAccess = decoded.data.accessToken
-            let newRefresh = decoded.data.refreshToken
+            print("✅ [TokenRefresher] Decoded refresh response successfully")
 
             // 토큰 저장
-            TokenManager.shared.accessToken = newAccess
-            TokenManager.shared.refreshToken = newRefresh
+            TokenManager.shared.accessToken = decoded.data.accessToken
+            TokenManager.shared.refreshToken = decoded.data.refreshToken
+            print("🔑 [TokenRefresher] Token updated successfully")
 
-            print("Token refreshed successfully.")
             return true
 
+        } catch let DecodingError.dataCorrupted(context) {
+            print("❌ [TokenRefresher] Decoding error: dataCorrupted - \(context.debugDescription)")
+            return false
+        } catch let DecodingError.keyNotFound(key, context) {
+            print("❌ [TokenRefresher] Decoding error: key '\(key)' not found - \(context.debugDescription)")
+            return false
+        } catch let DecodingError.valueNotFound(value, context) {
+            print("❌ [TokenRefresher] Decoding error: value '\(value)' not found - \(context.debugDescription)")
+            return false
+        } catch let DecodingError.typeMismatch(type, context) {
+            print("❌ [TokenRefresher] Decoding error: type '\(type)' mismatch - \(context.debugDescription)")
+            return false
         } catch {
-            print("Token refresh failed: \(error)")
+            print("❌ [TokenRefresher] Unknown error:", error)
             return false
         }
     }
