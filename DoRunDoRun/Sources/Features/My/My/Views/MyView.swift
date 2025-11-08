@@ -7,16 +7,11 @@ struct MyView: View {
     var body: some View {
         WithPerceptionTracking {
             NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-                VStack(spacing: 0) {
-                    navigationSection
-                    profileSection
-                    tabHeaderSection
-                    tabContentSection
+                ZStack(alignment: .bottom) {
+                    serverErrorSection
+                    mainSection
+                    networkErrorPopupSection
                 }
-                .onAppear {
-                    store.send(.onAppear)
-                }
-                .toolbar(.hidden, for: .navigationBar)
             } destination: { store in
                 switch store.case {
                 case .myFeedDetail(let store): MyFeedDetailView(store: store)
@@ -26,8 +21,39 @@ struct MyView: View {
             }
         }
     }
+}
+
+// MARK: - Server Error Section
+private extension MyView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension MyView {
+    /// Main Section
+    @ViewBuilder
+    private var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
+            VStack(spacing: 0) {
+                navigationSection
+                profileSection
+                tabHeaderSection
+                tabContentSection
+            }
+            .onAppear { store.send(.onAppear) }
+            .toolbar(.hidden, for: .navigationBar)
+        }
+    }
     
-    // MARK: - 네비게이션 섹션
+    /// 네비게이션 섹션
     private var navigationSection: some View {
         HStack {
             TypographyText(text: "마이", style: .t1_700, color: .gray900)
@@ -42,7 +68,7 @@ struct MyView: View {
         .padding(.horizontal, 20)
     }
 
-    // MARK: - 프로필 섹션
+    /// 프로필 섹션
     private var profileSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
@@ -82,7 +108,7 @@ struct MyView: View {
         .padding(.top, 16)
     }
 
-    // MARK: - 탭 헤더
+    /// 탭 헤더 섹션
     private var tabHeaderSection: some View {
         HStack {
             tabButton(title: "인증", index: MyFeature.State.Tab.feed.rawValue)
@@ -97,17 +123,14 @@ struct MyView: View {
             alignment: .bottom
         )
     }
-
+    
+    /// 탭 버튼
     private func tabButton(title: String, index: Int) -> some View {
         Button {
             store.send(index == 0 ? .feedTapped : .sessionTapped)
         } label: {
             VStack(spacing: 0) {
-                TypographyText(
-                    text: title,
-                    style: .t2_700,
-                    color: store.currentTap == index ? .gray800 : .gray300
-                )
+                TypographyText(text: title, style: .t2_700, color: store.currentTap == index ? .gray800 : .gray300)
                 .padding(.top, 9)
                 .padding(.bottom, 7)
                 Rectangle()
@@ -118,7 +141,7 @@ struct MyView: View {
         }
     }
 
-    // MARK: - 탭 컨텐츠
+    /// 탭 컨텐츠 섹션
     private var tabContentSection: some View {
         TabView(selection: $store.currentTap.sending(\.pageChanged)) {
             Group {
@@ -164,16 +187,30 @@ struct MyView: View {
     }
 }
 
-// MARK: - Preview
-struct MyView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            MyView(
-                store: Store(
-                    initialState: MyFeature.State(),
-                    reducer: { MyFeature() }
-                )
-            )
+// MARK: - Network Error Popup Section
+private extension MyView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
         }
     }
+}
+
+// MARK: - Preview
+#Preview {
+    MyView(
+        store: Store(initialState: MyFeature.State()) {
+            MyFeature()
+        }
+    )
 }

@@ -68,6 +68,10 @@ struct MyFeature {
         }
         /// 월별 캐싱된 세션 목록 ("2025-11" 같은 키로 저장)
         var sessionCache: [String: [RunningSessionSummaryViewState]] = [:]
+        
+        // MARK: Sub Features State
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
     }
 
     // MARK: - Action
@@ -101,6 +105,8 @@ struct MyFeature {
         case fetchSelfieFeedsSuccess(SelfieFeedResult)
         /// 스크롤 하단 도달 시 다음 페이지 로드
         case loadNextPageIfNeeded(currentItem: SelfieFeedViewState?)
+        /// 셀피 피드 요청 실패
+        case fetchSelfieFeedsFailure(APIError)
 
         // MARK: Sessions
         /// 러닝 세션 데이터 요청
@@ -109,16 +115,25 @@ struct MyFeature {
         case fetchSessionsSuccess([RunningSessionSummary])
         /// 캐시된 러닝 세션 데이터 로드 성공
         case fetchSessionsSuccessCached([RunningSessionSummaryViewState])
+        /// 러닝 세션 요청 실패
+        case fetchSessionsFailure(APIError)
 
         // MARK: Calendar
         /// 이전 달 버튼 탭
         case previousMonthTapped
         /// 다음 달 버튼 탭
         case nextMonthTapped
+        
+        // MARK: Sub Feature Action
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
     }
 
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
+        
         Reduce { state, action in
             switch action {
 
@@ -184,9 +199,9 @@ struct MyFeature {
                         await send(.fetchSelfieFeedsSuccess(feeds))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.fetchSessionsFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.fetchSessionsFailure(.unknown))
                         }
                     }
                 }
@@ -230,6 +245,23 @@ struct MyFeature {
                     return .send(.fetchSelfieFeeds(page: nextPage))
                 }
                 return .none
+                
+            // MARK: - 셀피 피드 요청 실패
+            case let .fetchSelfieFeedsFailure(apiError):
+                state.isLoading = false
+                switch apiError {
+                case .networkError:
+                    return .send(.networkErrorPopup(.show))
+                case .notFound:
+                    return .send(.serverError(.show(.notFound)))
+                case .internalServer:
+                    return .send(.serverError(.show(.internalServer)))
+                case .badGateway:
+                    return .send(.serverError(.show(.badGateway)))
+                default:
+                    print(apiError.userMessage)
+                    return .none
+                }
 
             // MARK: - 세션 데이터 요청
             case .fetchSessions:
@@ -278,6 +310,23 @@ struct MyFeature {
             case let .fetchSessionsSuccessCached(cached):
                 state.sessions = cached
                 return .none
+                
+            // MARK: - 셀피 피드 요청 실패
+            case let .fetchSessionsFailure(apiError):
+                state.isLoading = false
+                switch apiError {
+                case .networkError:
+                    return .send(.networkErrorPopup(.show))
+                case .notFound:
+                    return .send(.serverError(.show(.notFound)))
+                case .internalServer:
+                    return .send(.serverError(.show(.internalServer)))
+                case .badGateway:
+                    return .send(.serverError(.show(.badGateway)))
+                default:
+                    print(apiError.userMessage)
+                    return .none
+                }
 
             // MARK: - 이전 달 버튼 탭
             case .previousMonthTapped:
