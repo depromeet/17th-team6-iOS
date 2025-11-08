@@ -35,7 +35,7 @@ struct CreateProfileFeature {
 
         // 내부 동작
         case profileImageButtonTapped
-        case imagePicked(UIImage)
+        case imageDataPicked(Data)
 
         // 버튼 액션
         case bottomButtonTapped
@@ -53,8 +53,11 @@ struct CreateProfileFeature {
 
         Reduce { state, action in
             switch action {
-            case let .imagePicked(image):
-                state.profileImage = image
+            case let .imageDataPicked(data):
+                let targetSize = CGSize(width: 300, height: 300)
+                if let downsampledImage = ImageDownsampler.downsample(imageData: data, to: targetSize) {
+                    state.profileImage = downsampledImage
+                }
                 return .none
 
             case .bottomButtonTapped:

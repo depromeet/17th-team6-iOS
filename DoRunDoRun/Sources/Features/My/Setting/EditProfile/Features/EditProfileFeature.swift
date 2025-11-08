@@ -33,7 +33,7 @@ struct EditProfileFeature {
 
         // 내부 동작
         case profileImageButtonTapped
-        case imagePicked(UIImage)
+        case imageDataPicked(Data)
 
         // 버튼 액션
         case bottomButtonTapped
@@ -55,8 +55,11 @@ struct EditProfileFeature {
             switch action {
 
             // MARK: - 이미지 선택
-            case let .imagePicked(image):
-                state.profileImage = image
+            case let .imageDataPicked(data):
+                let targetSize = CGSize(width: 300, height: 300)
+                if let image = ImageDownsampler.downsample(imageData: data, to: targetSize) {
+                    state.profileImage = image
+                }
                 return .none
 
             // MARK: - 저장 버튼 탭
