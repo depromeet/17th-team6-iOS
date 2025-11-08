@@ -117,6 +117,9 @@ struct SettingFeature {
                     return .run { send in
                         do {
                             try await logoutUseCase.execute()
+                            FCMTokenManager.shared.clear()
+                            TokenManager.shared.clear()
+                            UserManager.shared.clear()
                         } catch {
                             //TODO: Error Handling
                         }
@@ -126,6 +129,9 @@ struct SettingFeature {
                     return .run { send in
                         do {
                             try await withdrawUseCase.execute()
+                            FCMTokenManager.shared.clear()
+                            TokenManager.shared.clear()
+                            UserManager.shared.clear()
                         } catch {
                             //TODO: Error Handling
                         }

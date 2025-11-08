@@ -64,7 +64,7 @@ struct CreateProfileFeature {
                 
                 return .run { [state] send in
                     do {
-                        let fcmToken = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
+                        let fcmToken = FCMTokenManager.shared.fcmToken ?? ""
 
                         let result = try await signupUseCase.execute(
                             phoneNumber: state.verifiedPhoneNumber,
