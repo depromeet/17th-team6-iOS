@@ -13,40 +13,39 @@ struct FriendListView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            NavigationStack {
-                ZStack(alignment: .bottom) {
-                    VStack(alignment: .leading) {
-                        headerSection
-                        friendListSection
-                            .padding(.bottom, 129)
-                        Spacer()
+            ZStack(alignment: .bottom) {
+                VStack(alignment: .leading) {
+                    headerSection
+                    friendListSection
+                        .padding(.bottom, 129)
+                    Spacer()
+                }
+                toastAndButtonSection
+                popupSection
+            }
+            .onAppear {
+                store.send(.onAppear)
+            }
+            .navigationTitle("친구")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
                     }
-                    toastAndButtonSection
-                    popupSection
-                }
-                .onAppear {
-                    store.send(.onAppear)
-                }
-                .navigationTitle("친구")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarBackButtonHidden()
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            store.send(.backButtonTapped)
-                        } label: {
-                            Image(.arrowLeft, size: .medium)
-                                .renderingMode(.template)
-                                .foregroundColor(.gray800)
-                        }
-                    }
-                }
-                .navigationDestination(
-                    item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
-                ) { store in
-                    FriendCodeInputView(store: store)
                 }
             }
+            .navigationDestination(
+                item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
+            ) { store in
+                FriendCodeInputView(store: store)
+            }
+
         }
     }
 }
