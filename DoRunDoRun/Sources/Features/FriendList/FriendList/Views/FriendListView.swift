@@ -18,6 +18,7 @@ struct FriendListView: View {
                     VStack(alignment: .leading) {
                         headerSection
                         friendListSection
+                            .padding(.bottom, 129)
                         Spacer()
                     }
                     toastAndButtonSection
@@ -69,7 +70,7 @@ private extension FriendListView {
     @ViewBuilder
     var friendListSection: some View {
         if store.friends.isEmpty {
-            EmptyView()
+            FriendListEmptyView()
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -89,7 +90,6 @@ private extension FriendListView {
                             .padding(.vertical, 16)
                     }
                 }
-                .padding(.bottom, 129)
             }
         }
     }

@@ -16,6 +16,7 @@ struct RunningReadyFeature {
     // MARK: - State
     @ObservableState
     struct State: Equatable {
+        @Presents var friendList: FriendListFeature.State?
         var toast = ToastFeature.State()
 
         /// Entity -> ViewState 매핑 결과
@@ -32,11 +33,12 @@ struct RunningReadyFeature {
 
     // MARK: - Action
     enum Action: Equatable {
+        case friendList(PresentationAction<FriendListFeature.Action>)
         case toast(ToastFeature.Action)
-
         case onAppear
         case loadStatuses(page: Int)
         case statusSuccess([FriendRunningStatus])
+        case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
         case statusFailure(String)
         case friendTapped(Int)
         case cheerButtonTapped(Int, String)
@@ -45,8 +47,6 @@ struct RunningReadyFeature {
         case gpsButtonTapped
         case friendListButtonTapped
         case startButtonTapped
-        
-        case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
     }
 
     // MARK: - Reducer Body
@@ -62,6 +62,7 @@ struct RunningReadyFeature {
                 state.isLoading = true
                 return .send(.loadStatuses(page: 0))
 
+            // MARK: 러닝 상태 조회 (시작 페이지)
             case let .loadStatuses(page):
                 state.isLoading = true
                 return .run { [page] send in
@@ -100,6 +101,7 @@ struct RunningReadyFeature {
                 }
                 return .none
                 
+            // MARK: 러닝 상태 조회 (페이지네이션)
             case let .loadNextPageIfNeeded(currentItem):
                 guard let currentItem else { return .none }
                 guard !state.isLoading && state.hasNextPage else { return .none }
@@ -154,7 +156,12 @@ struct RunningReadyFeature {
                 
             // MARK: 친구 목록 버튼
             case .friendListButtonTapped:
-                // TODO: 친구 목록 화면 이동 로직 연결 예정
+                state.friendList = FriendListFeature.State()
+                return .none
+
+            // 친구 목록 닫을 때
+            case .friendList(.presented(.backButtonTapped)):
+                state.friendList = nil
                 return .none
                 
             // MARK: 오늘의 러닝 시작 버튼
@@ -166,6 +173,9 @@ struct RunningReadyFeature {
             default:
                 return .none
             }
+        }
+        .ifLet(\.$friendList, action: \.friendList) {
+            FriendListFeature()
         }
     }
 }

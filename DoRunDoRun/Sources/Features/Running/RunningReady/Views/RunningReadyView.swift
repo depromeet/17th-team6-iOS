@@ -10,7 +10,7 @@ import ComposableArchitecture
 
 /// 러닝 전 화면 (Ready)
 struct RunningReadyView: View {
-    let store: StoreOf<RunningReadyFeature>
+    @Perception.Bindable var store: StoreOf<RunningReadyFeature>
     @State private var sheetOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
 
@@ -26,6 +26,11 @@ struct RunningReadyView: View {
                 }
                 .ignoresSafeArea(edges: .top)
                 .navigationBarHidden(true)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.friendList, action: \.friendList)
+            ) { store in
+                FriendListView(store: store)
             }
         }
     }
