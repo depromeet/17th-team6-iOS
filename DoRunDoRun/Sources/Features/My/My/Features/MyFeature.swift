@@ -66,6 +66,8 @@ struct MyFeature {
                 CalendarManager.shared.calendar.isDate($0.date, equalTo: currentMonth, toGranularity: .month)
             }
         }
+        /// 월별 캐싱된 세션 목록 ("2025-11" 같은 키로 저장)
+        var sessionCache: [String: [RunningSessionSummaryViewState]] = [:]
     }
 
     // MARK: - Action
@@ -105,6 +107,8 @@ struct MyFeature {
         case fetchSessions
         /// 러닝 세션 요청 성공
         case fetchSessionsSuccess([RunningSessionSummary])
+        /// 캐시된 러닝 세션 데이터 로드 성공
+        case fetchSessionsSuccessCached([RunningSessionSummaryViewState])
 
         // MARK: Calendar
         /// 이전 달 버튼 탭
@@ -229,13 +233,27 @@ struct MyFeature {
 
             // MARK: - 세션 데이터 요청
             case .fetchSessions:
-                return .run { send in
+                return .run { [currentMonth = state.currentMonth, cache = state.sessionCache] send in
+                    let key = DateFormatterManager.shared.formatYearMonthLabel(from: currentMonth)
+
+                    // 이미 캐시되어 있다면 API 요청 생략
+                    if let cached = cache[key] {
+                        print("[DEBUG] \(key) 캐시 데이터 사용")
+                        await send(.fetchSessionsSuccessCached(cached))
+                        return
+                    }
+
                     do {
-                        let oneYearAgoDate = CalendarManager.shared.dateOneYearAgo()
+                        let calendar = Calendar.current
+                        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
+                        let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+
                         let sessions = try await runSessionsUseCase.fetchSessions(
                             isSelfied: false,
-                            startDateTime: oneYearAgoDate
+                            startDateTime: startOfMonth,
+                            endDateTime: endOfMonth
                         )
+
                         await send(.fetchSessionsSuccess(sessions))
                     } catch {
                         if let apiError = error as? APIError {
@@ -250,6 +268,15 @@ struct MyFeature {
             case let .fetchSessionsSuccess(sessions):
                 let mapped = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
                 state.sessions = mapped
+
+                // 캐시에 저장
+                let key = DateFormatterManager.shared.formatYearMonthLabel(from: state.currentMonth)
+                state.sessionCache[key] = mapped
+                return .none
+                
+            // MARK: - 캐시 데이터 성공 (API 요청 없이)
+            case let .fetchSessionsSuccessCached(cached):
+                state.sessions = cached
                 return .none
 
             // MARK: - 이전 달 버튼 탭
@@ -257,14 +284,14 @@ struct MyFeature {
                 if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: state.currentMonth) {
                     state.currentMonth = newDate
                 }
-                return .none
+                return .send(.fetchSessions)
 
             // MARK: - 다음 달 버튼 탭
             case .nextMonthTapped:
                 if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: state.currentMonth) {
                     state.currentMonth = newDate
                 }
-                return .none
+                return .send(.fetchSessions)
 
             default:
                 return .none

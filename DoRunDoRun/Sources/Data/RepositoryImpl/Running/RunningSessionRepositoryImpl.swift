@@ -71,17 +71,22 @@ final class RunningSessionRepositoryImpl: RunningSessionRepository {
     
     func fetchSessions(
         isSelfied: Bool?,
-        startDateTime: Date?
+        startDateTime: Date?,
+        endDateTime: Date?
     ) async throws -> [RunningSessionSummary] {
         // Date를 ISO8601 문자열로 변환
-        let startDateTimeString: String? = startDateTime.map { date in
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            return formatter.string(from: date)
-        }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let startDateTimeString = startDateTime.map { formatter.string(from: $0) }
+        let endDateTimeString = endDateTime.map { formatter.string(from: $0) }
         
         let response = try await apiClient.request(
-            RunningAPI.sessions(isSelfied: isSelfied, startDateTime: startDateTimeString),
+            RunningAPI.sessions(
+                isSelfied: isSelfied,
+                startDateTime: startDateTimeString,
+                endDateTime: endDateTimeString
+            ),
             responseType: RunningSessionListResponseDTO.self
         )
         

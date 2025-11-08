@@ -46,7 +46,8 @@ protocol RunningSessionRepository: AnyObject {
     /// - Returns: 러닝 세션 요약 목록
     func fetchSessions(
         isSelfied: Bool?,
-        startDateTime: Date?
+        startDateTime: Date?,
+        endDateTime: Date?
     ) async throws -> [RunningSessionSummary]
 
     /// 특정 러닝 세션 상세 조회
