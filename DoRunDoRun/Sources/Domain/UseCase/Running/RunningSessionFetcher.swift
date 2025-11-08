@@ -16,7 +16,8 @@ protocol RunningSessionFetcherProtocol {
     ///   - startDateTime: 조회 시작 일시
     func fetchSessions(
         isSelfied: Bool?,
-        startDateTime: Date?
+        startDateTime: Date?,
+        endDateTime: Date?
     ) async throws -> [RunningSessionSummary]
 }
 
@@ -29,11 +30,13 @@ final class RunningSessionFetcher: RunningSessionFetcherProtocol {
 
     func fetchSessions(
         isSelfied: Bool?,
-        startDateTime: Date?
+        startDateTime: Date?,
+        endDateTime: Date?
     ) async throws -> [RunningSessionSummary] {
         try await sessionRepository.fetchSessions(
             isSelfied: isSelfied,
-            startDateTime: startDateTime
+            startDateTime: startDateTime,
+            endDateTime: endDateTime
         )
     }
 }

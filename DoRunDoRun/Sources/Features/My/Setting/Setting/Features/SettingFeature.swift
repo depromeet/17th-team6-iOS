@@ -56,8 +56,14 @@ struct SettingFeature {
                 return .none
 
             case .editProfileTapped:
-                state.editProfile = EditProfileFeature.State()
+                let currentNickname = UserManager.shared.nickname
+                let currentImageURL = UserManager.shared.profileImageURL
+                state.editProfile = EditProfileFeature.State(
+                    profileImageURL: currentImageURL,
+                    nickname: currentNickname
+                )
                 return .none
+
                 
             case .editProfile(.presented(.completed)):
                 state.editProfile = nil
@@ -117,6 +123,9 @@ struct SettingFeature {
                     return .run { send in
                         do {
                             try await logoutUseCase.execute()
+                            FCMTokenManager.shared.clear()
+                            TokenManager.shared.clear()
+                            UserManager.shared.clear()
                         } catch {
                             //TODO: Error Handling
                         }
@@ -126,6 +135,9 @@ struct SettingFeature {
                     return .run { send in
                         do {
                             try await withdrawUseCase.execute()
+                            FCMTokenManager.shared.clear()
+                            TokenManager.shared.clear()
+                            UserManager.shared.clear()
                         } catch {
                             //TODO: Error Handling
                         }

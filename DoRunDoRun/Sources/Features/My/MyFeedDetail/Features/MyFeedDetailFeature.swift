@@ -258,13 +258,12 @@ private extension MyFeedDetailFeature {
         return updatedReactions
     }
     
-    // TODO: 실제 유저의 아이디와 닉네임으로 교체 필요
     /// 현재 유저의 리액션 정보를 생성합니다.
     static func makeMyReactionUser() -> ReactionUserViewState {
         ReactionUserViewState(
-            id: -1, // 로컬 임시 ID
-            nickname: "Test",
-            profileImageUrl: "",
+            id: UserManager.shared.userId,
+            nickname: UserManager.shared.nickname,
+            profileImageUrl: UserManager.shared.profileImageURL,
             isMe: true,
             reactedAtText: ISO8601DateFormatter().string(from: Date())
         )

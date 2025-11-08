@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import ComposableArchitecture
+import Kingfisher
 
 struct EditProfileView: View {
     @Perception.Bindable var store: StoreOf<EditProfileFeature>
@@ -47,20 +48,29 @@ struct EditProfileView: View {
 // MARK: - ProfileImage
 extension EditProfileView {
     private var profileImageSection: some View {
-        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-            ZStack {
+        ZStack(alignment: .bottomTrailing) {
+            // 순수 이미지 표시 (KFImage, Image 등)
+            Group {
                 if let image = store.profileImage {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 97, height: 97)
-                        .clipShape(Circle())
+                } else if let imageURL = store.profileImageURL,
+                          let url = URL(string: imageURL) {
+                    KFImage(url)
+                        .resizable()
+                        .scaledToFill()
                 } else {
                     Image(.profilePlaceholder)
-                        .frame(width: 97, height: 97)
-                        .clipShape(Circle())
+                        .resizable()
+                        .scaledToFill()
                 }
+            }
+            .frame(width: 97, height: 97)
+            .clipShape(Circle())
 
+            // 선택 버튼 PhotosPicker
+            PhotosPicker(selection: $selectedItem, matching: .images) {
                 Image(.camera, fill: .fill, size: .small)
                     .renderingMode(.template)
                     .foregroundStyle(Color.gray0)
@@ -71,7 +81,6 @@ extension EditProfileView {
                             Circle().strokeBorder(Color.gray0, lineWidth: 1)
                         }
                     )
-                    .offset(x: 33.5, y: 33.5)
             }
         }
         .padding(.top, 16)
@@ -79,9 +88,8 @@ extension EditProfileView {
         .onChange(of: selectedItem) { newItem in
             guard let item = newItem else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    store.send(.imagePicked(image))
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    store.send(.imageDataPicked(data))
                 }
             }
         }

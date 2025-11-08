@@ -51,6 +51,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let fcmToken = fcmToken else { return }
         print("📱 FCM Token:", fcmToken)
-        UserDefaults.standard.set(fcmToken, forKey: "fcmToken")
+        FCMTokenManager.shared.fcmToken = fcmToken
     }
 }

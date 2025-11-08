@@ -35,7 +35,8 @@ final class RunningSessionRepositoryMock: RunningSessionRepository {
 
     func fetchSessions(
         isSelfied: Bool?,
-        startDateTime: Date?
+        startDateTime: Date?,
+        endDateTime: Date?
     ) async throws -> [RunningSessionSummary] {
         // Mock 세션 목록 반환
         return [

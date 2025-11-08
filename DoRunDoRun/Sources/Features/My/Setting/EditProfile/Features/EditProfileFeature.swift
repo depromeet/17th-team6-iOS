@@ -18,6 +18,7 @@ struct EditProfileFeature {
     struct State: Equatable {
         var toast = ToastFeature.State()
         var profileImage: UIImage? = nil
+        var profileImageURL: String? = nil
         var nickname: String = ""
         var isNicknameValid: Bool {
             nickname.count >= 2 && nickname.count <= 8
@@ -32,7 +33,7 @@ struct EditProfileFeature {
 
         // 내부 동작
         case profileImageButtonTapped
-        case imagePicked(UIImage)
+        case imageDataPicked(Data)
 
         // 버튼 액션
         case bottomButtonTapped
@@ -54,8 +55,11 @@ struct EditProfileFeature {
             switch action {
 
             // MARK: - 이미지 선택
-            case let .imagePicked(image):
-                state.profileImage = image
+            case let .imageDataPicked(data):
+                let targetSize = CGSize(width: 300, height: 300)
+                if let image = ImageDownsampler.downsample(imageData: data, to: targetSize) {
+                    state.profileImage = image
+                }
                 return .none
 
             // MARK: - 저장 버튼 탭
@@ -100,6 +104,10 @@ struct EditProfileFeature {
             // MARK: - 서버 응답 처리
             case let .updateProfileSuccess(url):
                 state.isLoading = false
+                if let url {
+                    UserManager.shared.profileImageURL = url
+                }
+                UserManager.shared.nickname = state.nickname
                 return .merge(
                     .send(.toast(.show("프로필이 수정되었습니다."))),
                     .send(.completed)

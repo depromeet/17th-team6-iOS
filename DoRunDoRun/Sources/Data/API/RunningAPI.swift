@@ -13,7 +13,7 @@ enum RunningAPI {
     case start
     case saveSegments(sessionId: Int, request: RunningSegmentRequestDTO)
     case complete(sessionId: Int, data: RunningCompleteRequestDTO, mapImage: Data?)
-    case sessions(isSelfied: Bool?, startDateTime: String?)
+    case sessions(isSelfied: Bool?, startDateTime: String?, endDateTime: String?)
     case sessionDetail(sessionId: Int)
 }
 
@@ -83,7 +83,7 @@ extension RunningAPI: TargetType {
 
             return .uploadMultipart(multipartData)
 
-        case let .sessions(isSelfied, startDateTime):
+        case let .sessions(isSelfied, startDateTime, endDateTime):
             // Query parameters로 전송
             var parameters: [String: Any] = [:]
             if let isSelfied = isSelfied {
@@ -91,6 +91,9 @@ extension RunningAPI: TargetType {
             }
             if let startDateTime = startDateTime {
                 parameters["startDateTime"] = startDateTime
+            }
+            if let endDateTime = endDateTime {
+                parameters["endDateTime"] = endDateTime
             }
             return .requestParameters(
                 parameters: parameters,

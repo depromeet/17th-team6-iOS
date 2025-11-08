@@ -81,7 +81,7 @@ struct ReactionUserViewState: Identifiable, Equatable {
     /// 닉네임
     let nickname: String
     /// 프로필 이미지 URL
-    let profileImageUrl: String
+    let profileImageUrl: String?
     /// 현재 로그인한 유저인지 여부
     let isMe: Bool
     /// 리액션한 시각 텍스트 (포맷팅 완료 상태)
