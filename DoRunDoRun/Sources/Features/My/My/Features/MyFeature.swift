@@ -175,8 +175,8 @@ struct MyFeature {
                 state.isLoading = true
                 return .run { [page] send in
                     do {
-                        // TODO: 실제 유저의 아이디로 교체 필요
-                        let feeds = try await selfieFeedsUseCase.execute(currentDate: nil, userId: 1, page: page, size: 20)
+                        let userId = UserManager.shared.userId
+                        let feeds = try await selfieFeedsUseCase.execute(currentDate: nil, userId: userId, page: page, size: 20)
                         await send(.fetchSelfieFeedsSuccess(feeds))
                     } catch {
                         if let apiError = error as? APIError {

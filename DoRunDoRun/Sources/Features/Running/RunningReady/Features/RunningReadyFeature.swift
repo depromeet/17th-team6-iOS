@@ -81,6 +81,11 @@ struct RunningReadyFeature {
                 } else {
                     let mapped = results.map { FriendRunningStatusViewStateMapper.map(from: $0) }
                     if state.currentPage == 0 {
+                        // 내 프로필 이미지 URL 저장 (서버가 내려줄 경우)
+                        if let me = results.first(where: { $0.isMe }),
+                           let imageURL = me.profileImageURL {
+                            UserManager.shared.profileImageURL = imageURL
+                        }
                         // 첫 페이지
                         state.statuses = mapped
                         // 포커싱은 첫 로드 시 한 번만

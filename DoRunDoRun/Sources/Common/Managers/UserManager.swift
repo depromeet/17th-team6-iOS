@@ -17,9 +17,13 @@ final class UserManager {
     
     @UserDefault(key: "nickname", defaultValue: "")
     var nickname: String
+    
+    @UserDefault(key: "profileImageURL", defaultValue: nil)
+    var profileImageURL: String?
 
     func clear() {
         userId = 0
         nickname = ""
+        profileImageURL = nil
     }
 }
