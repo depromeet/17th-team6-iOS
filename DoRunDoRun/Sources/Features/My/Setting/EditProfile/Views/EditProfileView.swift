@@ -79,12 +79,15 @@ extension EditProfileView {
         .onChange(of: selectedItem) { newItem in
             guard let item = newItem else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    store.send(.imagePicked(image))
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    let targetSize = CGSize(width: 300, height: 300)
+                    if let image = ImageDownsampler.downsample(imageData: data, to: targetSize) {
+                        store.send(.imagePicked(image))
+                    }
                 }
             }
         }
+
     }
 }
 
