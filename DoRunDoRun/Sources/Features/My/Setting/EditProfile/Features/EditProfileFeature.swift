@@ -18,6 +18,7 @@ struct EditProfileFeature {
     struct State: Equatable {
         var toast = ToastFeature.State()
         var profileImage: UIImage? = nil
+        var profileImageURL: String? = nil
         var nickname: String = ""
         var isNicknameValid: Bool {
             nickname.count >= 2 && nickname.count <= 8
@@ -100,6 +101,10 @@ struct EditProfileFeature {
             // MARK: - 서버 응답 처리
             case let .updateProfileSuccess(url):
                 state.isLoading = false
+                if let url {
+                    UserManager.shared.profileImageURL = url
+                }
+                UserManager.shared.nickname = state.nickname
                 return .merge(
                     .send(.toast(.show("프로필이 수정되었습니다."))),
                     .send(.completed)
