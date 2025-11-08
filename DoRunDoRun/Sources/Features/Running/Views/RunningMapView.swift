@@ -20,10 +20,14 @@ struct RunningMapView: UIViewRepresentable {
     }
     
     var phase: RunningPhase
-    
+
     var statuses: [FriendRunningStatusViewState]
     var focusedFriendID: Int?
-    
+
+    /// GPS 버튼 Following 모드 (Active 단계)
+    var isFollowingLocation: Bool = false
+    var onMapGestureDetected: (() -> Void)? = nil
+
     var runningCoordinates: [RunningCoordinateViewState]
 
     func makeCoordinator() -> Coordinator {
@@ -39,12 +43,16 @@ struct RunningMapView: UIViewRepresentable {
         mapView.showLocationButton = false
         mapView.showScaleBar = false
         mapView.mapView.positionMode = .direction
-        
+
         mapView.mapView.minZoomLevel = CameraZoomLevel.min
         mapView.mapView.maxZoomLevel = CameraZoomLevel.max
-        
+
+        // Delegate 설정 (제스처 감지용)
+        context.coordinator.onMapGestureDetected = onMapGestureDetected
+        mapView.mapView.addCameraDelegate(delegate: context.coordinator)
+
         // 경로 세그먼트는 Active 단계에서 생성됨
-        
+
         return mapView
     }
 
@@ -62,11 +70,30 @@ struct RunningMapView: UIViewRepresentable {
     }
 
     // MARK: - Coordinator
-    class Coordinator {
+    class Coordinator: NSObject, NMFMapViewCameraDelegate {
         var markers: [NMFMarker] = []
         var currentFriendID: Int?
         var routeSegments: [NMFPath] = []     // 구간별 경로 세그먼트 (색상별로 분리됨)
         var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
+
+        var onMapGestureDetected: (() -> Void)?
+        private var isUserGesture = false
+
+        // 카메라가 움직이기 시작할 때
+        func mapView(_ mapView: NMFMapView, cameraWillChangeByReason reason: Int, animated: Bool) {
+            // reason: -1 = 제스처, 0+ = 프로그래밍
+            if reason == -1 {
+                isUserGesture = true
+            }
+        }
+
+        // 카메라 움직임이 끝났을 때
+        func mapView(_ mapView: NMFMapView, cameraDidChangeByReason reason: Int, animated: Bool) {
+            if isUserGesture {
+                onMapGestureDetected?()
+                isUserGesture = false
+            }
+        }
     }
 }
 
@@ -144,6 +171,11 @@ private extension RunningMapView {
         if !context.coordinator.didCenterInitialCamera, let first = runningCoordinates.first {
             centerCamera(on: first, in: uiView.mapView)
             context.coordinator.didCenterInitialCamera = true
+        }
+
+        // Following ON일 때 자동으로 내 위치 추적
+        if isFollowingLocation, let lastCoordinate = runningCoordinates.last {
+            centerCamera(on: lastCoordinate, in: uiView.mapView)
         }
 
         // 이후에는 경로만 갱신

@@ -16,7 +16,7 @@ struct RunningActiveView: View {
             ZStack(alignment: .bottom) {
                 
                 VStack(alignment: .trailing, spacing: 16) {
-                    gpsButton { store.send(.gpsButtonTapped) }
+                    gpsButton(isFollowing: store.isFollowingLocation) { store.send(.gpsButtonTapped) }
                         .padding(.horizontal, 20)
                     
                     bottomSheet(
@@ -39,12 +39,14 @@ struct RunningActiveView: View {
 
 // MARK: - Subviews
 extension RunningActiveView {
-    private func gpsButton(onTap: @escaping () -> Void) -> some View {
+    private func gpsButton(isFollowing: Bool, onTap: @escaping () -> Void) -> some View {
         Button {
             onTap()
         } label: {
             Image("ic_gps_m")
                 .resizable()
+                .renderingMode(.template)
+                .foregroundStyle(isFollowing ? Color.blue600 : Color.gray800)
                 .frame(width: 24, height: 24)
                 .padding(10)
                 .background(Color.gray0)

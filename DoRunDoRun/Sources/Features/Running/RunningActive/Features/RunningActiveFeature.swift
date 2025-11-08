@@ -22,16 +22,19 @@ struct RunningActiveFeature {
         var statuses: [RunningSnapshotViewState] = []
         var isRunningPaused: Bool = false
         var isShowingStopConfirm: Bool = false
-        
+
+        /// GPS 버튼 - 내 위치 자동 추적 여부 (Active 단계)
+        var isFollowingLocation: Bool = true
+
         var routeCoordinates: [RunningCoordinateViewState] {
             statuses.compactMap { $0.lastCoordinate }
         }
-        
+
         /// 마지막 스냅샷
        private var lastSnapshot: RunningSnapshotViewState? {
             statuses.last
         }
-        
+
         /// UI 표시용
         var distanceText: String { lastSnapshot?.distanceText ?? "0.00km" }
         var paceText: String { lastSnapshot?.paceText ?? "-'--''" }
@@ -43,18 +46,19 @@ struct RunningActiveFeature {
     enum Action: Equatable {
         case onAppear
         case onDisappear
-        
+
         case gpsButtonTapped
-        
+        case mapGestureDetected // 사용자가 지도를 움직임 (Following OFF)
+
         case pauseButtonTapped
         case resumeButtonTapped
         case stopButtonTapped
-        
+
         case stopConfirmButtonTapped
         case stopCancelButtonTapped
-        
+
         case delegate(Delegate)
-        
+
         // Stream lifecycle
         case _startStream
         case _snapshotReceived(RunningSnapshot)
@@ -111,7 +115,13 @@ struct RunningActiveFeature {
                     .cancel(id: CancelID.stream)
                 )
             case .gpsButtonTapped:
-                // TODO: 현재 위치 정렬
+                // Following ON/OFF 토글
+                state.isFollowingLocation.toggle()
+                return .none
+
+            case .mapGestureDetected:
+                // 사용자가 지도를 움직이면 Following 해제
+                state.isFollowingLocation = false
                 return .none
             case .delegate:
                 return .none
