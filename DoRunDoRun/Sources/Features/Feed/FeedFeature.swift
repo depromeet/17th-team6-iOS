@@ -22,12 +22,14 @@ struct FeedFeature {
         case fetchFeed
         case feedResponse(FeedList)
         case tapFeedItem(FeedViewModel)
+        case tapUploadButton
         case destination(PresentationAction<Destination.Action>)
     }
 
     @Reducer
     enum Destination {
         case feedDetail(FeedDetailFeature)
+        case uploadFeed(UploadFeedFeature)
     }
 
     @Dependency(\.getFeedRepository) var feedRepository: FeedRepositoryProtocol
@@ -58,6 +60,11 @@ struct FeedFeature {
                 case let .tapFeedItem(feedViewModel):
                     state.destination = .feedDetail(
                         FeedDetailFeature.State(feedViewModel: feedViewModel)
+                    )
+                    return .none
+                case .tapUploadButton:
+                    state.destination = .uploadFeed(
+                        UploadFeedFeature.State()
                     )
                     return .none
                 default:

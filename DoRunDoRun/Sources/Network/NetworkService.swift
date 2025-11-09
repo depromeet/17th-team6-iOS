@@ -12,7 +12,7 @@ import Moya
 
 struct NetworkService {
     private let provider: CustomProvider
-    private let decoder: JSONDecoder
+    let decoder: JSONDecoder
     init(type: CustomProvider.ProviderType = .live, decoder: JSONDecoder = JSONDecoder()) {
         self.decoder = decoder
         self.provider = CustomProvider(type: type, timeoutInterval: 60)
