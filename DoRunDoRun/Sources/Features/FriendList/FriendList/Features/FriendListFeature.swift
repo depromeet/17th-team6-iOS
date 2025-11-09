@@ -21,33 +21,46 @@ struct FriendListFeature {
 
         var toast = ToastFeature.State()
         var popup = PopupFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
         
         var friends: [FriendRunningStatusViewState] = []
-        var hasAppearedOnce = false              // 최초 진입 감지
-        var needsReloadAfterFriendAdd = false    // 친구 추가 후 복귀 시 갱신 여부
+        var hasAppearedOnce = false
+        var needsReloadAfterFriendAdd = false
         
         var currentPage = 0
         var isLoading = false
         var hasNextPage = true
+
+        enum FailedRequestType: Equatable {
+            case loadFriends(page: Int)
+            case delete(friendID: Int)
+            case copyMyCode
+        }
+        var lastFailedRequest: FailedRequestType? = nil
     }
 
     enum Action: Equatable {
         case friendCodeInput(PresentationAction<FriendCodeInputFeature.Action>)
-
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
         
         case onAppear
         case loadFriends(page: Int)
         case loadFriendsSuccess([FriendRunningStatus])
         case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
+        case loadFriendsFailure(APIError)
         
         case showDeletePopup(Int)
         case confirmDelete(Int)
         case deleteSuccess(FriendDeleteResult)
+        case deleteFailure(APIError)
         
         case copyMyCodeButtonTapped
         case copyMyCodeSuccess(String)
+        case copyMyCodeFailure(APIError)
         
         case friendCodeInputButtonTapped
         case backButtonTapped
@@ -56,7 +69,9 @@ struct FriendListFeature {
     var body: some ReducerOf<Self> {
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.popup, action: \.popup) { PopupFeature() }
-        
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
+
         Reduce { state, action in
             switch action {
 
@@ -80,26 +95,16 @@ struct FriendListFeature {
             // MARK: - Load Friends
             case let .loadFriends(page):
                 state.isLoading = true
-                return .run { [page] send in
-                    do {
-                        let friends = try await friendListUseCase.execute(page: page, size: 20)
-                        await send(.loadFriendsSuccess(friends))
-                    } catch {
-                        if let apiError = error as? APIError {
-                            print(apiError.userMessage)
-                        } else {
-                            print(APIError.unknown.userMessage)
-                        }
-                    }
-                }
+                state.lastFailedRequest = .loadFriends(page: page)
+                return performLoadFriends(page: page)
 
             case let .loadFriendsSuccess(friends):
                 state.isLoading = false
                 if friends.isEmpty {
                     state.hasNextPage = false
                 } else {
-                    let filteredFriends = friends.filter { !$0.isMe }
-                    let mapped = filteredFriends.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+                    let filtered = friends.filter { !$0.isMe }
+                    let mapped = filtered.map { FriendRunningStatusViewStateMapper.map(from: $0) }
                     if state.currentPage == 0 {
                         // 첫 페이지
                         state.friends = mapped
@@ -125,6 +130,10 @@ struct FriendListFeature {
                 }
                 return .none
 
+            case let .loadFriendsFailure(apiError):
+                state.isLoading = false
+                return handleAPIError(apiError)
+
             // MARK: - Delete Flow
             case let .showDeletePopup(friendID):
                 return .send(
@@ -138,44 +147,34 @@ struct FriendListFeature {
                 )
 
             case let .confirmDelete(friendID):
-                return .run { send in
-                    do {
-                        let result = try await friendDeleteUseCase.execute(ids: [friendID])
-                        await send(.deleteSuccess(result))
-                    } catch {
-                        if let apiError = error as? APIError {
-                            print(apiError.userMessage)
-                        } else {
-                            print(APIError.unknown.userMessage)
-                        }
-                    }
-                }
+                state.lastFailedRequest = .delete(friendID: friendID)
+                return performDelete(friendID: friendID)
+
+            case let .deleteFailure(apiError):
+                state.isLoading = false
+                return handleAPIError(apiError)
 
             case let .deleteSuccess(result):
-                let deletedNames = result.deletedFriends.map(\.nickname).joined(separator: ", ")
+                let names = result.deletedFriends.map(\.nickname).joined(separator: ", ")
                 return .merge(
                     .send(.loadFriends(page: 0)),
-                    .send(.toast(.show("'\(deletedNames)' 친구가 삭제되었어요.")))
+                    .send(.toast(.show("'\(names)' 친구가 삭제되었어요.")))
                 )
-                
+
+            // MARK: - Copy Code
             case .copyMyCodeButtonTapped:
-                return .run { send in
-                    do {
-                        let result = try await myFriendCodeUseCase.execute()
-                        await send(.copyMyCodeSuccess(result.code))
-                    } catch {
-                        if let apiError = error as? APIError {
-                            print(apiError.userMessage)
-                        } else {
-                            print(APIError.unknown.userMessage)
-                        }
-                    }
-                }
+                state.lastFailedRequest = .copyMyCode
+                return performCopyMyCode()
+
+            case let .copyMyCodeFailure(apiError):
+                state.isLoading = false
+                return handleAPIError(apiError)
 
             case let .copyMyCodeSuccess(code):
                 UIPasteboard.general.string = code
                 return .send(.toast(.show("클립보드에 내 코드가 복사되었어요!")))
-                
+
+            // MARK: - Friend Code Input
             case .friendCodeInputButtonTapped:
                 state.friendCodeInput = FriendCodeInputFeature.State()
                 return .none
@@ -189,13 +188,74 @@ struct FriendListFeature {
                 state.friendCodeInput = nil
                 return .none
 
+            // MARK: - Retry Handling
+            case .networkErrorPopup(.retryButtonTapped),
+                 .serverError(.retryButtonTapped):
+                guard let failed = state.lastFailedRequest else { return .none }
+                switch failed {
+                case let .loadFriends(page):
+                    return performLoadFriends(page: page)
+                case let .delete(friendID):
+                    return performDelete(friendID: friendID)
+                case .copyMyCode:
+                    return performCopyMyCode()
+                }
+
             default:
                 return .none
-
             }
         }
         .ifLet(\.$friendCodeInput, action: \.friendCodeInput) {
             FriendCodeInputFeature()
+        }
+    }
+    
+    func performLoadFriends(page: Int) -> Effect<Action> {
+        .run { send in
+            do {
+                let friends = try await friendListUseCase.execute(page: page, size: 20)
+                await send(.loadFriendsSuccess(friends))
+            } catch {
+                await send(.loadFriendsFailure(error as? APIError ?? .unknown))
+            }
+        }
+    }
+
+    func performDelete(friendID: Int) -> Effect<Action> {
+        .run { send in
+            do {
+                let result = try await friendDeleteUseCase.execute(ids: [friendID])
+                await send(.deleteSuccess(result))
+            } catch {
+                await send(.deleteFailure(error as? APIError ?? .unknown))
+            }
+        }
+    }
+
+    func performCopyMyCode() -> Effect<Action> {
+        .run { send in
+            do {
+                let result = try await myFriendCodeUseCase.execute()
+                await send(.copyMyCodeSuccess(result.code))
+            } catch {
+                await send(.copyMyCodeFailure(error as? APIError ?? .unknown))
+            }
+        }
+    }
+
+    func handleAPIError(_ apiError: APIError) -> Effect<Action> {
+        switch apiError {
+        case .networkError:
+            return .send(.networkErrorPopup(.show))
+        case .notFound:
+            return .send(.serverError(.show(.notFound)))
+        case .internalServer:
+            return .send(.serverError(.show(.internalServer)))
+        case .badGateway:
+            return .send(.serverError(.show(.badGateway)))
+        default:
+            print(apiError.userMessage)
+            return .none
         }
     }
 }

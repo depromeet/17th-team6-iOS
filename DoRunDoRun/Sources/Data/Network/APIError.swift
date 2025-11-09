@@ -20,6 +20,7 @@ enum APIError: Error {
 
     // MARK: - 5xx: 서버 오류
     case internalServer          // 500
+    case badGateway              // 502 ← ✅ 추가됨
     case serviceUnavailable      // 503
     case gatewayTimeout          // 504
 
@@ -42,6 +43,7 @@ extension APIError {
         case 422: return .unprocessableEntity
         case 429: return .tooManyRequests
         case 500: return .internalServer
+        case 502: return .badGateway
         case 503: return .serviceUnavailable
         case 504: return .gatewayTimeout
         default:  return .unknown
@@ -75,6 +77,8 @@ extension APIError {
         // MARK: - 5xx
         case .internalServer:
             return "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+        case .badGateway:
+            return "서버 게이트웨이 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
         case .serviceUnavailable:
             return "현재 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요."
         case .gatewayTimeout:

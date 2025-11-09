@@ -62,7 +62,7 @@ struct TimerFeature {
 
             case .ended:
                 state.isActive = false
-                return .none
+                return .cancel(id: CancelID.timer)
             }
         }
     }

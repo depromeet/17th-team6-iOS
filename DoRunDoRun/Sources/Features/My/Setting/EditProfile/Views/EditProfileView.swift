@@ -17,6 +17,34 @@ struct EditProfileView: View {
 
     var body: some View {
         WithPerceptionTracking {
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension EditProfileView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension EditProfileView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
             VStack(alignment: .leading, spacing: 0) {
                 profileImageSection
                 nicknameSection
@@ -24,9 +52,7 @@ struct EditProfileView: View {
                 toastAndButtonSection
             }
             .padding(.horizontal, 20)
-            .task {
-                focusedField = .nickname
-            }
+            .task { focusedField = .nickname }
             .navigationTitle("프로필 수정")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
@@ -43,10 +69,8 @@ struct EditProfileView: View {
             }
         }
     }
-}
-
-// MARK: - ProfileImage
-extension EditProfileView {
+    
+    /// 프로필 이미지 섹션
     private var profileImageSection: some View {
         ZStack(alignment: .bottomTrailing) {
             // 순수 이미지 표시 (KFImage, Image 등)
@@ -94,10 +118,8 @@ extension EditProfileView {
             }
         }
     }
-}
-
-// MARK: - Nickname
-extension EditProfileView {
+    
+    /// 닉네임 섹션
     private var nicknameSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             InputField(placeholder: "닉네임 입력", text: $store.nickname)
@@ -117,10 +139,8 @@ extension EditProfileView {
         }
         .padding(.top, 32)
     }
-}
-
-// MARK: - ToastAndButton
-extension EditProfileView {
+    
+    /// 토스트 & 버튼 섹션
     private var toastAndButtonSection: some View {
         VStack(spacing: 0) {
             if store.toast.isVisible {
@@ -138,6 +158,25 @@ extension EditProfileView {
             }
             .padding(.bottom, focusedField == nil ? 24 : 12)
             .animation(.easeInOut(duration: 0.25), value: focusedField)
+        }
+    }
+}
+
+// MARK: - Network Error Popup Section
+private extension EditProfileView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
         }
     }
 }

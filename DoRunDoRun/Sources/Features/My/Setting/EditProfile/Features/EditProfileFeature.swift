@@ -17,6 +17,8 @@ struct EditProfileFeature {
     @ObservableState
     struct State: Equatable {
         var toast = ToastFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
         var profileImage: UIImage? = nil
         var profileImageURL: String? = nil
         var nickname: String = ""
@@ -30,6 +32,8 @@ struct EditProfileFeature {
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case toast(ToastFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
 
         // 내부 동작
         case profileImageButtonTapped
@@ -40,6 +44,7 @@ struct EditProfileFeature {
 
         // 서버 응답
         case updateProfileSuccess(String?)
+        case updateProfileFailure(APIError)
 
         // 상위 피처에서 처리
         case completed
@@ -50,6 +55,8 @@ struct EditProfileFeature {
     var body: some ReducerOf<Self> {
         BindingReducer()
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
 
         Reduce { state, action in
             switch action {
@@ -94,9 +101,9 @@ struct EditProfileFeature {
                         await send(.updateProfileSuccess(updatedURL))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.updateProfileFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.updateProfileFailure(.unknown))
                         }
                     }
                 }
@@ -112,6 +119,27 @@ struct EditProfileFeature {
                     .send(.toast(.show("프로필이 수정되었습니다."))),
                     .send(.completed)
                 )
+                
+            case let .updateProfileFailure(apiError):
+                state.isLoading = false
+                switch apiError {
+                case .networkError:
+                    return .send(.networkErrorPopup(.show))
+                case .notFound:
+                    return .send(.serverError(.show(.notFound)))
+                case .internalServer:
+                    return .send(.serverError(.show(.internalServer)))
+                case .badGateway:
+                    return .send(.serverError(.show(.badGateway)))
+                default:
+                    print(apiError.userMessage)
+                    return .none
+                }
+                
+            // MARK: - 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                    .serverError(.retryButtonTapped):
+                return .send(.bottomButtonTapped)
 
             default:
                 return .none

@@ -14,7 +14,6 @@ struct ActionPopupView: View {
         case destructive       // 위험 액션 + 취소(닫기) 액션
     }
 
-    let imageName: String?
     let title: String
     let message: String?
     let actionTitle: String
@@ -23,7 +22,7 @@ struct ActionPopupView: View {
     let onAction: () -> Void
     let onCancel: (() -> Void)?
     
-    init(imageName: String? = nil,
+    init(
          title: String,
          message: String?,
          actionTitle: String,
@@ -32,7 +31,6 @@ struct ActionPopupView: View {
          onAction: @escaping () -> Void,
          onCancel: (() -> Void)?
     ) {
-        self.imageName = imageName
         self.title = title
         self.message = message
         self.actionTitle = actionTitle
@@ -43,17 +41,15 @@ struct ActionPopupView: View {
     }
     
     var body: some View {
-        VStack(spacing: 24) {
-            if let imageName {
-                Image(imageName)
-            }
-            VStack(spacing: 8) {
+        VStack(spacing: 0) {
+            VStack(spacing: 4) {
                 TypographyText(text: title, style: .t2_700)
 
                 if let message {
                     TypographyText(text: message, style: .b2_400, color: .gray700)
                 }
             }
+            .padding(.bottom, 20)
             buttonSection
         }
         .padding(20)
@@ -101,22 +97,10 @@ struct ActionPopupView: View {
     }
 }
 
-
 #Preview {
     ZStack {
         Color.black.opacity(0.4).ignoresSafeArea()
         VStack(spacing: 40) {
-            // 특정 액션 팝업
-            ActionPopupView(
-                title: "네트워크 연결이 불안정해요.",
-                message: "와이파이나 데이터 연결을 확인하고,\n다시 시도해주세요.",
-                actionTitle: "확인",
-                cancelTitle: nil,
-                style: .actionOnly,
-                onAction: {},
-                onCancel: nil
-            )
-
             // 특정 액션 + 취소(닫기) 액션 팝업
             ActionPopupView(
                 title: "아직 가입하지 않은 번호예요.\n회원가입을 진행할까요?",

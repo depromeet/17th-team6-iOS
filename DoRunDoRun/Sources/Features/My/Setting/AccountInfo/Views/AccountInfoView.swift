@@ -13,6 +13,34 @@ struct AccountInfoView: View {
 
     var body: some View {
         WithPerceptionTracking {
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension AccountInfoView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension AccountInfoView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
             VStack(alignment: .leading, spacing: 0) {
                 if store.isLoading {
                     ProgressView("불러오는 중...")
@@ -41,8 +69,8 @@ struct AccountInfoView: View {
             }
         }
     }
-
-    // MARK: - Info Row
+    
+    /// Info Row
     private func infoRow(title: String, value: String) -> some View {
         HStack {
             TypographyText(text: title, style: .b1_500, color: .gray900)
@@ -50,6 +78,25 @@ struct AccountInfoView: View {
             TypographyText(text: value, style: .b2_500, color: .gray400)
         }
         .frame(height: 44)
+    }
+}
+
+// MARK: - Network Error Popup Section
+private extension AccountInfoView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
     }
 }
 

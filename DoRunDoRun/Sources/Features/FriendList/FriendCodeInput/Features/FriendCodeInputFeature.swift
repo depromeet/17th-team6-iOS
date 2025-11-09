@@ -15,6 +15,8 @@ struct FriendCodeInputFeature {
     @ObservableState
     struct State: Equatable {
         var toast = ToastFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
 
         var code: String = ""
         var isButtonEnabled: Bool { code.count == 8 }
@@ -24,10 +26,13 @@ struct FriendCodeInputFeature {
         case binding(BindingAction<State>)
         
         case toast(ToastFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
         
         case codeChanged(String)
         case submitButtonTapped
         case submitSuccess(FriendCode)
+        case submitFailure(APIError)
 
         case backButtonTapped
     }
@@ -35,6 +40,8 @@ struct FriendCodeInputFeature {
     var body: some ReducerOf<Self> {
         BindingReducer()
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
         
         Reduce { state, action in
             switch action {
@@ -51,9 +58,9 @@ struct FriendCodeInputFeature {
                         await send(.submitSuccess(result))
                     } catch {
                         if let apiError = error as? APIError {
-                            print(apiError.userMessage)
+                            await send(.submitFailure(apiError))
                         } else {
-                            print(APIError.unknown.userMessage)
+                            await send(.submitFailure(.unknown))
                         }
                     }
                 }
@@ -61,6 +68,25 @@ struct FriendCodeInputFeature {
             case let .submitSuccess(result):
                 print(result.nickname)
                 return .none
+                
+            case let .submitFailure(apiError):
+                switch apiError {
+                case .networkError:
+                    return .send(.networkErrorPopup(.show))
+                case .notFound:
+                    return .send(.serverError(.show(.notFound)))
+                case .internalServer:
+                    return .send(.serverError(.show(.internalServer)))
+                case .badGateway:
+                    return .send(.serverError(.show(.badGateway)))
+                default:
+                    print(apiError.userMessage)
+                    return .none
+                }
+                
+            case .networkErrorPopup(.retryButtonTapped),
+                    .serverError(.retryButtonTapped):
+                return .send(.submitButtonTapped)
                 
             default:
                 return .none

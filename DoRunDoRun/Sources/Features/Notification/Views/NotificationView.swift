@@ -13,84 +13,91 @@ struct NotificationView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            VStack(spacing: 0) {
-                if store.notifications.isEmpty {
-                    EmptyNotificationView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(store.notifications) { notification in
-                                NotificationRowView(notification: notification) {
-                                    store.send(.markAsRead(notification.id))
-                                }
-                                .onAppear {
-                                    if notification.id == store.notifications.last?.id {
-                                        store.send(.loadNextPageIfNeeded(currentItem: notification))
-                                    }
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension NotificationView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension NotificationView {
+    /// Main Section
+    var mainSection: some View {
+        VStack(spacing: 0) {
+            if store.notifications.isEmpty {
+                EmptyNotificationView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(store.notifications) { notification in
+                            NotificationRowView(notification: notification) {
+                                store.send(.markAsRead(notification.id))
+                            }
+                            .onAppear {
+                                if notification.id == store.notifications.last?.id {
+                                    store.send(.loadNextPageIfNeeded(currentItem: notification))
                                 }
                             }
-                            if store.isLoading && store.currentPage > 0 {
-                                ProgressView()
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
+                        }
+                        if store.isLoading && store.currentPage > 0 {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
                         }
                     }
                 }
             }
-            .task { store.send(.onAppear) }
-            .navigationTitle("알림")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        //store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
+        }
+        .task { store.send(.onAppear) }
+        .navigationTitle("알림")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    store.send(.backButtonTapped)
+                } label: {
+                    Image(.arrowLeft, size: .medium)
+                        .renderingMode(.template)
+                        .foregroundColor(.gray800)
                 }
             }
         }
     }
 }
 
-// MARK: - Preview
-#Preview {
-    NavigationStack {
-        NotificationView(
-            store: Store(
-                initialState: NotificationFeature.State(
-                    notifications: [
-                        .init(
-                            id: 1,
-                            title: "피드 리액션",
-                            message: "이 회원님의 게시물에 리액션을 남겼습니다.",
-                            senderName: "두런두런두런두런",
-                            profileImageURL: "https://example.com/profile1.jpg",
-                            selfieImageURL: "https://example.com/post1.jpg",
-                            timeText: "1시간 전",
-                            isRead: false,
-                            type: .feedReaction
-                        ),
-                        .init(
-                            id: 2,
-                            title: "러닝 독촉",
-                            message: "오랜만에 힘차게 달려볼까요?",
-                            senderName: nil,
-                            profileImageURL: nil,
-                            selfieImageURL: nil,
-                            timeText: "2시간 전",
-                            isRead: true,
-                            type: .runningProgressReminder
-                        )
-                    ]
-                ),
-                reducer: { NotificationFeature() }
-            )
-        )
+// MARK: - Network Error Popup Section
+private extension NotificationView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
     }
 }

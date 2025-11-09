@@ -13,56 +13,43 @@ struct SettingView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            ZStack {
-                VStack {
-                    // MARK: - 계정 섹션
-                    VStack {
-                        settingsRow(title: "프로필 수정", type: .navigable) {
-                            store.send(.editProfileTapped)
-                        }
-                        settingsRow(title: "가입 정보", type: .navigable) {
-                            store.send(.accountInfoTapped)
-                        }
-                        settingsRow(title: "푸시 알림 설정", type: .navigable) {
-                            store.send(.pushNotificationSettingTapped)
-                        }
-                    }
-                    
-                    // 구분선
-                    Rectangle()
-                        .foregroundStyle(Color.gray100)
-                        .frame(height: 1)
-                        .padding(.vertical, 8)
-
-                    // MARK: - 정책 섹션
-                    VStack {
-                        settingsRow(title: "개인정보처리방침", type: .navigable) { store.send(.privacyPolicyTapped) }
-                        settingsRow(title: "약관 및 정책", type: .navigable) { store.send(.termsTapped) }
-
-                        HStack {
-                            TypographyText(text: "버전 정보", style: .b1_500, color: .gray900)
-                            Spacer()
-                            TypographyText(text: store.appVersion, style: .b2_500, color: .gray500)
-                        }
-                        .frame(height: 44)
-                        .padding(.horizontal, 28)
-                    }
-                    
-                    // 구분선
-                    Rectangle()
-                        .foregroundStyle(Color.gray100)
-                        .frame(height: 1)
-                        .padding(.vertical, 8)
-
-                    // MARK: - 기타 섹션
-                    VStack {
-                        settingsRow(title: "로그아웃", type: .action) { store.send(.logoutTapped) }
-                        settingsRow(title: "탈퇴하기", type: .action) { store.send(.withdrawTapped) }
-                    }
-                    
-                    Spacer()
-                }
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
                 popupSection
+                networkErrorPopupSection
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension SettingView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension SettingView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
+            VStack {
+                // MARK: - 계정 섹션
+                accountSection
+                divider
+                policySection
+                divider
+                etcSection
+                Spacer()
             }
             .onAppear { store.send(.onAppear) }
             .scrollContentBackground(.hidden)
@@ -96,12 +83,53 @@ struct SettingView: View {
             }
         }
     }
-}
+    /// 계정 섹션
+    var accountSection: some View {
+        VStack {
+            settingsRow(title: "프로필 수정", type: .navigable) {
+                store.send(.editProfileTapped)
+            }
+            settingsRow(title: "가입 정보", type: .navigable) {
+                store.send(.accountInfoTapped)
+            }
+            settingsRow(title: "푸시 알림 설정", type: .navigable) {
+                store.send(.pushNotificationSettingTapped)
+            }
+        }
+    }
+    /// 정책 섹션
+    var policySection: some View {
+        VStack {
+            settingsRow(title: "개인정보처리방침", type: .navigable) { store.send(.privacyPolicyTapped) }
+            settingsRow(title: "약관 및 정책", type: .navigable) { store.send(.termsTapped) }
 
-// MARK: - Row Type
-private extension SettingView {
+            HStack {
+                TypographyText(text: "버전 정보", style: .b1_500, color: .gray900)
+                Spacer()
+                TypographyText(text: store.appVersion, style: .b2_500, color: .gray500)
+            }
+            .frame(height: 44)
+            .padding(.horizontal, 28)
+        }
+
+    }
+    /// 기타 섹션
+    var etcSection: some View {
+        VStack {
+            settingsRow(title: "로그아웃", type: .action) { store.send(.logoutTapped) }
+            settingsRow(title: "탈퇴하기", type: .action) { store.send(.withdrawTapped) }
+        }
+    }
+    /// 공통 구분선
+    var divider: some View {
+        Rectangle()
+            .foregroundStyle(Color.gray100)
+            .frame(height: 1)
+            .padding(.vertical, 8)
+    }
+    /// Row 타입
     enum RowType { case navigable, action }
-
+    /// 설정 Row
     func settingsRow(title: String, type: RowType, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
@@ -120,8 +148,28 @@ private extension SettingView {
     }
 }
 
-// MARK: - Popup
+// MARK: - Network Error Popup Section
 private extension SettingView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
+    }
+}
+
+// MARK: - Popup Section
+private extension SettingView {
+    /// Popup Section
     @ViewBuilder
     var popupSection: some View {
         if store.popup.isVisible {

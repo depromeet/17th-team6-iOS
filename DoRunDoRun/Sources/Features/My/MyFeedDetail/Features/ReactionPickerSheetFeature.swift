@@ -17,6 +17,8 @@ struct ReactionPickerSheetFeature {
         var isPresented: Bool = false
         /// 제공되는 리액션 이모지 목록
         let reactions: [EmojiType] = [.surprise, .heart, .fire, .thumbsUp, .congrats]
+        /// 사용자가 마지막으로 선택한 이모지
+        var selectedEmoji: EmojiType? = nil
     }
 
     // MARK: - Action
@@ -31,8 +33,12 @@ struct ReactionPickerSheetFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            // 현재는 상태 변경 없이 상위 피처(MyFeedDetailFeature)로 이벤트만 전달
-            default:
+            case let .reactionSelected(emoji):
+                state.selectedEmoji = emoji // 선택한 이모지를 저장
+                return .none
+                
+            case .dismissRequested:
+                state.selectedEmoji = nil // 닫을 때 초기화
                 return .none
             }
         }

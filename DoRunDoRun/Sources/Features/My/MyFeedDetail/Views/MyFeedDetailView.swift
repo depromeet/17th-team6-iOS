@@ -15,29 +15,9 @@ struct MyFeedDetailView: View {
     var body: some View {
         WithPerceptionTracking {
             ZStack(alignment: .bottom) {
-                // 본문 컨텐츠
-                ScrollView {
-                    VStack(spacing: 16) {
-                        profileSection
-                        feedImageSection
-                        reactionBar
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .scrollDisabled(true)
-                .navigationBarBackButtonHidden()
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            store.send(.backButtonTapped)
-                        } label: {
-                            Image(.arrowLeft, size: .medium)
-                                .renderingMode(.template)
-                                .foregroundColor(.gray800)
-                        }
-                    }
-                }
-                // 시트 오버레이
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
@@ -45,10 +25,50 @@ struct MyFeedDetailView: View {
     }
 }
 
-
-// MARK: - Subviews
+// MARK: - Server Error Section
 private extension MyFeedDetailView {
-    /// 프로필 영역
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: Main Section
+private extension MyFeedDetailView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
+            ScrollView {
+                VStack(spacing: 16) {
+                    profileSection
+                    feedImageSection
+                    reactionBar
+                }
+                .padding(.horizontal, 20)
+            }
+            .scrollDisabled(true)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+        }
+    }
+    
+    /// 프로필 섹션
     var profileSection: some View {
         HStack(spacing: 8) {
             ProfileImageView(
@@ -68,7 +88,7 @@ private extension MyFeedDetailView {
         .padding(.top, 16)
     }
     
-    /// 피드 이미지 + 달리기 정보
+    /// 피드 이미지 섹션
     var feedImageSection: some View {
         ZStack(alignment: .bottom) {
             // 피드 이미지
@@ -138,8 +158,30 @@ private extension MyFeedDetailView {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-    
-    /// 시트 오버레이
+}
+
+// MARK: - Network Error Popup Section
+private extension MyFeedDetailView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
+    }
+}
+
+// MARK: - Sheet Overlay
+private extension MyFeedDetailView {
+    /// Sheet Overlay
     @ViewBuilder
     var sheetOverlaySection: some View {
         ZStack(alignment: .bottom) {

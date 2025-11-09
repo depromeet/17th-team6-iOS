@@ -18,6 +18,8 @@ struct RunningReadyFeature {
     struct State: Equatable {
         @Presents var friendList: FriendListFeature.State?
         var toast = ToastFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
 
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
@@ -35,23 +37,33 @@ struct RunningReadyFeature {
     enum Action: Equatable {
         case friendList(PresentationAction<FriendListFeature.Action>)
         case toast(ToastFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
+        
         case onAppear
         case loadStatuses(page: Int)
         case statusSuccess([FriendRunningStatus])
         case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
-        case statusFailure(String)
+        case statusFailure(APIError)
+        
         case friendTapped(Int)
+        
         case cheerButtonTapped(Int, String)
         case reactionSuccess(Int, String)
         case reactionFailure(Int, String)
+        
         case gpsButtonTapped
+        
         case friendListButtonTapped
+        
         case startButtonTapped
     }
 
     // MARK: - Reducer Body
     var body: some ReducerOf<Self> {
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
 
         Reduce { state, action in
             switch action {
@@ -70,7 +82,11 @@ struct RunningReadyFeature {
                         let results = try await statusUseCase.execute(page: page, size: 20)
                         await send(.statusSuccess(results))
                     } catch {
-                        await send(.statusFailure(error.localizedDescription))
+                        if let apiError = error as? APIError {
+                            await send(.statusFailure(apiError))
+                        } else {
+                            await send(.statusFailure(.unknown))
+                        }
                     }
                 }
             
@@ -117,9 +133,25 @@ struct RunningReadyFeature {
                 return .none
 
             // MARK: 러닝 상태 조회 실패
-            case let .statusFailure(message):
-                print("Fetch Error:", message)
-                return .none
+            case let .statusFailure(apiError):
+                state.isLoading = false
+                switch apiError {
+                case .networkError:
+                    return .send(.networkErrorPopup(.show))
+                case .notFound:
+                    return .send(.serverError(.show(.notFound)))
+                case .internalServer:
+                    return .send(.serverError(.show(.internalServer)))
+                case .badGateway:
+                    return .send(.serverError(.show(.badGateway)))
+                default:
+                    return .send(.toast(.show(apiError.userMessage)))
+                }
+                
+            // MARK: 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                 .serverError(.retryButtonTapped):
+                return .send(.onAppear)
 
             // MARK: 친구 셀 탭 (포커스 전환)
             case let .friendTapped(id):

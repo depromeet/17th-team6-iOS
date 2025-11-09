@@ -26,9 +26,17 @@ final class TokenInterceptor: RequestInterceptor {
         #endif
 
         if let urlString = request.url?.absoluteString {
-            if urlString.contains("/api/auth/") {
+            // 인증이 필요 없는 auth 요청만 예외 처리
+            let authExemptEndpoints = [
+                "/api/auth/refresh",
+                "/api/auth/send",
+                "/api/auth/verify",
+                "/api/auth/signup"
+            ]
+            
+            if authExemptEndpoints.contains(where: { urlString.contains($0) }) {
                 #if DEBUG
-                print("🟨 [TokenInterceptor.adapt] Auth 관련 요청 → Authorization 헤더 추가 안 함")
+                print("🟨 [TokenInterceptor.adapt] 인증 불필요 API → Authorization 헤더 추가 안 함")
                 #endif
             } else if let accessToken = TokenManager.shared.accessToken {
                 request.headers.add(.authorization(bearerToken: accessToken))

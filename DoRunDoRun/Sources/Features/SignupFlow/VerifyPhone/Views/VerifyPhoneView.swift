@@ -33,6 +33,9 @@ struct VerifyPhoneView: View {
             .onChange(of: store.isPhoneNumberEntered) { newValue in
                 focusedField = newValue ? .verificationCode : .phoneNumber
             }
+            .onDisappear {
+                store.send(.onDisappear)
+            }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

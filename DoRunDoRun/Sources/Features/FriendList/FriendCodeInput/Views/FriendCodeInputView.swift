@@ -14,36 +14,56 @@ struct FriendCodeInputView: View {
     
     var body: some View {
         WithPerceptionTracking {
-            ZStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    titleSection
-                    inputSection
-                    Spacer()
-                    toastAndButtonSection
-                }
-                .padding(.horizontal, 20)
-            }
-            .onAppear { isFocused = true }
-            .navigationTitle("친구 코드 입력")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
             }
         }
     }
 }
 
-// MARK: - Title
+// MARK: - Server Error Section
 private extension FriendCodeInputView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension FriendCodeInputView {
+    /// Main Section
+    var mainSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            titleSection
+            inputSection
+            Spacer()
+            toastAndButtonSection
+        }
+        .padding(.horizontal, 20)
+        .onAppear { isFocused = true }
+        .navigationTitle("친구 코드 입력")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    store.send(.backButtonTapped)
+                } label: {
+                    Image(.arrowLeft, size: .medium)
+                        .renderingMode(.template)
+                        .foregroundColor(.gray800)
+                }
+            }
+        }
+    }
+    /// 타이틀 섹션
     var titleSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             TypographyText(
@@ -55,10 +75,7 @@ private extension FriendCodeInputView {
             .padding(.top, 16)
         }
     }
-}
-
-// MARK: - Input
-private extension FriendCodeInputView {
+    /// 인풋 섹션
     var inputSection: some View {
         InputField(
             keyboardType: .asciiCapable,
@@ -69,10 +86,7 @@ private extension FriendCodeInputView {
         .focused($isFocused)
         .onChange(of: store.code) { store.send(.codeChanged($0)) }
     }
-}
-
-// MARK: - Toast & Button
-private extension FriendCodeInputView {
+    /// 토스트 & 버튼 섹션
     @ViewBuilder
     var toastAndButtonSection: some View {
         if store.toast.isVisible {
@@ -92,6 +106,25 @@ private extension FriendCodeInputView {
         }
         .padding(.bottom, 24)
         .animation(.easeInOut(duration: 0.25), value: isFocused)
+    }
+}
+
+// MARK: - Network Error Popup Section
+private extension FriendCodeInputView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
     }
 }
 
