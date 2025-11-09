@@ -61,6 +61,13 @@ final class DateFormatterManager {
             return f.date(from: string)
         }
     }
+    
+    // MARK: - String → Date (ISO 8601)
+    func isoDate(from isoString: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // 마이크로초(.576007) 지원
+        return formatter.date(from: isoString)
+    }
 
     // MARK: - Date → String
     /// "yyyy" → 2025

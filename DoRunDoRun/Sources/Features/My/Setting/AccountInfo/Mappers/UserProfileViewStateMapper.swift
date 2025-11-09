@@ -10,7 +10,7 @@ import Foundation
 struct UserProfileViewStateMapper {
     static func map(from entity: UserProfile) -> UserProfileViewState {
         let formatter = DateFormatterManager.shared
-        let date = formatter.date(from: entity.createdAt) ?? Date()
+        let date = formatter.isoDate(from: entity.createdAt) ?? Date()
         return UserProfileViewState(
             nickname: entity.nickname,
             phoneNumber: entity.phoneNumber,
