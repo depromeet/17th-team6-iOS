@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Foundation
 
 @Reducer
 struct FeedFeature {
@@ -6,6 +7,7 @@ struct FeedFeature {
     struct State {
         @Presents var destination: Destination.State?
         var weekDayInfos: [FeedDayInfo] = []
+        var currentWeekOfMonth: Int = 2
         var feedList: FeedList? = nil
 
         var viewModel = ViewModel()
@@ -23,6 +25,9 @@ struct FeedFeature {
         case feedResponse(FeedList)
         case tapFeedItem(FeedViewModel)
         case tapUploadButton
+        case tapCertificateFriends
+        case previousWeek
+        case nextWeek
         case destination(PresentationAction<Destination.Action>)
     }
 
@@ -30,9 +35,48 @@ struct FeedFeature {
     enum Destination {
         case feedDetail(FeedDetailFeature)
         case uploadFeed(UploadFeedFeature)
+        case certificateFriendsList(CertificateFriendsListFeature)
     }
 
     @Dependency(\.getFeedRepository) var feedRepository: FeedRepositoryProtocol
+
+    func generateWeekDayInfos(for weekOfMonth: Int) -> [FeedDayInfo] {
+        let calendar = Calendar.current
+        let today = Date()
+        let todayDay = calendar.component(.day, from: today)
+
+        // 현재 월의 첫째 날
+        let components = calendar.dateComponents([.year, .month], from: today)
+        guard let firstDayOfMonth = calendar.date(from: components) else {
+            return []
+        }
+
+        // 첫째 날의 요일 (1: 일요일, 2: 월요일, ...)
+        let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth)
+
+        // 첫 번째 일요일까지의 오프셋 (일요일이 1이므로)
+        let offsetToFirstSunday = (8 - firstWeekday) % 7
+
+        // 해당 주차의 일요일 날짜
+        let sundayDay = offsetToFirstSunday + (weekOfMonth - 1) * 7 + 1
+
+        var weekDayInfos: [FeedDayInfo] = []
+        let weekDays: [WeekDay] = [.sun, .mon, .tue, .wed, .thu, .fri, .sat]
+
+        for (index, weekDay) in weekDays.enumerated() {
+            let day = sundayDay + index
+            weekDayInfos.append(
+                FeedDayInfo(
+                    weekDay: weekDay,
+                    day: day,
+                    isItToday: day == todayDay,
+                    count: 0
+                )
+            )
+        }
+
+        return weekDayInfos
+    }
 
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -41,6 +85,9 @@ struct FeedFeature {
                 case .binding:
                     return .none
                 case .fetchFeed:
+                    if state.weekDayInfos.isEmpty {
+                        state.weekDayInfos = generateWeekDayInfos(for: state.currentWeekOfMonth)
+                    }
                     return .run { send in
                         do {
                             let worker = FeedWorker(repository: feedRepository)
@@ -66,6 +113,23 @@ struct FeedFeature {
                     state.destination = .uploadFeed(
                         UploadFeedFeature.State()
                     )
+                    return .none
+                case .tapCertificateFriends:
+                    state.destination = .certificateFriendsList(
+                        CertificateFriendsListFeature.State()
+                    )
+                    return .none
+                case .previousWeek:
+                    if state.currentWeekOfMonth > 1 {
+                        state.currentWeekOfMonth -= 1
+                        state.weekDayInfos = generateWeekDayInfos(for: state.currentWeekOfMonth)
+                    }
+                    return .none
+                case .nextWeek:
+                    if state.currentWeekOfMonth < 5 {
+                        state.currentWeekOfMonth += 1
+                        state.weekDayInfos = generateWeekDayInfos(for: state.currentWeekOfMonth)
+                    }
                     return .none
                 default:
                     return .none

@@ -122,6 +122,7 @@ struct RunningRecordCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
