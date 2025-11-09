@@ -186,8 +186,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/navermaps/SPM-NMapsMap",
       "state" : {
-        "branch" : "main",
-        "revision" : "fb4eef37db9904c0a0dcdf7a828c892e13782cfa"
+        "revision" : "fb4eef37db9904c0a0dcdf7a828c892e13782cfa",
+        "version" : "3.23.0"
       }
     },
     {
@@ -222,8 +222,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "a9c3fecb5d31fc8aad5d8ba5d830924966d7fb15"
+        "revision" : "5b0890fabfd68a2d375d68502bc3f54a8548c494",
+        "version" : "1.23.1"
       }
     },
     {
