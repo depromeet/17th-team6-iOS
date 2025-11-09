@@ -48,4 +48,26 @@ extension Date {
 
         return formatter.string(from: self)
     }
+
+    func toDateString() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy.MM.dd (E)"
+
+        return formatter.string(from: self)
+    }
+
+    func toTimeString() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "a h:mm"
+
+        return formatter.string(from: self)
+    }
+
+    func startOfDay() -> Date {
+        return Calendar.current.startOfDay(for: self)
+    }
 }
