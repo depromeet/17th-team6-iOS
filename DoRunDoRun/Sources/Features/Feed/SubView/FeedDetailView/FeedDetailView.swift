@@ -13,35 +13,41 @@ struct FeedDetailView: View {
 
     var body: some View {
         VStack {
-            FeedContentView(feed: store.feedViewModel)
-                .padding(.top, 40)
-                .padding(.horizontal)
+            FeedContentView(
+                feed: store.feedViewModel,
+                onEdit: { store.send(.change) },
+                onDelete: { store.send(.delete) },
+                onSave: { store.send(.save) }
+            )
+            .padding(.top, 40)
+            .padding(.horizontal)
             Spacer()
         }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
-                            print("설정")
+                            store.send(.change)
                         }) {
-                            Label("설정", systemImage: "gear")
+                            Label("수정하기", systemImage: "pencil")
                         }
 
                         Button(action: {
-                            print("공유")
+                            store.send(.save)
                         }) {
-                            Label("공유", systemImage: "square.and.arrow.up")
+                            Label("이미지 저장", systemImage: "square.and.arrow.down")
                         }
 
                         Divider()
 
                         Button(role: .destructive, action: {
-                            print("삭제")
+                            store.send(.delete)
                         }) {
-                            Label("삭제", systemImage: "trash")
+                            Label("삭제하기", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image("three_dot")
+                            .renderingMode(.template)
                     }
                 }
             }

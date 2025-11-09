@@ -9,13 +9,20 @@ import SwiftUI
 
 struct FeedContentView: View {
     private let feed: FeedViewModel
+    var onEdit: (() -> Void)?
+    var onDelete: (() -> Void)?
+    var onSave: (() -> Void)?
 
-//    let change: () -> Void
-//    let delete: () -> Void
-//    let save: () -> Void
-
-    init(feed: FeedViewModel) {
+    init(
+        feed: FeedViewModel,
+        onEdit: (() -> Void)? = nil,
+        onDelete: (() -> Void)? = nil,
+        onSave: (() -> Void)? = nil
+    ) {
         self.feed = feed
+        self.onEdit = onEdit
+        self.onDelete = onDelete
+        self.onSave = onSave
     }
 
     var body: some View {
@@ -45,7 +52,27 @@ struct FeedContentView: View {
 
                 Spacer()
 
-                Button(action: { print("more options") }) {
+                Menu {
+                    Button(action: {
+                        onEdit?()
+                    }) {
+                        Label("수정하기", systemImage: "pencil")
+                    }
+
+                    Button(action: {
+                        onSave?()
+                    }) {
+                        Label("이미지 저장", systemImage: "square.and.arrow.down")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive, action: {
+                        onDelete?()
+                    }) {
+                        Label("삭제하기", systemImage: "trash")
+                    }
+                } label: {
                     Image("three_dot")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
