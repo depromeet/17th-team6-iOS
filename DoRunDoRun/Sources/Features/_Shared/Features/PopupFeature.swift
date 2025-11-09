@@ -38,6 +38,8 @@ struct PopupFeature {
         )
         case hide
     }
+    
+    enum CancelID { case popup }
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -54,7 +56,7 @@ struct PopupFeature {
 
             case .hide:
                 state.isVisible = false
-                return .none
+                return .cancel(id: CancelID.popup)
             }
         }
     }

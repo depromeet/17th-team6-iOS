@@ -73,7 +73,13 @@ struct AppFeature {
                 state.selectedTab = tab
                 return .none
                 
-            case .running, .feed, .my:
+            case .my(.delegate(.logoutCompleted)),
+                 .my(.delegate(.withdrawCompleted)):
+                print("로그아웃 완료 → 온보딩 전환")
+                state.isLoggedIn = false
+                state.selectedTab = .running
+                state.onboarding.path.removeAll()
+                state.onboarding = OnboardingFeature.State()
                 return .none
                 
             default:

@@ -14,7 +14,26 @@ struct UserDefault<Value> {
     let storage: UserDefaults = .standard
 
     var wrappedValue: Value {
-        get { storage.object(forKey: key) as? Value ?? defaultValue }
-        set { storage.setValue(newValue, forKey: key) }
+        get {
+            return storage.object(forKey: key) as? Value ?? defaultValue
+        }
+        set {
+            // Optional 타입일 경우 nil 처리
+            if let optional = newValue as? AnyOptional {
+                if optional.isNil {
+                    storage.removeObject(forKey: key)
+                    return
+                }
+            }
+            storage.set(newValue, forKey: key)
+        }
     }
+}
+
+private protocol AnyOptional {
+    var isNil: Bool { get }
+}
+
+extension Optional: AnyOptional {
+    var isNil: Bool { self == nil }
 }

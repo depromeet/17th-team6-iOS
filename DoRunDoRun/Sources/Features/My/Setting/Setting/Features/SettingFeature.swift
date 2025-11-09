@@ -17,16 +17,28 @@ struct SettingFeature {
     struct State: Equatable {
         var toast = ToastFeature.State()
         var popup = PopupFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
+
         var appVersion: String = "3.13.0"
         
         @Presents var editProfile: EditProfileFeature.State?
         @Presents var accountInfo: AccountInfoFeature.State?
         @Presents var pushNotificationSetting: PushNotificationSettingFeature.State?
+        
+        enum FailedRequestType: Equatable {
+            case logout
+            case withdraw
+        }
+        var lastFailedRequest: FailedRequestType? = nil
     }
 
     enum Action: Equatable {
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
+        case serverError(ServerErrorFeature.Action)
+        
         case onAppear
         
         case editProfileTapped
@@ -41,13 +53,23 @@ struct SettingFeature {
         case logoutTapped
         case withdrawTapped
         case popupConfirmTapped
+        case logoutFailure(APIError)
+        case withdrawFailure(APIError)
         
         case backButtonTapped
+
+        enum Delegate: Equatable {
+            case logoutCompleted
+            case withdrawCompleted
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.popup, action: \.popup) { PopupFeature() }
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
 
         Reduce { state, action in
             switch action {
@@ -120,33 +142,34 @@ struct SettingFeature {
             case .popupConfirmTapped:
                 switch state.popup.action {
                 case .logout:
-                    return .run { send in
-                        do {
-                            try await logoutUseCase.execute()
-                            FCMTokenManager.shared.clear()
-                            TokenManager.shared.clear()
-                            UserManager.shared.clear()
-                        } catch {
-                            //TODO: Error Handling
-                        }
-                    }
-
+                    state.lastFailedRequest = .logout
+                    return performLogout()
+                    
                 case .withdraw:
-                    return .run { send in
-                        do {
-                            try await withdrawUseCase.execute()
-                            FCMTokenManager.shared.clear()
-                            TokenManager.shared.clear()
-                            UserManager.shared.clear()
-                        } catch {
-                            //TODO: Error Handling
-                        }
-                    }
-
+                    state.lastFailedRequest = .withdraw
+                    return performWithdraw()
+                    
                 default:
                     return .none
                 }
+            
+            // MARK: - 로그아웃, 탈퇴 에러 핸들링
+            case let .logoutFailure(apiError),
+                 let .withdrawFailure(apiError):
+                return handleAPIError(apiError)
+                
+            // MARK: - 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                 .serverError(.retryButtonTapped):
+                guard let failed = state.lastFailedRequest else { return .none }
 
+                switch failed {
+                case .logout:
+                    return performLogout()
+                case .withdraw:
+                    return performWithdraw()
+                }
+                
             default:
                 return .none
             }
@@ -159,6 +182,50 @@ struct SettingFeature {
         }
         .ifLet(\.$pushNotificationSetting, action: \.pushNotificationSetting) {
             PushNotificationSettingFeature()
+        }
+    }
+    
+    private func performLogout() -> Effect<Action> {
+        .run { send in
+            do {
+                try await logoutUseCase.execute()
+                FCMTokenManager.shared.clear()
+                TokenManager.shared.clear()
+                UserManager.shared.clear()
+                await send(.delegate(.logoutCompleted))
+            } catch {
+                await send(.logoutFailure(error as? APIError ?? .unknown))
+            }
+        }
+    }
+
+    private func performWithdraw() -> Effect<Action> {
+        .run { send in
+            do {
+                try await withdrawUseCase.execute()
+                FCMTokenManager.shared.clear()
+                TokenManager.shared.clear()
+                UserManager.shared.clear()
+                await send(.delegate(.withdrawCompleted))
+            } catch {
+                await send(.withdrawFailure(error as? APIError ?? .unknown))
+            }
+        }
+    }
+    
+    private func handleAPIError(_ apiError: APIError) -> Effect<Action> {
+        switch apiError {
+        case .networkError:
+            return .send(.networkErrorPopup(.show))
+        case .notFound:
+            return .send(.serverError(.show(.notFound)))
+        case .internalServer:
+            return .send(.serverError(.show(.internalServer)))
+        case .badGateway:
+            return .send(.serverError(.show(.badGateway)))
+        default:
+            print(apiError.userMessage)
+            return .none
         }
     }
 }

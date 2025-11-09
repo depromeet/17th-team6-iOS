@@ -127,6 +127,13 @@ struct MyFeature {
         // MARK: Sub Feature Action
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
+        
+        // MARK: Delegate
+        enum Delegate: Equatable {
+            case logoutCompleted
+            case withdrawCompleted
+        }
+        case delegate(Delegate)
     }
 
     // MARK: - Reducer
@@ -346,6 +353,13 @@ struct MyFeature {
             case .networkErrorPopup(.retryButtonTapped),
                     .serverError(.retryButtonTapped):
                 return .send(.onAppear)
+                
+            // MARK: - Path 액션 처리
+            case .path(.element(id: _, action: .setting(.delegate(.logoutCompleted)))):
+                return .send(.delegate(.logoutCompleted))
+                
+            case .path(.element(id: _, action: .setting(.delegate(.withdrawCompleted)))):
+                return .send(.delegate(.withdrawCompleted))
 
             default:
                 return .none
