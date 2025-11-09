@@ -56,7 +56,7 @@ struct FeedView: View {
                             HStack {
                                 Spacer()
 
-                                Button(action: { print("Feed Write Tap") }) {
+                                Button(action: { store.send(.tapUploadButton) }) {
                                     Image("feed_plus")
                                         .resizable()
                                         .frame(width: 24, height: 24)
@@ -82,6 +82,14 @@ struct FeedView: View {
                                 )
                             ) { (store: StoreOf<FeedDetailFeature>) in
                                 FeedDetailView(store: store)
+                            }
+                .navigationDestination(
+                                item: $store.scope(
+                                    state: \.destination?.uploadFeed,
+                                    action: \.destination.uploadFeed
+                                )
+                            ) { (store: StoreOf<UploadFeedFeature>) in
+                                UploadFeedView(store: store)
                             }
             }
             .onAppear {
