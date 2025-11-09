@@ -14,11 +14,14 @@ struct UploadFeedFeature {
     struct State {
         var isLoaded = false
         var runningRecords: [RunningRecord] = []
+        var selectedRecordID: Int? = nil
     }
 
     enum Action {
         case fetchRunningRecords
         case runningRecordsResponse(Result<[RunningRecord], Error>)
+        case selectRecord(Int)
+        case loadRecord
     }
 
     @Dependency(\.getRunningRecordsRepository) var runningRecordRepository: RunningRecordRepositoryProtocol
@@ -38,12 +41,24 @@ struct UploadFeedFeature {
                         }
                     }
                 case let .runningRecordsResponse(result):
-                    print("ABC", result)
                     state.isLoaded = true
                     if case let .success(records) = result {
                         state.runningRecords = records
                     }
+                    return .none
 
+                case let .selectRecord(recordID):
+                    if state.selectedRecordID == recordID {
+                        state.selectedRecordID = nil
+                    } else {
+                        state.selectedRecordID = recordID
+                    }
+                    return .none
+
+                case .loadRecord:
+                    // TODO: 불러오기 기능 구현
+                    guard let selectedID = state.selectedRecordID else { return .none }
+                    print("Load record with ID: \(selectedID)")
                     return .none
             }
         }

@@ -18,7 +18,12 @@ extension Int {
         let minutes = self / 60
         let secs = self % 60
 
-        return String(format: "%02d'%02d\"", minutes, secs)
+        return String(format: "%d'%02d\"", minutes, secs)
+    }
+
+    func formatDistance() -> String {
+        let km = Double(self) / 1000.0
+        return String(format: "%.2fkm", km)
     }
 }
 
