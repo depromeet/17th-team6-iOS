@@ -12,7 +12,7 @@ struct FeedView: View {
                 VStack {
                     NavigationBar("인증피드")
 
-                    DayInfoView(store.weekDayInfos, weekOfMonth: 2)
+                    DayInfoView(store.weekDayInfos, weekOfMonth: store.currentWeekOfMonth)
 
                     Divider()
 
@@ -20,8 +20,13 @@ struct FeedView: View {
                         if store.viewModel.feedList.isEmpty == false {
                             List {
                                 if let userSummary = store.viewModel.userSummary {
-                                    CertificateFriendsView(userSummary)
-                                        .listRowSeparator(.hidden)
+                                    Button(action: {
+                                        store.send(.tapCertificateFriends)
+                                    }) {
+                                        CertificateFriendsView(userSummary)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .listRowSeparator(.hidden)
                                 }
 
                                 ForEach(store.viewModel.feedList, id: \.feedID) { feed in
@@ -91,6 +96,14 @@ struct FeedView: View {
                             ) { (store: StoreOf<UploadFeedFeature>) in
                                 UploadFeedView(store: store)
                             }
+                .navigationDestination(
+                                item: $store.scope(
+                                    state: \.destination?.certificateFriendsList,
+                                    action: \.destination.certificateFriendsList
+                                )
+                            ) { (store: StoreOf<CertificateFriendsListFeature>) in
+                                CertificateFriendsListView(store: store)
+                            }
             }
             .onAppear {
                 store.send(.fetchFeed)
@@ -108,6 +121,24 @@ struct FeedView: View {
                     .font(.pretendard(.bold, size: 15))
 
                 Spacer()
+
+                HStack(spacing: 8) {
+                    Button(action: {
+                        store.send(.previousWeek)
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.gray700)
+                    }
+
+                    Button(action: {
+                        store.send(.nextWeek)
+                    }) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.gray700)
+                    }
+                }
             }
             .padding(.bottom, 12)
 
