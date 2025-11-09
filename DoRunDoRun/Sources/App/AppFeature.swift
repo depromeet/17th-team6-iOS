@@ -3,7 +3,7 @@ import ComposableArchitecture
 @Reducer
 struct AppFeature {
     @ObservableState
-    struct State: Equatable {
+    struct State {
         enum Tab: Hashable { case running, feed, my }
 
         var selectedTab: Tab = .running
@@ -12,7 +12,7 @@ struct AppFeature {
         var my = MyFeature.State()
     }
 
-    enum Action: Equatable {
+    enum Action {
         case tabSelected(State.Tab)
         case running(RunningFeature.Action)
         case feed(FeedFeature.Action)

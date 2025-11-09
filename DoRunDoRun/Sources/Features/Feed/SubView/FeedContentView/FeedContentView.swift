@@ -1,0 +1,163 @@
+//
+//  FeedContentView.swift
+//  DoRunDoRun
+//
+//  Created by Inho Choi on 11/1/25.
+//
+
+import SwiftUI
+
+struct FeedContentView: View {
+    private let feed: FeedViewModel
+
+//    let change: () -> Void
+//    let delete: () -> Void
+//    let save: () -> Void
+
+    init(feed: FeedViewModel) {
+        self.feed = feed
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Circle()
+                    .frame(width: 32, height: 32)
+                    .padding(.trailing, 8)
+
+                Text(feed.userName)
+                    .font(.pretendard(.medium, size: 16))
+                    .padding(.trailing, 4)
+
+                if feed.isMyFeed {
+                    Text("나")
+                        .font(.pretendard(.medium, size: 12))
+                        .frame(width: 20, height: 20)
+                        .background(Color.blue600)
+                        .foregroundStyle(Color.gray0)
+                        .clipShape(Circle())
+                        .padding(.trailing, 8)
+                }
+
+                Text(feed.timeAgo)
+                    .font(.pretendard(.medium, size: 14))
+                    .foregroundStyle(Color.gray500)
+
+                Spacer()
+
+                Button(action: { print("more options") }) {
+                    Image("three_dot")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                }
+            }
+
+            Rectangle()
+                .foregroundStyle(Color.gray300)
+                .aspectRatio(1, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay {
+
+                    VStack(alignment: .leading) {
+                        if let time = feed.selfieTime {
+                            Text(time)
+                                .font(.pretendard(.regular, size: 12))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.black.opacity(0.4))
+                                .clipShape(Capsule())
+                        }
+
+                        Spacer()
+
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("달린 거리")
+                                    .font(.pretendard(.regular, size: 12))
+                                Text(feed.totalDistance)
+                                    .font(.pretendard(.bold, size: 28))
+                                    .padding(.bottom, 12)
+
+
+                                Text("평균 페이스")
+                                    .font(.pretendard(.regular, size: 12))
+                                Text(feed.averagePace)
+                                    .font(.pretendard(.bold, size: 20))
+                            }
+
+
+                            VStack(alignment: .leading) {
+                                Text("달린 시간")
+                                    .font(.pretendard(.regular, size: 12))
+                                Text(feed.totalRunTime)
+                                    .font(.pretendard(.bold, size: 28))
+                                    .padding(.bottom, 12)
+
+                                Text("평균 케이던스")
+                                    .font(.pretendard(.regular, size: 12))
+                                Text(feed.cadence)
+                                    .font(.pretendard(.bold, size: 20))
+                            }
+                            .frame(maxWidth: .infinity)
+
+                        }
+                    }
+                    .padding(20)
+                    .foregroundStyle(Color.white)
+                }
+                .padding(.vertical, 20)
+
+            ReactionView
+
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    var ReactionView: some View {
+        HStack {
+            ForEach(feed.reactions.prefix(3), id: \.emojiType) { reaction in
+                Button(action: {print(reaction.emojiType.rawValue)}) {
+                    HStack(spacing: 2) {
+                        Image(reaction.emojiType.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 20, height: 20)
+
+                        Text("\(reaction.totalCount)")
+                            .frame(minWidth: 18)
+                            .font(.pretendard(.medium, size: 14))
+                    }
+                }
+                .padding(6)
+                .background(Color.gray50)
+                .clipShape(Capsule())
+                .buttonStyle(.plain)
+            }
+
+            if feed.reactions.count > 3 {
+                Button(action: {}) {
+                    Text("+\(feed.reactions.count - 3)")
+                        .font(.pretendard(.medium, size: 14))
+                        .frame(width: 52, height: 32)
+                        .foregroundStyle(Color.black)
+                        .background(Color.gray50)
+                }
+            }
+
+            Button(action: {print("emoji More")}) {
+                Image("emoji_more")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                    .padding(6)
+                    .background(Color.gray50)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+        }
+    }
+}

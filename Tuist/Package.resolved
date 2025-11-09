@@ -1,5 +1,5 @@
 {
-  "originHash" : "ec43b43f3c5ab21f861f9892db26f376624c8a5823bdc889f9273c9cfc96c5cc",
+  "originHash" : "da22092cd30749a667dc4dd6d06f282fa4c8b94dba18f04d644407ce78d87a0f",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/navermaps/SPM-NMapsMap",
       "state" : {
-        "branch" : "main",
-        "revision" : "fb4eef37db9904c0a0dcdf7a828c892e13782cfa"
+        "revision" : "fb4eef37db9904c0a0dcdf7a828c892e13782cfa",
+        "version" : "3.23.0"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "a9c3fecb5d31fc8aad5d8ba5d830924966d7fb15"
+        "revision" : "5b0890fabfd68a2d375d68502bc3f54a8548c494",
+        "version" : "1.23.1"
       }
     },
     {
