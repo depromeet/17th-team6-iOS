@@ -14,44 +14,62 @@ struct FriendListView: View {
     var body: some View {
         WithPerceptionTracking {
             ZStack(alignment: .bottom) {
-                VStack(alignment: .leading) {
-                    headerSection
-                    friendListSection
-                        .padding(.bottom, 129)
-                    Spacer()
-                }
+                serverErrorSection
+                mainSection
                 toastAndButtonSection
                 popupSection
+                networkErrorPopupSection
             }
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .navigationTitle("친구")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
-            ) { store in
-                FriendCodeInputView(store: store)
-            }
-
         }
     }
 }
 
-// MARK: - Header
+// MARK: - Server Error Section
 private extension FriendListView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension FriendListView {
+    /// Main Section
+    @ViewBuilder
+    var mainSection: some View {
+        VStack(alignment: .leading) {
+            headerSection
+            friendListSection
+                .padding(.bottom, 129)
+            Spacer()
+        }
+        .onAppear { store.send(.onAppear) }
+        .navigationTitle("친구")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    store.send(.backButtonTapped)
+                } label: {
+                    Image(.arrowLeft, size: .medium)
+                        .renderingMode(.template)
+                        .foregroundColor(.gray800)
+                }
+            }
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
+        ) { store in
+            FriendCodeInputView(store: store)
+        }
+    }
+    // 헤더 섹션
     var headerSection: some View {
         HStack(spacing: 8) {
             TypographyText(text: "친구목록", style: .t1_700, color: .gray800)
@@ -62,10 +80,7 @@ private extension FriendListView {
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-}
-
-// MARK: - FriendList
-private extension FriendListView {
+    /// 친구 목록 섹션
     @ViewBuilder
     var friendListSection: some View {
         if store.friends.isEmpty {
@@ -154,3 +169,23 @@ private extension FriendListView {
         }
     }
 }
+
+// MARK: - Network Error Popup Section
+private extension FriendListView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
+    }
+}
+
