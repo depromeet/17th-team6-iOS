@@ -67,6 +67,7 @@ struct AppFeature {
             case .onboarding(.finished):
                 // 온보딩 완료 → 메인 탭으로 전환
                 state.isLoggedIn = true
+                state.my.path.removeAll()
                 return .none
                 
             case let .tabSelected(tab):

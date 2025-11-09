@@ -67,16 +67,16 @@ private extension SettingView {
                     }
                 }
             }
-            .fullScreenCover(
+            .navigationDestination(
                 item: $store.scope(state: \.editProfile, action: \.editProfile)
             ) { store in
                 EditProfileView(store: store)
             }
-            .fullScreenCover(
+            .navigationDestination(
                 item: $store.scope(state: \.accountInfo, action: \.accountInfo)
             ) { store in
                 AccountInfoView(store: store)
-            }.fullScreenCover(
+            }.navigationDestination(
                 item: $store.scope(state: \.pushNotificationSetting, action: \.pushNotificationSetting)
             ) { store in
                 PushNotificationSettingView(store: store)
