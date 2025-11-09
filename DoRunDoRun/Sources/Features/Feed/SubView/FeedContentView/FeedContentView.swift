@@ -12,17 +12,22 @@ struct FeedContentView: View {
     var onEdit: (() -> Void)?
     var onDelete: (() -> Void)?
     var onSave: (() -> Void)?
+    var onReaction: ((Emoji) -> Void)?
+
+    @State private var showEmojiPicker = false
 
     init(
         feed: FeedViewModel,
         onEdit: (() -> Void)? = nil,
         onDelete: (() -> Void)? = nil,
-        onSave: (() -> Void)? = nil
+        onSave: (() -> Void)? = nil,
+        onReaction: ((Emoji) -> Void)? = nil
     ) {
         self.feed = feed
         self.onEdit = onEdit
         self.onDelete = onDelete
         self.onSave = onSave
+        self.onReaction = onReaction
     }
 
     var body: some View {
@@ -173,7 +178,9 @@ struct FeedContentView: View {
                 }
             }
 
-            Button(action: {print("emoji More")}) {
+            Button(action: {
+                showEmojiPicker = true
+            }) {
                 Image("emoji_more")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -185,6 +192,38 @@ struct FeedContentView: View {
             .buttonStyle(.plain)
 
             Spacer()
+        }
+        .sheet(isPresented: $showEmojiPicker) {
+            EmojiPickerView(onEmojiSelected: { emoji in
+                onReaction?(emoji)
+                showEmojiPicker = false
+            })
+            .presentationDetents([.height(200)])
+            .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+struct EmojiPickerView: View {
+    let onEmojiSelected: (Emoji) -> Void
+
+    let emojis: [Emoji] = [.SURPRISE, .HEART, .FIRE, .THUMBS_UP, .CONGRATS]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 20) {
+                ForEach(emojis, id: \.self) { emoji in
+                    Button(action: {
+                        onEmojiSelected(emoji)
+                    }) {
+                        Image(emoji.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 56, height: 56)
+                    }
+                }
+            }
+            .padding(.vertical, 32)
         }
     }
 }

@@ -117,7 +117,7 @@ struct FeedViewModel {
     let reactions: [FeedReaction]
 }
 
-enum Emoji: String {
+enum Emoji: String, Hashable {
     case SURPRISE, HEART, THUMBS_UP, CONGRATS, FIRE
 
     var imageName: String {
