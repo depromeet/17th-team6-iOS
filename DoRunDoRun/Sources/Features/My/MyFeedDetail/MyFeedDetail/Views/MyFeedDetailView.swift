@@ -155,7 +155,7 @@ private extension MyFeedDetailView {
 
             Button {
                 withAnimation { showMenu = false }
-                // store.send(.saveImageButtonTapped)
+                 store.send(.saveImageButtonTapped)
             } label: {
                 TypographyText(text: "이미지 저장", style: .b2_400, color: .gray700)
                     .frame(maxWidth: .infinity, alignment: .leading)

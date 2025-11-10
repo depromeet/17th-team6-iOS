@@ -128,9 +128,11 @@ struct MyFeedDetailFeature {
         /// 피드 삭제 응답 실패
         case deleteFeedFailure(APIError)
         
-        /// 이미지 저장 버튼 탭
+        /// 피드 이미지 저장 버튼 탭
         case saveImageButtonTapped
-        
+        /// 피드 이미지 저장 성공
+        case saveImageSuccess
+
         /// 시트 전체 닫기
         case dismissSheet
         
@@ -298,6 +300,18 @@ struct MyFeedDetailFeature {
             case let .deleteFeedFailure(apiError):
                 state.lastFailedRequest = .deleteFeed
                 return handleAPIError(apiError)
+                
+            // MARK: - 피드 이미지 저장 버튼 탭
+            case .saveImageButtonTapped:
+                return .run { [feed = state.feed] send in
+                    let image = await MyFeedImageCaptureView(feed: feed).snapshot()
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                    await send(.saveImageSuccess)
+                }
+            //MARK: - 피드 이미지 저장 성공
+            case .saveImageSuccess:
+                print("이미지 저장 완료")
+                return .none
 
             // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
