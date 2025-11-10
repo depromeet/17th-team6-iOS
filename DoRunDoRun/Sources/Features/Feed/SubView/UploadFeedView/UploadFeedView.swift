@@ -35,30 +35,57 @@ struct UploadFeedView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 24)
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ForEach(groupedRecords, id: \.0) { date, records in
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(date.toDateString())
-                                    .font(.pretendard(.medium, size: 14))
-                                    .foregroundStyle(Color.gray600)
+                if groupedRecords.isEmpty == false {
+                    // 빈 상태 UI
+                    VStack(spacing: 24) {
+                        Spacer()
 
-                                ForEach(records, id: \.runSessionID) { record in
-                                    Button(action: {
-                                        store.send(.selectRecord(record.runSessionID))
-                                    }) {
-                                        RunningRecordCard(
-                                            record: record,
-                                            isSelected: store.selectedRecordID == record.runSessionID
-                                        )
+                        VStack(spacing: 24) {
+                            // TODO: graphic_empty_2 이미지로 교체 필요
+                            Image("ic_empty2")
+                                .resizable()
+                                .frame(width: 120, height: 120)
+
+                            VStack(spacing: 4) {
+                                Text("인증 가능한 기록이 없어요..")
+                                    .font(.pretendard(.bold, size: 18))
+                                    .foregroundStyle(Color.gray900)
+
+                                Text("지금 바로 러닝을 시작해봐요!")
+                                    .font(.pretendard(.regular, size: 14))
+                                    .foregroundStyle(Color.gray700)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ForEach(groupedRecords, id: \.0) { date, records in
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(date.toDateString())
+                                        .font(.pretendard(.medium, size: 14))
+                                        .foregroundStyle(Color.gray600)
+
+                                    ForEach(records, id: \.runSessionID) { record in
+                                        Button(action: {
+                                            store.send(.selectRecord(record.runSessionID))
+                                        }) {
+                                            RunningRecordCard(
+                                                record: record,
+                                                isSelected: store.selectedRecordID == record.runSessionID
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 100)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 100)
                 }
 
                 Spacer()
