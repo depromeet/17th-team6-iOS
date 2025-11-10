@@ -9,6 +9,16 @@ import SwiftUI
 
 import NMapsMap
 
+/// 지도상의 좌표를 나타내는 타입을 위한 프로토콜
+protocol CoordinateRepresentable {
+    var latitude: Double { get }
+    var longitude: Double { get }
+}
+
+// MARK: - CoordinateRepresentable Conformance
+extension UserLocationViewState: CoordinateRepresentable {}
+extension RunningCoordinateViewState: CoordinateRepresentable {}
+
 /// 러닝 전, 러닝 중 화면에서 보여질 NaverMap
 struct RunningMapView: UIViewRepresentable {
     
@@ -142,7 +152,7 @@ private extension RunningMapView {
         // 1. 초기 진입 시 사용자 위치로 카메라 센터링 (1회만)
         if !context.coordinator.didCenterUserLocationOnReady,
             let userLoc = userLocation {
-            centerCameraToUserLocation(userLoc, in: uiView.mapView)
+            centerCamera(on: userLoc, in: uiView.mapView)
             context.coordinator.didCenterUserLocationOnReady = true
 
             return
@@ -156,19 +166,12 @@ private extension RunningMapView {
             clearFriendMarkers(context: context)
 
             // GPS Following ON이고 사용자 위치가 있으면 카메라 추적
-            if isFollowingLocation,
-                let userLoc = userLocation {
-                centerCameraToUserLocation(userLoc, in: uiView.mapView)
-            }
+            updateCameraForFollowing(
+                isFollowing: isFollowingLocation,
+                location: userLocation,
+                in: uiView.mapView
+            )
         }
-    }
-
-    /// 사용자 위치로 카메라 이동 (contentInset으로 오프셋 자동 적용)
-    func centerCameraToUserLocation(_ location: UserLocationViewState, in mapView: NMFMapView) {
-        let latLng = NMGLatLng(lat: location.latitude, lng: location.longitude)
-        let update = NMFCameraUpdate(position: NMFCameraPosition(latLng, zoom: CameraZoomLevel.default))
-        update.animation = .easeIn
-        mapView.moveCamera(update)
     }
 
     /// 포커스된 친구의 마커만 표시
@@ -245,17 +248,19 @@ private extension RunningMapView {
         }
 
         // Following ON일 때 자동으로 내 위치 추적
-        if isFollowingLocation, let lastCoordinate = runningCoordinates.last {
-            centerCamera(on: lastCoordinate, in: uiView.mapView)
-        }
+        updateCameraForFollowing(
+            isFollowing: isFollowingLocation,
+            location: runningCoordinates.last,
+            in: uiView.mapView
+        )
 
         // 이후에는 경로만 갱신
         updateRunningRoute(on: uiView.mapView, context: context)
     }
     
-    /// 주어진 러닝 좌표를 기준으로 카메라를 가운데로 이동
+    /// 주어진 좌표를 기준으로 카메라를 가운데로 이동
     func centerCamera(
-        on coordinate: RunningCoordinateViewState,
+        on coordinate: CoordinateRepresentable,
         in mapView: NMFMapView,
         zoom: Double = CameraZoomLevel.default
     ) {
@@ -263,6 +268,17 @@ private extension RunningMapView {
         let update = NMFCameraUpdate(position: NMFCameraPosition(latLng, zoom: zoom))
         update.animation = .easeIn
         mapView.moveCamera(update)
+    }
+
+    /// GPS Following 모드일 때 카메라 업데이트 (Ready/Active 공통)
+    func updateCameraForFollowing(
+        isFollowing: Bool,
+        location: CoordinateRepresentable?,
+        in mapView: NMFMapView,
+        zoom: Double = CameraZoomLevel.default
+    ) {
+        guard isFollowing, let location = location else { return }
+        centerCamera(on: location, in: mapView, zoom: zoom)
     }
     
     /// runningCoordinates를 이용해 경로를 업데이트한다. (페이스 기반 색상 적용)
