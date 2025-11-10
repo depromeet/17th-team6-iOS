@@ -10,7 +10,8 @@ import ComposableArchitecture
 import Kingfisher
 
 struct MyFeedDetailView: View {
-    let store: StoreOf<MyFeedDetailFeature>
+    @Perception.Bindable var store: StoreOf<MyFeedDetailFeature>
+    @State private var showMenu = false
 
     var body: some View {
         WithPerceptionTracking {
@@ -21,6 +22,9 @@ struct MyFeedDetailView: View {
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
+//            .onTapGesture {
+//                if showMenu { withAnimation { showMenu = false } }
+//            }
         }
     }
 }
@@ -53,6 +57,22 @@ private extension MyFeedDetailView {
                 .padding(.horizontal, 20)
             }
             .scrollDisabled(true)
+            .background {
+                if let urlString = store.feed.imageURL, let url = URL(string: urlString) {
+                    ZStack {
+                        KFImage(url)
+                            .resizable()
+                            .scaledToFill()
+                            .ignoresSafeArea()
+                            .blur(radius: 55)
+                            .opacity(1.0)
+                        Color.dimDark
+                            .ignoresSafeArea()
+                    }
+                } else {
+                    Color.gray900.ignoresSafeArea() // 이미지가 없을 경우 기본 배경
+                }
+            }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -64,6 +84,11 @@ private extension MyFeedDetailView {
                             .foregroundColor(.gray800)
                     }
                 }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
+            ) { store in
+                EditMyFeedDetailView(store: store)
             }
         }
     }
@@ -77,15 +102,75 @@ private extension MyFeedDetailView {
                 style: .plain,
                 size: .small
             )
-            TypographyText(text: store.feed.userName, style: .t2_500, color: .gray900)
+            TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
+            TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
             Spacer()
             Button {
-                print("more tap")
+                withAnimation(.easeInOut) { showMenu.toggle() }
             } label: {
                 Image(.more, size: .medium)
+                    .renderingMode(.template)
+                    .foregroundColor(.gray0)
             }
         }
         .padding(.top, 16)
+        .zIndex(5)
+        .contentShape(Rectangle())
+        .overlay(alignment: .topTrailing) {
+            if showMenu { menuSection }
+        }
+    }
+    
+    /// 메뉴 섹션
+    var menuSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation { showMenu = false }
+                 store.send(.editButtonTapped)
+            } label: {
+                TypographyText(text: "수정하기", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                    .padding(.horizontal, 12)
+            }
+
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(Color.gray50)
+
+            Button {
+                withAnimation { showMenu = false }
+                 store.send(.deleteButtonTapped)
+            } label: {
+                TypographyText(text: "삭제하기", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+            }
+
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(Color.gray50)
+
+            Button {
+                withAnimation { showMenu = false }
+                 store.send(.saveImageButtonTapped)
+            } label: {
+                TypographyText(text: "이미지 저장", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
+                    .padding(.horizontal, 12)
+            }
+        }
+        .frame(width: 144)
+        .background(Color.gray0)
+        .cornerRadius(12)
+        .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
+        .offset(x: 0, y: 48)
+        .transition(.opacity)
+        .zIndex(10)
     }
     
     /// 피드 이미지 섹션
@@ -94,8 +179,16 @@ private extension MyFeedDetailView {
             // 피드 이미지
             if let urlString = store.feed.imageURL, let url = URL(string: urlString) {
                 KFImage(url)
+                    .placeholder {
+                        Rectangle()
+                            .fill(Color.gray100)
+                            .aspectRatio(1, contentMode: .fill)
+                            .clipped()
+                            .cornerRadius(16)
+                    }
                     .resizable()
-                    .aspectRatio(1, contentMode: .fill)
+                    .scaledToFill()
+                    .frame(width: (UIScreen.main.bounds.width - 40), height: (UIScreen.main.bounds.width - 40))
                     .cornerRadius(16)
             } else {
                 Rectangle()
@@ -121,19 +214,36 @@ private extension MyFeedDetailView {
             .padding(.horizontal, 12)
             .background(Color.dimLight)
             .clipShape(.capsule)
+            .padding(.top, 20)
+            .padding(.horizontal, 20)
             
             Spacer()
             
-            HStack {
-                metricRow(title: "달린 거리", value: store.feed.totalDistanceText)
-                metricRow(title: "달린 시간", value: store.feed.totalRunTimeText)
+            VStack(spacing: 12) {
+                HStack {
+                    metricRow(title: "달린 거리", value: store.feed.totalDistanceText)
+                    metricRow(title: "달린 시간", value: store.feed.totalRunTimeText)
+                }
+                HStack {
+                    metricRow(title: "평균 페이스", value: store.feed.averagePaceText)
+                    metricRow(title: "평균 케이던스", value: "\(store.feed.cadence) spm")
+                }
             }
-            HStack {
-                metricRow(title: "평균 페이스", value: store.feed.averagePaceText)
-                metricRow(title: "평균 케이던스", value: "\(store.feed.cadence) spm")
-            }
+            .padding(.top, 80)
+            .padding(.bottom, 20)
+            .padding(.horizontal, 20)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(hex: 0x000000, alpha: 0.8), // 아래쪽 진한 검정
+                        Color(hex: 0x000000, alpha: 0.0)  // 위쪽 완전 투명
+                    ],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .cornerRadius(16)
+            )
         }
-        .padding(20)
     }
     
     /// 리액션 바

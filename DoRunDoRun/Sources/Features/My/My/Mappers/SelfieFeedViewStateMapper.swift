@@ -83,7 +83,8 @@ private extension SelfieFeedViewStateMapper {
         let durationText = formatDuration(feed.totalRunTime)
         let paceText = formatPace(feed.averagePace)
         let reactions = mapReactions(from: feed.reactions, using: formatter)
-        
+        let relativeTimeText = formatter.formatRelativeTime(from: feed.selfieTime)
+
         return .init(
             feedID: feed.id,
             dayText: dayText,
@@ -97,7 +98,8 @@ private extension SelfieFeedViewStateMapper {
             cadence: feed.cadence,
             reactions: reactions,
             dateText: dateText,
-            timeText: timeText
+            timeText: timeText,
+            relativeTimeText: relativeTimeText
         )
     }
 }

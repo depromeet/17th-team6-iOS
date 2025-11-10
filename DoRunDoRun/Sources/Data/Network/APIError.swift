@@ -20,7 +20,7 @@ enum APIError: Error {
 
     // MARK: - 5xx: 서버 오류
     case internalServer          // 500
-    case badGateway              // 502 ← ✅ 추가됨
+    case badGateway              // 502
     case serviceUnavailable      // 503
     case gatewayTimeout          // 504
 

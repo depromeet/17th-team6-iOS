@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import ComposableArchitecture
 
 @Reducer
@@ -13,6 +14,8 @@ struct MyFeedDetailFeature {
     // MARK: - Dependencies
     /// 리액션 관련 서버 통신을 담당하는 유즈케이스
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
+    /// 피드 삭제 유즈케이스
+    @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
 
     // MARK: - State
     @ObservableState
@@ -42,14 +45,17 @@ struct MyFeedDetailFeature {
         var displayedReactions: [ReactionViewState] {
             let formatter = ISO8601DateFormatter()
             
+            // 새로운 리액션(=1회 반응)과 누적된 리액션을 구분
             let newReactions = feed.reactions.filter { $0.totalCount == 1 }
             let existingReactions = feed.reactions.filter { $0.totalCount > 1 }
             
+            // 새로운 리액션은 반응 시각을 기준으로 최신순 정렬
             let sortedNew = newReactions.sorted { lhs, rhs in
                 let lhsDate = lhs.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
                 let rhsDate = rhs.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
                 return lhsDate > rhsDate
             }
+            // 새로 추가된 리액션을 앞에, 기존 리액션을 뒤에 붙여 최대 3개만 노출
             return Array((sortedNew + existingReactions).prefix(3))
         }
 
@@ -63,12 +69,16 @@ struct MyFeedDetailFeature {
             Array(feed.reactions.dropFirst(3))
         }
         
+        /// API 요청 실패 시, 어떤 요청이 실패했는지 저장하여 재시도 시 사용
         enum FailedRequestType: Equatable {
             case toggleReaction(ReactionViewState)
             case addReaction(EmojiType)
+            case deleteFeed
         }
-        
         var lastFailedRequest: FailedRequestType? = nil
+        
+        /// 피드 수정 화면 상태 (Sheet Navigation)
+        @Presents var editMyFeedDetail: EditMyFeedDetailFeature.State?
     }
 
     // MARK: - Action
@@ -106,18 +116,45 @@ struct MyFeedDetailFeature {
         /// 리액션 추가 서버 응답 실패
         case addReactionFailure(APIError)
         
+        /// 피드 수정 버튼 탭
+        case editButtonTapped
+        
+        /// 피드 삭제 버튼 탭
+        case deleteButtonTapped
+        
+        /// 피드 삭제 응답 성공
+        case deleteFeedSuccess
+        
+        /// 피드 삭제 응답 실패
+        case deleteFeedFailure(APIError)
+        
+        /// 피드 이미지 저장 버튼 탭
+        case saveImageButtonTapped
+        /// 피드 이미지 저장 성공
+        case saveImageSuccess
+
         /// 시트 전체 닫기
         case dismissSheet
         
         /// 상단 뒤로가기 버튼 탭
         case backButtonTapped
+        
+        /// 수정 화면 액션
+        case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
+        
+        /// 상위 피처로 전달되는 delegate 이벤트
+        enum Delegate: Equatable {
+            case feedUpdated(imageURL: String)
+            case feedDeleted(feedID: Int)
+        }
+        case delegate(Delegate)
     }
 
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
-        // 하위 피처 연결
+        // MARK: - 하위 피처 연결
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
-        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature()}
+        Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
         Scope(state: \.reactionDetail, action: \.reactionDetail) { ReactionDetailSheetFeature() }
         Scope(state: \.reactionPicker, action: \.reactionPicker) { ReactionPickerSheetFeature() }
         
@@ -155,6 +192,7 @@ struct MyFeedDetailFeature {
                 
             // MARK: - 리액션 토글 실패
             case let .reactionFailure(apiError):
+                // 마지막 실패 요청 저장 → 재시도 버튼 클릭 시 사용
                 state.lastFailedRequest = .toggleReaction(state.feed.reactions.first(where: { $0.isReactedByMe }) ?? .init(emojiType: .heart, totalCount: 0, isReactedByMe: false, users: []))
                 return handleAPIError(apiError)
 
@@ -215,6 +253,65 @@ struct MyFeedDetailFeature {
                     state.lastFailedRequest = .addReaction(pickerEmoji)
                 }
                 return handleAPIError(apiError)
+                
+            // MARK: - 수정 버튼 탭
+            case .editButtonTapped:
+                // 피드 수정 화면으로 이동
+                state.editMyFeedDetail = EditMyFeedDetailFeature.State(feed: state.feed)
+                return .none
+                
+            // MARK: - 수정 완료 후 delegate 처리
+            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(imageURL)))):
+                state.feed.imageURL = imageURL
+                state.editMyFeedDetail = nil
+                return .send(.delegate(.feedUpdated(imageURL: imageURL)))
+                
+            // MARK: - 수정 화면에서 뒤로가기
+            case .editMyFeedDetail(.presented(.backButtonTapped)):
+                state.editMyFeedDetail = nil
+                return .none
+                
+            // MARK: - 피드 삭제 버튼 탭
+            case .deleteButtonTapped:
+                let feedId = state.feed.feedID
+                
+                // 삭제 요청 수행
+                return .run { send in
+                    do {
+                        _ = try await selfieFeedDeleteUseCase.execute(feedId: feedId)
+                        await send(.deleteFeedSuccess)
+                    } catch {
+                        if let apiError = error as? APIError {
+                            await send(.deleteFeedFailure(apiError))
+                        } else {
+                            await send(.deleteFeedFailure(.unknown))
+                        }
+                    }
+                }
+                
+            // MARK: - 피드 삭제 성공
+            case .deleteFeedSuccess:
+                return .merge(
+                    .send(.delegate(.feedDeleted(feedID: state.feed.feedID))),
+                    .send(.backButtonTapped)
+                )
+                
+            // MARK: - 피드 삭제 실패
+            case let .deleteFeedFailure(apiError):
+                state.lastFailedRequest = .deleteFeed
+                return handleAPIError(apiError)
+                
+            // MARK: - 피드 이미지 저장 버튼 탭
+            case .saveImageButtonTapped:
+                return .run { [feed = state.feed] send in
+                    let image = await MyFeedImageCaptureView(feed: feed).snapshot()
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                    await send(.saveImageSuccess)
+                }
+            //MARK: - 피드 이미지 저장 성공
+            case .saveImageSuccess:
+                print("이미지 저장 완료")
+                return .none
 
             // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
@@ -226,29 +323,33 @@ struct MyFeedDetailFeature {
                 state.isReactionDetailPresented = false
                 state.isReactionPickerPresented = false
                 return .none
-
-            // MARK: - 뒤로가기 버튼 탭
-            case .backButtonTapped:
-                return .none
                 
-            // MARK: 재시도
+            // MARK: - 재시도 요청 (네트워크/서버 에러 이후)
             case .networkErrorPopup(.retryButtonTapped),
                  .serverError(.retryButtonTapped):
                 guard let failed = state.lastFailedRequest else { return .none }
 
+                // 실패했던 요청 유형에 따라 재전송
                 switch failed {
                 case let .toggleReaction(reaction):
                     return .send(.reactionTapped(reaction))
                 case let .addReaction(emoji):
                     return .send(.reactionPicker(.reactionSelected(emoji)))
+                case .deleteFeed:
+                    return .send(.deleteButtonTapped)
                 }
 
             default:
                 return .none
             }
         }
+        // MARK: - 하위 피처 연결 (Edit)
+        .ifLet(\.$editMyFeedDetail, action: \.editMyFeedDetail) {
+            EditMyFeedDetailFeature()
+        }
     }
     
+    // MARK: - 공통 에러 처리 유틸리티
     private func handleAPIError(_ apiError: APIError) -> Effect<Action> {
         switch apiError {
         case .networkError:
@@ -326,6 +427,7 @@ private extension MyFeedDetailFeature {
     }
     
     /// 현재 유저의 리액션 정보를 생성합니다.
+    /// - 본인 정보(UserManager)를 기반으로 새 ReactionUserViewState 생성
     static func makeMyReactionUser() -> ReactionUserViewState {
         ReactionUserViewState(
             id: UserManager.shared.userId,
