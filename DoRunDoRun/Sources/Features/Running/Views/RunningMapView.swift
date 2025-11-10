@@ -84,16 +84,16 @@ struct RunningMapView: UIViewRepresentable {
             if phase == .ready {
                 context.coordinator.didCenterUserLocationOnReady = false
                 context.coordinator.didSetContentInset = false
-                
-                clearRouteSegments(context: context)
+
+                context.coordinator.routeSegmentManager.clear()
             }
 
             // Active phase로 진입할 때마다 플래그 리셋 및 contentInset 초기화
             if phase == .active {
                 context.coordinator.didCenterInitialCamera = false
                 uiView.mapView.contentInset = .zero
-                
-                clearFriendMarkers(context: context)
+
+                context.coordinator.friendMarkerManager.clear()
             }
         }
 
@@ -107,11 +107,111 @@ struct RunningMapView: UIViewRepresentable {
         }
     }
 
+    // MARK: - Friend Marker Manager
+    class FriendMarkerManager {
+        private var markers: [NMFMarker] = []
+        private var currentFriendID: Int?
+
+        /// 현재 포커스된 ID와 동일한지 확인하여 업데이트 필요 여부 반환
+        func needsUpdate(for focusedID: Int?) -> Bool {
+            return currentFriendID != focusedID
+        }
+
+        /// 포커스된 친구의 마커를 업데이트
+        func update(
+            friends: [FriendRunningStatusViewState],
+            focusedID: Int?,
+            on mapView: NMFMapView
+        ) {
+            guard needsUpdate(for: focusedID) else { return }
+
+            clear()
+
+            guard
+                let focusedID = focusedID,
+                let friend = friends.first(where: { $0.id == focusedID }),
+                let lat = friend.latitude,
+                let lng = friend.longitude
+            else { return }
+
+            let marker = NMFMarker(position: NMGLatLng(lat: lat, lng: lng))
+
+            Task { @MainActor in
+                let customView = FriendMarkerView(
+                    name: friend.name,
+                    profileImageURL: friend.profileImageURL,
+                    isRunning: friend.isRunning,
+                    isFocused: true
+                )
+                marker.iconImage = NMFOverlayImage(image: customView.snapshot())
+                marker.mapView = mapView
+                markers.append(marker)
+            }
+
+            currentFriendID = focusedID
+        }
+
+        /// 모든 마커 제거
+        func clear() {
+            markers.forEach { $0.mapView = nil }
+            markers.removeAll()
+            currentFriendID = nil
+        }
+    }
+
+    // MARK: - Route Segment Manager
+    class RouteSegmentManager {
+        private var segments: [NMFPath] = []
+
+        /// 경로 좌표로부터 세그먼트를 업데이트
+        func update(
+            coordinates: [RunningCoordinateViewState],
+            on mapView: NMFMapView
+        ) {
+            // 좌표가 2개 미만이면 경로를 그릴 수 없으므로 제거
+            guard coordinates.count >= 2 else {
+                clear()
+                return
+            }
+
+            // 기존 세그먼트 제거
+            clear()
+
+            // 구간별 NMFPath 생성 (원본 좌표 사용)
+            for i in 0..<(coordinates.count - 1) {
+                let start = coordinates[i]
+                let end = coordinates[i + 1]
+
+                // 현재 구간의 페이스 색상 결정
+                let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
+
+                // 구간 경로 생성
+                let segment = NMFPath()
+                let startLatLng = NMGLatLng(lat: start.latitude, lng: start.longitude)
+                let endLatLng = NMGLatLng(lat: end.latitude, lng: end.longitude)
+                let lineString = NMGLineString(points: [startLatLng, endLatLng] as [AnyObject])
+
+                segment.path = lineString
+                segment.color = paceColor
+                segment.width = 8
+                segment.outlineColor = .clear
+                segment.mapView = mapView
+
+                segments.append(segment)
+            }
+        }
+
+        /// 모든 세그먼트 제거
+        func clear() {
+            segments.forEach { $0.mapView = nil }
+            segments.removeAll()
+        }
+    }
+
     // MARK: - Coordinator
     class Coordinator: NSObject, NMFMapViewCameraDelegate {
-        var markers: [NMFMarker] = []
-        var currentFriendID: Int?
-        var routeSegments: [NMFPath] = []     // 구간별 경로 세그먼트 (색상별로 분리됨)
+        let friendMarkerManager = FriendMarkerManager()
+        let routeSegmentManager = RouteSegmentManager()
         var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
         var didCenterUserLocationOnReady = false  // Ready 최초 1회 사용자 위치 센터링 여부
         var lastPhase: RunningPhase?          // Phase 변경 감지용
@@ -164,12 +264,16 @@ private extension RunningMapView {
         }
 
         // 2. 친구 포커싱이 활성화된 경우 친구 마커 표시 및 카메라 이동
-        if focusedFriendID != nil {
-            updateFocusedFriendMarker(on: uiView.mapView, context: context)
-        } else {
-            // 친구 포커싱 해제 시 마커 제거
-            clearFriendMarkers(context: context)
+        context.coordinator.friendMarkerManager.update(
+            friends: statuses,
+            focusedID: focusedFriendID,
+            on: uiView.mapView
+        )
 
+        if focusedFriendID != nil {
+            // 포커스된 친구로 카메라 이동
+            moveCamera(to: focusedFriendID, in: uiView.mapView)
+        } else {
             // GPS Following ON이고 사용자 위치가 있으면 카메라 추적
             updateCameraForFollowing(
                 isFollowing: isFollowingLocation,
@@ -177,50 +281,6 @@ private extension RunningMapView {
                 in: uiView.mapView
             )
         }
-    }
-
-    /// 포커스된 친구의 마커만 표시
-    func updateFocusedFriendMarker(on mapView: NMFMapView, context: Context) {
-        // 이미 같은 친구라면 다시 그리지 않음
-        if context.coordinator.currentFriendID == focusedFriendID {
-            return
-        }
-
-        // 기존 마커 제거
-        clearFriendMarkers(context: context)
-
-        guard
-            let focusedID = focusedFriendID,
-            let friend = statuses.first(where: { $0.id == focusedID }),
-            let lat = friend.latitude,
-            let lng = friend.longitude
-        else { return }
-
-        let marker = NMFMarker(position: NMGLatLng(lat: lat, lng: lng))
-
-        Task { @MainActor in
-            let customView = FriendMarkerView(
-                name: friend.name,
-                profileImageURL: friend.profileImageURL,
-                isRunning: friend.isRunning,
-                isFocused: true
-            )
-            marker.iconImage = NMFOverlayImage(image: customView.snapshot())
-            marker.mapView = mapView
-            context.coordinator.markers.append(marker)
-        }
-
-        // 카메라 이동
-        moveCamera(to: focusedID, in: mapView)
-
-        context.coordinator.currentFriendID = focusedID
-    }
-
-    /// 친구 마커 제거
-    func clearFriendMarkers(context: Context) {
-        context.coordinator.markers.forEach { $0.mapView = nil }
-        context.coordinator.markers.removeAll()
-        context.coordinator.currentFriendID = nil
     }
     
     /// 포커스된 친구 위치로 카메라 이동
@@ -260,9 +320,12 @@ private extension RunningMapView {
         )
 
         // 이후에는 경로만 갱신
-        updateRunningRoute(on: uiView.mapView, context: context)
+        context.coordinator.routeSegmentManager.update(
+            coordinates: runningCoordinates,
+            on: uiView.mapView
+        )
     }
-    
+
     /// 주어진 좌표를 기준으로 카메라를 가운데로 이동
     func centerCamera(
         on coordinate: CoordinateRepresentable,
@@ -284,46 +347,5 @@ private extension RunningMapView {
     ) {
         guard isFollowing, let location = location else { return }
         centerCamera(on: location, in: mapView, zoom: zoom)
-    }
-    
-    /// runningCoordinates를 이용해 경로를 업데이트한다. (페이스 기반 색상 적용)
-    func updateRunningRoute(on mapView: NMFMapView, context: Context) {
-        // 좌표가 2개 미만이면 경로를 그릴 수 없으므로 제거
-        guard runningCoordinates.count >= 2 else {
-            clearRouteSegments(context: context)
-            return
-        }
-
-        // 기존 세그먼트 제거
-        clearRouteSegments(context: context)
-
-        // 구간별 NMFPath 생성 (원본 좌표 사용)
-        for i in 0..<(runningCoordinates.count - 1) {
-            let start = runningCoordinates[i]
-            let end = runningCoordinates[i + 1]
-
-            // 현재 구간의 페이스 색상 결정
-            let paceColor = PaceColorMapper.color(forPaceSecPerKm: start.paceSecPerKm)
-
-            // 구간 경로 생성
-            let segment = NMFPath()
-            let startLatLng = NMGLatLng(lat: start.latitude, lng: start.longitude)
-            let endLatLng = NMGLatLng(lat: end.latitude, lng: end.longitude)
-            let lineString = NMGLineString(points: [startLatLng, endLatLng] as [AnyObject])
-
-            segment.path = lineString
-            segment.color = paceColor
-            segment.width = 8
-            segment.outlineColor = .clear
-            segment.mapView = mapView
-
-            context.coordinator.routeSegments.append(segment)
-        }
-    }
-
-    /// 기존 경로 세그먼트를 모두 제거합니다.
-    func clearRouteSegments(context: Context) {
-        context.coordinator.routeSegments.forEach { $0.mapView = nil }
-        context.coordinator.routeSegments.removeAll()
     }
 }
