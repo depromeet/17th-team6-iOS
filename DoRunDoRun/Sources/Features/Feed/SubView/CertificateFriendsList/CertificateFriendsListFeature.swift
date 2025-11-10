@@ -16,22 +16,22 @@ struct CertificateFriendsListFeature {
 
     enum Action {
         case onAppear
+        case setFriends([FriendCertificate])
     }
+
+    @Dependency(\.getFeedRepository) var feedRepository: FeedRepositoryProtocol
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .onAppear:
-                // TODO: 친구 목록 데이터 로드
-                state.friends = [
-                    FriendCertificate(name: "비락식혜", daysAgo: 2),
-                    FriendCertificate(name: "버터꿀빵주", daysAgo: 3),
-                    FriendCertificate(name: "불닭마요", daysAgo: 3),
-                    FriendCertificate(name: "날뽕마", daysAgo: 3),
-                    FriendCertificate(name: "와사비맛팝콘", daysAgo: 3),
-                    FriendCertificate(name: "차가운녹차", daysAgo: 3)
-                ]
-                return .none
+                case .onAppear:
+                    return .run { send in
+                        // TODO: 여기에 API 호출 해야 함.
+                        let worker = FeedWorker(repository: feedRepository)
+                    }
+                case let .setFriends(friends):
+                    state.friends = friends
+                    return .none
             }
         }
     }

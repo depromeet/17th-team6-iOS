@@ -15,6 +15,7 @@ struct FeedContentView: View {
     var onReaction: ((Emoji) -> Void)?
 
     @State private var showEmojiPicker = false
+    @State private var showReactionDetail = false
 
     init(
         feed: FeedViewModel,
@@ -144,38 +145,57 @@ struct FeedContentView: View {
 
             Spacer()
         }
+        .sheet(isPresented: $showEmojiPicker) {
+            EmojiPickerView(onEmojiSelected: { emoji in
+                onReaction?(emoji)
+                showEmojiPicker = false
+            })
+            .presentationDetents([.height(200)])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showReactionDetail) {
+            ReactionDetailView(reactions: feed.reactions)
+        }
     }
 
     @ViewBuilder
     var ReactionView: some View {
         HStack {
             ForEach(feed.reactions.prefix(3), id: \.emojiType) { reaction in
-                Button(action: {print(reaction.emojiType.rawValue)}) {
-                    HStack(spacing: 2) {
-                        Image(reaction.emojiType.imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 20, height: 20)
+                HStack(spacing: 2) {
+                    Image(reaction.emojiType.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
 
-                        Text("\(reaction.totalCount)")
-                            .frame(minWidth: 18)
-                            .font(.pretendard(.medium, size: 14))
-                    }
+                    Text("\(reaction.totalCount)")
+                        .frame(minWidth: 18)
+                        .font(.pretendard(.medium, size: 14))
                 }
                 .padding(6)
                 .background(Color.gray50)
                 .clipShape(Capsule())
-                .buttonStyle(.plain)
+                .onTapGesture {
+                    print("Tap on \(reaction.emojiType.rawValue)")
+                }
+                .onLongPressGesture {
+                    print("Long press on \(reaction.emojiType.rawValue)")
+                    showReactionDetail = true
+                }
             }
 
             if feed.reactions.count > 3 {
-                Button(action: {}) {
+                Button(action: {
+                    showReactionDetail = true
+                }) {
                     Text("+\(feed.reactions.count - 3)")
                         .font(.pretendard(.medium, size: 14))
                         .frame(width: 52, height: 32)
                         .foregroundStyle(Color.black)
                         .background(Color.gray50)
+                        .clipShape(Capsule())
                 }
+                .buttonStyle(.plain)
             }
 
             Button(action: {
@@ -192,14 +212,6 @@ struct FeedContentView: View {
             .buttonStyle(.plain)
 
             Spacer()
-        }
-        .sheet(isPresented: $showEmojiPicker) {
-            EmojiPickerView(onEmojiSelected: { emoji in
-                onReaction?(emoji)
-                showEmojiPicker = false
-            })
-            .presentationDetents([.height(200)])
-            .presentationDragIndicator(.visible)
         }
     }
 }

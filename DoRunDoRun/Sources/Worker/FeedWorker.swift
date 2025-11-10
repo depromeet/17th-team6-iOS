@@ -17,10 +17,15 @@ struct FeedWorker {
     func feedList(currentDate: String, userId: Int, page: Int, size: Int) async throws -> FeedList {
         return try await repository.feedList(currentDate: currentDate, userId: userId, page: page, size: size)
     }
+
+    func plusReaction(feedID: Int, emojiType: Emoji) async throws {
+        try await repository.plusReaction(feedID: feedID, emojiType: emojiType.rawValue)
+    }
 }
 
 protocol FeedRepositoryProtocol {
     func feedList(currentDate: String, userId: Int, page: Int, size: Int) async throws -> FeedList
+    func plusReaction(feedID: Int, emojiType: String) async throws
 }
 
 struct FeedRepository: FeedRepositoryProtocol {
@@ -40,8 +45,20 @@ struct FeedRepository: FeedRepositoryProtocol {
 
         return domain
     }
+
+    func plusReaction(feedID: Int, emojiType: String) async throws {
+        let target = FeedAPI.plusReaction(feedID: feedID, emojiType: emojiType)
+        let _: EmptyEntity = try await service.request(target: target)
+    }
+
+    /// date: "2024-11-01"
+    func certificatedFriends(date: String) async throws -> [FriendsEntity] {
+
+    }
 }
 
 enum FeedError: Error {
     case unknownError
 }
+
+struct EmptyEntity: Decodable {}

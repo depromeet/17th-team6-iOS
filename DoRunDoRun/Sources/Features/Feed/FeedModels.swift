@@ -91,7 +91,7 @@ struct Feed {
 
 struct FeedReaction {
     let emojiType: Emoji
-    let totalCount: Int
+    var totalCount: Int
     let users: [FeedReactionUser]
 }
 
@@ -114,7 +114,7 @@ struct FeedViewModel {
     let selfieTime: String?
     let totalDistance, totalRunTime, averagePace, cadence: String
     let imageURL: String
-    let reactions: [FeedReaction]
+    var reactions: [FeedReaction]
 }
 
 enum Emoji: String, Hashable {
@@ -130,3 +130,27 @@ enum Emoji: String, Hashable {
         }
     }
 }
+
+// MARK: Friends
+
+
+// MARK: - Welcome5
+struct CerificatedFriendsContainerEntity: Decodable {
+    let status, message, timestamp: String
+    let data: FriendEmptyContainer
+}
+
+// MARK: - DataClass
+struct FriendEmptyContainer: Decodable {
+    let users: [CertificatedFriendEntity]
+}
+
+// MARK: - User
+struct CertificatedFriendEntity: Decodable {
+    let userId: Int
+    let userName: String
+    let userImageUrl: String
+    let postingTime: Date
+    let isMe: Bool
+}
+
