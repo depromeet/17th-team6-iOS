@@ -28,7 +28,12 @@ struct RunningMapView: UIViewRepresentable {
         static let `default`: Double = 16
         static let focusedFriend: Double = 14
     }
-    
+
+    enum MapConstants {
+        static let readyPhaseBottomInset: CGFloat = 180
+        static let userGestureReasonCode = -1
+    }
+
     var phase: RunningPhase
 
     var statuses: [FriendRunningStatusViewState]
@@ -118,7 +123,7 @@ struct RunningMapView: UIViewRepresentable {
         // 카메라가 움직이기 시작할 때
         func mapView(_ mapView: NMFMapView, cameraWillChangeByReason reason: Int, animated: Bool) {
             // reason: -1 = 제스처, 0+ = 프로그래밍
-            if reason == -1 {
+            if reason == MapConstants.userGestureReasonCode {
                 isUserGesture = true
             }
         }
@@ -143,7 +148,7 @@ private extension RunningMapView {
             uiView.mapView.contentInset = UIEdgeInsets(
                 top: 0,
                 left: 0,
-                bottom: 180,
+                bottom: MapConstants.readyPhaseBottomInset,
                 right: 0
             )
             context.coordinator.didSetContentInset = true
