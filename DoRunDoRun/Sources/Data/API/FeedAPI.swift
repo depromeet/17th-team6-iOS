@@ -11,6 +11,8 @@ import Moya
 enum FeedAPI {
     case getFeedsByDate(currentDate: String?, userId: Int?, page: Int, size: Int)
     case postReaction(feedId: Int, emojiType: String)
+    case updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?)
+    case deleteFeed(feedId: Int)
 }
 
 extension FeedAPI: TargetType {
@@ -22,15 +24,18 @@ extension FeedAPI: TargetType {
             return "/api/selfie/feeds"
         case .postReaction:
             return "/api/selfie/feeds/reaction"
+        case let .updateFeed(feedId, _, _),
+             let .deleteFeed(feedId):
+            return "/api/selfie/feeds/\(feedId)"
         }
     }
 
     var method: Moya.Method {
         switch self {
-        case .getFeedsByDate:
-            return .get
-        case .postReaction:
-            return .post
+        case .getFeedsByDate: return .get
+        case .postReaction: return .post
+        case .updateFeed: return .put
+        case .deleteFeed: return .delete
         }
     }
 
@@ -48,14 +53,41 @@ extension FeedAPI: TargetType {
         case let .postReaction(feedId, emojiType):
             let body = SelfieFeedReactionRequestDTO(feedId: feedId, emojiType: emojiType)
             return .requestJSONEncodable(body)
+
+        case let .updateFeed(_, data, selfieImage):
+            var formData: [MultipartFormData] = []
+
+            // JSON 데이터 인코딩
+            if let jsonData = try? JSONEncoder().encode(data) {
+                formData.append(.init(provider: .data(jsonData),
+                                      name: "data",
+                                      mimeType: "application/json"))
+            }
+
+            // 이미지 파일 추가 (선택)
+            if let selfieImage = selfieImage {
+                formData.append(.init(provider: .data(selfieImage),
+                                      name: "selfieImage",
+                                      fileName: "image.jpg",
+                                      mimeType: "image/jpeg"))
+            }
+
+            return .uploadMultipart(formData)
+
+
+        case .deleteFeed:
+            return .requestPlain
         }
     }
 
     var headers: [String: String]? {
-        HTTPHeader.json.value
+        switch self {
+        case .updateFeed:
+            return HTTPHeader.multipart.value
+        default:
+            return HTTPHeader.json.value
+        }
     }
-    
-    var validationType: ValidationType {
-        return .successCodes
-    }
+
+    var validationType: ValidationType { .successCodes }
 }

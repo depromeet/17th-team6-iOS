@@ -13,6 +13,8 @@ struct MyFeedDetailFeature {
     // MARK: - Dependencies
     /// 리액션 관련 서버 통신을 담당하는 유즈케이스
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
+    /// 피드 삭제 유즈케이스
+    @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
 
     // MARK: - State
     @ObservableState
@@ -66,6 +68,7 @@ struct MyFeedDetailFeature {
         enum FailedRequestType: Equatable {
             case toggleReaction(ReactionViewState)
             case addReaction(EmojiType)
+            case deleteFeed
         }
         
         var lastFailedRequest: FailedRequestType? = nil
@@ -105,6 +108,21 @@ struct MyFeedDetailFeature {
         
         /// 리액션 추가 서버 응답 실패
         case addReactionFailure(APIError)
+        
+        /// 피드 수정 버튼 탭
+        case editButtonTapped
+        
+        /// 피드 삭제 버튼 탭
+        case deleteButtonTapped
+        
+        /// 피드 삭제 응답 성공
+        case deleteFeedSuccess
+        
+        /// 피드 삭제 응답 실패
+        case deleteFeedFailure(APIError)
+        
+        /// 이미지 저장 버튼 탭
+        case saveImageButtonTapped
         
         /// 시트 전체 닫기
         case dismissSheet
@@ -215,6 +233,34 @@ struct MyFeedDetailFeature {
                     state.lastFailedRequest = .addReaction(pickerEmoji)
                 }
                 return handleAPIError(apiError)
+                
+            // MARK: - 수정 버튼 탭
+            case .editButtonTapped:
+                return .none
+                
+            // MARK: - 삭제 버튼 탭
+            case .deleteButtonTapped:
+                let feedId = state.feed.feedID
+                
+                return .run { send in
+                    do {
+                        _ = try await selfieFeedDeleteUseCase.execute(feedId: feedId)
+                        await send(.deleteFeedSuccess)
+                    } catch {
+                        if let apiError = error as? APIError {
+                            await send(.deleteFeedFailure(apiError))
+                        } else {
+                            await send(.deleteFeedFailure(.unknown))
+                        }
+                    }
+                }
+                
+            case .deleteFeedSuccess:
+                return .send(.backButtonTapped)
+                
+            case let .deleteFeedFailure(apiError):
+                state.lastFailedRequest = .deleteFeed
+                return handleAPIError(apiError)
 
             // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
@@ -225,10 +271,6 @@ struct MyFeedDetailFeature {
             case .dismissSheet:
                 state.isReactionDetailPresented = false
                 state.isReactionPickerPresented = false
-                return .none
-
-            // MARK: - 뒤로가기 버튼 탭
-            case .backButtonTapped:
                 return .none
                 
             // MARK: 재시도
@@ -241,6 +283,8 @@ struct MyFeedDetailFeature {
                     return .send(.reactionTapped(reaction))
                 case let .addReaction(emoji):
                     return .send(.reactionPicker(.reactionSelected(emoji)))
+                case .deleteFeed:
+                    return .send(.deleteButtonTapped)
                 }
 
             default:
