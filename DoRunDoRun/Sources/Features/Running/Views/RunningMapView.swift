@@ -69,12 +69,16 @@ struct RunningMapView: UIViewRepresentable {
             if phase == .ready {
                 context.coordinator.didCenterUserLocationOnReady = false
                 context.coordinator.didSetContentInset = false
+                
+                clearRouteSegments(context: context)
             }
 
             // Active phase로 진입할 때마다 플래그 리셋 및 contentInset 초기화
             if phase == .active {
                 context.coordinator.didCenterInitialCamera = false
                 uiView.mapView.contentInset = .zero
+                
+                clearFriendMarkers(context: context)
             }
         }
 
