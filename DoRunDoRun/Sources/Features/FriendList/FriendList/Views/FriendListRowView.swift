@@ -57,7 +57,7 @@ struct FriendListRowView: View {
                 .cornerRadius(12)
                 .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
                 .offset(x: -20, y: 48)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(.opacity)
             }
 
         }

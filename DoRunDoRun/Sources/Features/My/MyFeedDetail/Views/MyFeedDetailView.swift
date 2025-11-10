@@ -11,6 +11,7 @@ import Kingfisher
 
 struct MyFeedDetailView: View {
     let store: StoreOf<MyFeedDetailFeature>
+    @State private var showMenu = false
 
     var body: some View {
         WithPerceptionTracking {
@@ -21,6 +22,9 @@ struct MyFeedDetailView: View {
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
+            .onTapGesture {
+                if showMenu { withAnimation { showMenu = false } }
+            }
         }
     }
 }
@@ -80,12 +84,71 @@ private extension MyFeedDetailView {
             TypographyText(text: store.feed.userName, style: .t2_500, color: .gray900)
             Spacer()
             Button {
-                print("more tap")
+                withAnimation(.easeInOut) { showMenu.toggle() }
             } label: {
                 Image(.more, size: .medium)
+                    .renderingMode(.template)
+                    .foregroundColor(.gray800)
             }
         }
         .padding(.top, 16)
+        .zIndex(5)
+        .overlay(alignment: .topTrailing) {
+            if showMenu { menuSection }
+        }
+        .contentShape(Rectangle())
+    }
+    
+    /// 메뉴 섹션
+    var menuSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation { showMenu = false }
+                // store.send(.editButtonTapped)
+            } label: {
+                TypographyText(text: "수정하기", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                    .padding(.horizontal, 12)
+            }
+
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(Color.gray50)
+
+            Button {
+                withAnimation { showMenu = false }
+                // store.send(.deleteButtonTapped)
+            } label: {
+                TypographyText(text: "삭제하기", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+            }
+
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(Color.gray50)
+
+            Button {
+                withAnimation { showMenu = false }
+                // store.send(.saveImageButtonTapped)
+            } label: {
+                TypographyText(text: "이미지 저장", style: .b2_400, color: .gray700)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
+                    .padding(.horizontal, 12)
+            }
+        }
+        .frame(width: 144)
+        .background(Color.gray0)
+        .cornerRadius(12)
+        .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
+        .offset(x: 0, y: 48)
+        .transition(.opacity)
+        .zIndex(10)
     }
     
     /// 피드 이미지 섹션
