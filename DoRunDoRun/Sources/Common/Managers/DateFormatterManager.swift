@@ -99,8 +99,22 @@ final class DateFormatterManager {
 
     // MARK: - Relative Time (예: "3분 전", "5일 전")
     func formatRelativeTime(from isoString: String) -> String {
-        guard let date = ISO8601DateFormatter().date(from: isoString) else { return "" }
-
+        // 포맷터 생성 및 옵션 명시 (fractionalSeconds 포함)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        
+        // 변환 시도 (fractionalSeconds 미포함 포맷까지 2단계 fallback)
+        let fallbackFormatter = ISO8601DateFormatter()
+        fallbackFormatter.formatOptions = [.withInternetDateTime]
+        fallbackFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        
+        guard let date = formatter.date(from: isoString) ?? fallbackFormatter.date(from: isoString) else {
+            print("❌ formatRelativeTime: 변환 실패 - \(isoString)")
+            return ""
+        }
+        
+        // 현재 시각과 비교
         let interval = Date().timeIntervalSince(date)
         let minutes = Int(interval / 60)
         let hours = Int(interval / 3600)
@@ -120,4 +134,5 @@ final class DateFormatterManager {
             return "\(years)년 전"
         }
     }
+
 }

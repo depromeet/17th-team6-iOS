@@ -57,6 +57,22 @@ private extension MyFeedDetailView {
                 .padding(.horizontal, 20)
             }
             .scrollDisabled(true)
+            .background {
+                if let urlString = store.feed.imageURL, let url = URL(string: urlString) {
+                    ZStack {
+                        KFImage(url)
+                            .resizable()
+                            .scaledToFill()
+                            .ignoresSafeArea()
+                            .blur(radius: 55)
+                            .opacity(1.0)
+                        Color.dimDark
+                            .ignoresSafeArea()
+                    }
+                } else {
+                    Color.gray900.ignoresSafeArea() // 이미지가 없을 경우 기본 배경
+                }
+            }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -86,14 +102,15 @@ private extension MyFeedDetailView {
                 style: .plain,
                 size: .small
             )
-            TypographyText(text: store.feed.userName, style: .t2_500, color: .gray900)
+            TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
+            TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
             Spacer()
             Button {
                 withAnimation(.easeInOut) { showMenu.toggle() }
             } label: {
                 Image(.more, size: .medium)
                     .renderingMode(.template)
-                    .foregroundColor(.gray800)
+                    .foregroundColor(.gray0)
             }
         }
         .padding(.top, 16)

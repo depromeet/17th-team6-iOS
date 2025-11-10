@@ -56,6 +56,9 @@ struct SelfieFeedItem: Equatable {
     let dateText: String
     /// 시간 텍스트 (ex. "오후 1:25")
     let timeText: String
+    /// 피드가 작성된 시각을 상대적으로 표시 ("3분 전", "2시간 전" 등)
+    let relativeTimeText: String
+
 }
 
 // MARK: - ReactionViewState

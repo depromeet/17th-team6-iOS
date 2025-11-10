@@ -216,29 +216,3 @@ private extension EditMyFeedDetailView {
         }
     }
 }
-
-// MARK: - Preview
-#Preview {
-    EditMyFeedDetailView(
-        store: Store(
-            initialState: EditMyFeedDetailFeature.State(
-                feed: SelfieFeedItem(
-                    feedID: 1,
-                    dayText: "12일",
-                    imageURL: nil,
-                    isMap: true,
-                    userName: "재희",
-                    profileImageURL: "https://example.com/profile.jpg",
-                    totalDistanceText: "8.02km",
-                    totalRunTimeText: "1:52:06",
-                    averagePaceText: "7'30\"",
-                    cadence: 144,
-                    reactions: [],
-                    dateText: "2025.10.12",
-                    timeText: "오후 1:25"
-                )
-            ),
-            reducer: { EditMyFeedDetailFeature() }
-        )
-    )
-}
