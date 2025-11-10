@@ -164,7 +164,16 @@ struct MyFeature {
                     }
                 }
                 return .none
-
+                
+            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedDeleted(feedID))))):
+                // feedID로 찾아서 리스트에서 제거
+                state.feeds.removeAll { viewState in
+                    if case let .feed(item) = viewState.kind {
+                        return item.feedID == feedID
+                    }
+                    return false
+                }
+                return .none
 
             // 피드 상세 → 뒤로가기 시
             case .path(.element(id: _, action: .myFeedDetail(.backButtonTapped))):

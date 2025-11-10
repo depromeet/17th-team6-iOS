@@ -141,7 +141,10 @@ struct MyFeedDetailFeature {
         case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
         
         /// 상위 피처로 전달되는 delegate 이벤트
-        enum Delegate: Equatable { case feedUpdated(imageURL: String) }
+        enum Delegate: Equatable {
+            case feedUpdated(imageURL: String)
+            case feedDeleted(feedID: Int)
+        }
         case delegate(Delegate)
     }
 
@@ -257,11 +260,8 @@ struct MyFeedDetailFeature {
                 
             // MARK: - 수정 완료 후 delegate 처리
             case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(imageURL)))):
-                // 수정 완료 시 임시 로컬 이미지 저장
                 state.feed.imageURL = imageURL
-                // 수정 화면 닫기
                 state.editMyFeedDetail = nil
-                // 상위 피처에 feed 갱신 요청 알림
                 return .send(.delegate(.feedUpdated(imageURL: imageURL)))
                 
             // MARK: - 수정 화면에서 뒤로가기
@@ -289,7 +289,10 @@ struct MyFeedDetailFeature {
                 
             // MARK: - 피드 삭제 성공
             case .deleteFeedSuccess:
-                return .send(.backButtonTapped)
+                return .merge(
+                    .send(.delegate(.feedDeleted(feedID: state.feed.feedID))),
+                    .send(.backButtonTapped)
+                )
                 
             // MARK: - 피드 삭제 실패
             case let .deleteFeedFailure(apiError):
