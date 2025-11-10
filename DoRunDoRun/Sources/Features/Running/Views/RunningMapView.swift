@@ -68,11 +68,13 @@ struct RunningMapView: UIViewRepresentable {
             // Ready phase로 진입할 때마다 플래그 리셋
             if phase == .ready {
                 context.coordinator.didCenterUserLocationOnReady = false
+                context.coordinator.didSetContentInset = false
             }
 
-            // Active phase로 진입할 때마다 플래그 리셋
+            // Active phase로 진입할 때마다 플래그 리셋 및 contentInset 초기화
             if phase == .active {
                 context.coordinator.didCenterInitialCamera = false
+                uiView.mapView.contentInset = .zero
             }
         }
 
@@ -94,6 +96,7 @@ struct RunningMapView: UIViewRepresentable {
         var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
         var didCenterUserLocationOnReady = false  // Ready 최초 1회 사용자 위치 센터링 여부
         var lastPhase: RunningPhase?          // Phase 변경 감지용
+        var didSetContentInset = false        // Ready contentInset 설정 여부
 
         var onMapGestureDetected: (() -> Void)?
         private var isUserGesture = false
@@ -120,17 +123,29 @@ struct RunningMapView: UIViewRepresentable {
 private extension RunningMapView {
     /// Ready 단계에서 지도 상태를 갱신합니다.
     func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
+        // contentInset 설정 (Ready phase 진입 시 1회만)
+        if !context.coordinator.didSetContentInset {
+            // collapsed state 만큼 올리기
+            uiView.mapView.contentInset = UIEdgeInsets(
+                top: 0,
+                left: 0,
+                bottom: 180,
+                right: 0
+            )
+            context.coordinator.didSetContentInset = true
+        }
+
         // 1. 초기 진입 시 사용자 위치로 카메라 센터링 (1회만)
         if !context.coordinator.didCenterUserLocationOnReady,
             let userLoc = userLocation {
             centerCameraToUserLocation(userLoc, in: uiView.mapView)
             context.coordinator.didCenterUserLocationOnReady = true
-            
+
             return
         }
 
         // 2. 친구 포커싱이 활성화된 경우 친구 마커 표시 및 카메라 이동
-        if let focusedID = focusedFriendID {
+        if focusedFriendID != nil {
             updateFocusedFriendMarker(on: uiView.mapView, context: context)
         } else {
             // 친구 포커싱 해제 시 마커 제거
@@ -144,17 +159,10 @@ private extension RunningMapView {
         }
     }
 
-    /// 사용자 위치로 카메라 이동 (화면 아래쪽으로 150 올려서 표시)
+    /// 사용자 위치로 카메라 이동 (contentInset으로 오프셋 자동 적용)
     func centerCameraToUserLocation(_ location: UserLocationViewState, in mapView: NMFMapView) {
         let latLng = NMGLatLng(lat: location.latitude, lng: location.longitude)
-        let projection = mapView.projection
-
-        // 사용자 위로 살짝 띄워서 이동 (친구 포커싱과 동일)
-        let screenPoint = projection.point(from: latLng)
-        let adjustedPoint = CGPoint(x: screenPoint.x, y: screenPoint.y + 100)
-        let adjustedLatLng = projection.latlng(from: adjustedPoint)
-
-        let update = NMFCameraUpdate(position: NMFCameraPosition(adjustedLatLng, zoom: CameraZoomLevel.default))
+        let update = NMFCameraUpdate(position: NMFCameraPosition(latLng, zoom: CameraZoomLevel.default))
         update.animation = .easeIn
         mapView.moveCamera(update)
     }
@@ -213,15 +221,8 @@ private extension RunningMapView {
         else { return }
 
         let latLng = NMGLatLng(lat: lat, lng: lng)
-        let projection = mapView.projection
-        
-        // 친구 위로 살짝 띄워서 이동
-        let screenPoint = projection.point(from: latLng)
-        let adjustedPoint = CGPoint(x: screenPoint.x, y: screenPoint.y + 150)
-        let adjustedLatLng = projection.latlng(from: adjustedPoint)
-
         let update = NMFCameraUpdate(
-            position: NMFCameraPosition(adjustedLatLng, zoom: CameraZoomLevel.focusedFriend)
+            position: NMFCameraPosition(latLng, zoom: CameraZoomLevel.focusedFriend)
         )
         update.animation = .easeIn
         mapView.moveCamera(update)
