@@ -24,9 +24,12 @@ struct RunningMapView: UIViewRepresentable {
     var statuses: [FriendRunningStatusViewState]
     var focusedFriendID: Int?
 
-    /// GPS 버튼 Following 모드 (Active 단계)
+    /// GPS 버튼 Following 모드 (Ready, Active 단계 모두 사용)
     var isFollowingLocation: Bool = false
     var onMapGestureDetected: (() -> Void)? = nil
+
+    /// 사용자 위치 (Ready 단계에서 사용)
+    var userLocation: UserLocationViewState? = nil
 
     var runningCoordinates: [RunningCoordinateViewState]
 
@@ -58,10 +61,24 @@ struct RunningMapView: UIViewRepresentable {
 
     // MARK: - UIView 갱신
     func updateUIView(_ uiView: NMFNaverMapView, context: Context) {
+        // Phase 변경 감지 및 플래그 리셋
+        if context.coordinator.lastPhase != phase {
+            context.coordinator.lastPhase = phase
+
+            // Ready phase로 진입할 때마다 플래그 리셋
+            if phase == .ready {
+                context.coordinator.didCenterUserLocationOnReady = false
+            }
+
+            // Active phase로 진입할 때마다 플래그 리셋
+            if phase == .active {
+                context.coordinator.didCenterInitialCamera = false
+            }
+        }
+
         switch phase {
         case .ready:
-            // 포커스된 친구만 마커 표시
-            updateFocusedFriendMarker(on: uiView.mapView, context: context)
+            updateForReady(uiView, context: context)
         case .countdown:
             return
         case .active:
@@ -75,6 +92,8 @@ struct RunningMapView: UIViewRepresentable {
         var currentFriendID: Int?
         var routeSegments: [NMFPath] = []     // 구간별 경로 세그먼트 (색상별로 분리됨)
         var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
+        var didCenterUserLocationOnReady = false  // Ready 최초 1회 사용자 위치 센터링 여부
+        var lastPhase: RunningPhase?          // Phase 변경 감지용
 
         var onMapGestureDetected: (() -> Void)?
         private var isUserGesture = false
@@ -97,28 +116,68 @@ struct RunningMapView: UIViewRepresentable {
     }
 }
 
-// MARK: - Private Helpers
+// MARK: - Ready Phase
 private extension RunningMapView {
+    /// Ready 단계에서 지도 상태를 갱신합니다.
+    func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
+        // 1. 초기 진입 시 사용자 위치로 카메라 센터링 (1회만)
+        if !context.coordinator.didCenterUserLocationOnReady,
+            let userLoc = userLocation {
+            centerCameraToUserLocation(userLoc, in: uiView.mapView)
+            context.coordinator.didCenterUserLocationOnReady = true
+            
+            return
+        }
+
+        // 2. 친구 포커싱이 활성화된 경우 친구 마커 표시 및 카메라 이동
+        if let focusedID = focusedFriendID {
+            updateFocusedFriendMarker(on: uiView.mapView, context: context)
+        } else {
+            // 친구 포커싱 해제 시 마커 제거
+            clearFriendMarkers(context: context)
+
+            // GPS Following ON이고 사용자 위치가 있으면 카메라 추적
+            if isFollowingLocation,
+                let userLoc = userLocation {
+                centerCameraToUserLocation(userLoc, in: uiView.mapView)
+            }
+        }
+    }
+
+    /// 사용자 위치로 카메라 이동 (화면 아래쪽으로 150 올려서 표시)
+    func centerCameraToUserLocation(_ location: UserLocationViewState, in mapView: NMFMapView) {
+        let latLng = NMGLatLng(lat: location.latitude, lng: location.longitude)
+        let projection = mapView.projection
+
+        // 사용자 위로 살짝 띄워서 이동 (친구 포커싱과 동일)
+        let screenPoint = projection.point(from: latLng)
+        let adjustedPoint = CGPoint(x: screenPoint.x, y: screenPoint.y + 100)
+        let adjustedLatLng = projection.latlng(from: adjustedPoint)
+
+        let update = NMFCameraUpdate(position: NMFCameraPosition(adjustedLatLng, zoom: CameraZoomLevel.default))
+        update.animation = .easeIn
+        mapView.moveCamera(update)
+    }
+
     /// 포커스된 친구의 마커만 표시
     func updateFocusedFriendMarker(on mapView: NMFMapView, context: Context) {
         // 이미 같은 친구라면 다시 그리지 않음
         if context.coordinator.currentFriendID == focusedFriendID {
             return
         }
-        
+
         // 기존 마커 제거
-        context.coordinator.markers.forEach { $0.mapView = nil }
-        context.coordinator.markers.removeAll()
-        
+        clearFriendMarkers(context: context)
+
         guard
             let focusedID = focusedFriendID,
             let friend = statuses.first(where: { $0.id == focusedID }),
             let lat = friend.latitude,
             let lng = friend.longitude
         else { return }
-        
+
         let marker = NMFMarker(position: NMGLatLng(lat: lat, lng: lng))
-        
+
         Task { @MainActor in
             let customView = FriendMarkerView(
                 name: friend.name,
@@ -133,8 +192,15 @@ private extension RunningMapView {
 
         // 카메라 이동
         moveCamera(to: focusedID, in: mapView)
-        
+
         context.coordinator.currentFriendID = focusedID
+    }
+
+    /// 친구 마커 제거
+    func clearFriendMarkers(context: Context) {
+        context.coordinator.markers.forEach { $0.mapView = nil }
+        context.coordinator.markers.removeAll()
+        context.coordinator.currentFriendID = nil
     }
     
     /// 포커스된 친구 위치로 카메라 이동
