@@ -33,7 +33,7 @@ struct SelfieFeedItem: Equatable {
     /// 일자 텍스트 (ex. "15일")
     let dayText: String
     /// 이미지 URL (지도 or 셀피)
-    let imageURL: String?
+    var imageURL: String?
     /// 지도 이미지 여부
     let isMap: Bool
 

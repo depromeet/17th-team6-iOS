@@ -148,6 +148,23 @@ struct MyFeature {
             case let .feedItemTapped(feed):
                 state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feed: feed)))
                 return .none
+                
+            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(imageURL))))):
+                // feed.id로 찾아서 해당 셀만 업데이트
+                if let index = state.feeds.firstIndex(where: {
+                    if case let .feed(item) = $0.kind {
+                        return item.feedID == state.path.last?.myFeedDetail?.feed.feedID
+                    }
+                    return false
+                }) {
+                    if case let .feed(item) = state.feeds[index].kind {
+                        var updatedFeed = item
+                        updatedFeed.imageURL = imageURL
+                        state.feeds[index] = .init(id: state.feeds[index].id, kind: .feed(updatedFeed))
+                    }
+                }
+                return .none
+
 
             // 피드 상세 → 뒤로가기 시
             case .path(.element(id: _, action: .myFeedDetail(.backButtonTapped))):

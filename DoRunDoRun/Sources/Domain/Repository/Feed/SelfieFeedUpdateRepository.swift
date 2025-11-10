@@ -9,5 +9,5 @@ import Foundation
 
 protocol SelfieFeedUpdateRepository {
     /// 인증피드 수정
-    func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO
+    func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResult
 }

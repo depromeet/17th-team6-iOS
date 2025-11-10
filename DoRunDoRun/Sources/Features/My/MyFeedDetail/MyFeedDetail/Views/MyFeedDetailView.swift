@@ -10,7 +10,7 @@ import ComposableArchitecture
 import Kingfisher
 
 struct MyFeedDetailView: View {
-    let store: StoreOf<MyFeedDetailFeature>
+    @Perception.Bindable var store: StoreOf<MyFeedDetailFeature>
     @State private var showMenu = false
 
     var body: some View {
@@ -22,9 +22,9 @@ struct MyFeedDetailView: View {
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
-            .onTapGesture {
-                if showMenu { withAnimation { showMenu = false } }
-            }
+//            .onTapGesture {
+//                if showMenu { withAnimation { showMenu = false } }
+//            }
         }
     }
 }
@@ -69,6 +69,11 @@ private extension MyFeedDetailView {
                     }
                 }
             }
+            .navigationDestination(
+                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
+            ) { store in
+                EditMyFeedDetailView(store: store)
+            }
         }
     }
     
@@ -93,10 +98,10 @@ private extension MyFeedDetailView {
         }
         .padding(.top, 16)
         .zIndex(5)
+        .contentShape(Rectangle())
         .overlay(alignment: .topTrailing) {
             if showMenu { menuSection }
         }
-        .contentShape(Rectangle())
     }
     
     /// 메뉴 섹션
@@ -104,7 +109,7 @@ private extension MyFeedDetailView {
         VStack(alignment: .leading, spacing: 0) {
             Button {
                 withAnimation { showMenu = false }
-                // store.send(.editButtonTapped)
+                 store.send(.editButtonTapped)
             } label: {
                 TypographyText(text: "수정하기", style: .b2_400, color: .gray700)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -119,7 +124,7 @@ private extension MyFeedDetailView {
 
             Button {
                 withAnimation { showMenu = false }
-                // store.send(.deleteButtonTapped)
+                 store.send(.deleteButtonTapped)
             } label: {
                 TypographyText(text: "삭제하기", style: .b2_400, color: .gray700)
                     .frame(maxWidth: .infinity, alignment: .leading)

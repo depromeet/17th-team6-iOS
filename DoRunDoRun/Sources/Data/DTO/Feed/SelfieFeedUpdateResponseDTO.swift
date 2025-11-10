@@ -12,5 +12,15 @@ struct SelfieFeedUpdateResponseDTO: Decodable {
     let status: String
     let message: String
     let timestamp: String
-    let data: [String: String]?
+    let data: SelfieFeedUpdateDataDTO?
+}
+
+struct SelfieFeedUpdateDataDTO: Decodable {
+    let selfieImageUrl: String
+}
+
+extension SelfieFeedUpdateDataDTO {
+    func toDomain(feedId: Int) -> SelfieFeedUpdateResult {
+        .init(feedId: feedId, updatedImageUrl: selfieImageUrl)
+    }
 }

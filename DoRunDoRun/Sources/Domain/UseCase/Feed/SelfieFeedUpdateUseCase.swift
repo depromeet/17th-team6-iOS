@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SelfieFeedUpdateUseCase {
-    func execute(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO
+    func execute(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResult
 }
 
 final class SelfieFeedUpdateUseCaseImpl: SelfieFeedUpdateUseCase {
@@ -18,7 +18,7 @@ final class SelfieFeedUpdateUseCaseImpl: SelfieFeedUpdateUseCase {
         self.repository = repository
     }
 
-    func execute(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO {
+    func execute(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResult {
         try await repository.updateFeed(feedId: feedId, data: data, selfieImage: selfieImage)
     }
 }

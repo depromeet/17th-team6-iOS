@@ -8,13 +8,8 @@
 import Foundation
 
 final class SelfieFeedUpdateRepositoryMock: SelfieFeedUpdateRepository {
-    func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO {
+    func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResult {
         print("[Mock] 피드 수정 성공 (feedId: \(feedId))")
-        return SelfieFeedUpdateResponseDTO(
-            status: "CONTINUE",
-            message: "Mock 피드 수정 성공",
-            timestamp: Date().ISO8601Format(),
-            data: [:]
-        )
+        return SelfieFeedUpdateResult(feedId: feedId, updatedImageUrl: "https://mock.s3.amazonaws.com/selfie123.jpg")
     }
 }
