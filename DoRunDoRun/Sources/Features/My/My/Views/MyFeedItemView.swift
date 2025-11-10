@@ -27,7 +27,8 @@ struct MyFeedItemView: View {
                                 .cornerRadius(8)
                         }
                         .resizable()
-                        .aspectRatio(1, contentMode: .fill)
+                        .scaledToFill()
+                        .frame(width: (UIScreen.main.bounds.width - 48) / 3, height: (UIScreen.main.bounds.width - 48) / 3)
                         .clipped()
                         .cornerRadius(8)
                 } else {

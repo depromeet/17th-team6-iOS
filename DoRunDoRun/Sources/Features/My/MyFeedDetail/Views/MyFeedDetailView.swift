@@ -94,8 +94,16 @@ private extension MyFeedDetailView {
             // 피드 이미지
             if let urlString = store.feed.imageURL, let url = URL(string: urlString) {
                 KFImage(url)
+                    .placeholder {
+                        Rectangle()
+                            .fill(Color.gray100)
+                            .aspectRatio(1, contentMode: .fill)
+                            .clipped()
+                            .cornerRadius(16)
+                    }
                     .resizable()
-                    .aspectRatio(1, contentMode: .fill)
+                    .scaledToFill()
+                    .frame(width: (UIScreen.main.bounds.width - 20), height: (UIScreen.main.bounds.width - 20))
                     .cornerRadius(16)
             } else {
                 Rectangle()
