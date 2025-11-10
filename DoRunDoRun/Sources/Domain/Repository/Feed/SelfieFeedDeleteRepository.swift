@@ -9,5 +9,5 @@ import Foundation
 
 protocol SelfieFeedDeleteRepository {
     /// 인증피드 삭제
-    func deleteFeed(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO
+    func deleteFeed(feedId: Int) async throws
 }

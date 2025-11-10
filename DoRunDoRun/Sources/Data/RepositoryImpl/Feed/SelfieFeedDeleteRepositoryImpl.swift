@@ -12,7 +12,7 @@ final class SelfieFeedDeleteRepositoryImpl: SelfieFeedDeleteRepository {
         self.service = service
     }
 
-    func deleteFeed(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO {
-        try await service.deleteFeed(feedId: feedId)
+    func deleteFeed(feedId: Int) async throws {
+        _ = try await service.deleteFeed(feedId: feedId)
     }
 }

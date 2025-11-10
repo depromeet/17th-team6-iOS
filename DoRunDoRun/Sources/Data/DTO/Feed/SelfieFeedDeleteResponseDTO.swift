@@ -12,5 +12,4 @@ struct SelfieFeedDeleteResponseDTO: Decodable {
     let status: String
     let message: String
     let timestamp: String
-    let data: [String: String]?
 }

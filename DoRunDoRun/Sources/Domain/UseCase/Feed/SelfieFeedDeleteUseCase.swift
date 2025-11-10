@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SelfieFeedDeleteUseCase {
-    func execute(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO
+    func execute(feedId: Int) async throws
 }
 
 final class SelfieFeedDeleteUseCaseImpl: SelfieFeedDeleteUseCase {
@@ -18,7 +18,7 @@ final class SelfieFeedDeleteUseCaseImpl: SelfieFeedDeleteUseCase {
         self.repository = repository
     }
 
-    func execute(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO {
+    func execute(feedId: Int) async throws {
         try await repository.deleteFeed(feedId: feedId)
     }
 }
