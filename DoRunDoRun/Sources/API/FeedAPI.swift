@@ -10,6 +10,8 @@ import Foundation
 
 enum FeedAPI {
     case feedList(currentDate: String, userId: Int?, page: Int, size: Int)
+    case plusReaction(feedID: Int, emojiType: String)
+    case cerificatedFriends(date: String)
 }
 
 
@@ -22,12 +24,20 @@ extension FeedAPI: TargetType {
         switch self {
             case .feedList:
                 "/api/selfie/feeds"
+            case .plusReaction:
+                "/api/selfie/feeds/reaction"
+            case .cerificatedFriends:
+                "/api/selfie/users"
         }
     }
 
     var method: Moya.Method {
         switch self {
             case .feedList:
+                .get
+            case .plusReaction:
+                .post
+            case .cerificatedFriends:
                 .get
         }
     }
@@ -40,13 +50,27 @@ extension FeedAPI: TargetType {
                     "userId": userId,
                     "page": page,
                     "size": size
-                ], encoding: JSONEncoding())
+                ], encoding: JSONEncoding.default)
+            case let .plusReaction(feedID, emojiType):
+                let parameters: [String: Any] = [
+                    "feedId": feedID,
+                    "emojiType": emojiType
+                ]
+                return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+            case let .cerificatedFriends(date):
+                return .requestParameters(parameters: [
+                    "date": date
+                ], encoding: JSONEncoding.default)
         }
     }
 
     var headers: [String : String]? {
         switch self {
             case .feedList:
+                nil
+            case .plusReaction:
+                nil
+            case .cerificatedFriends:
                 nil
         }
     }
@@ -112,6 +136,40 @@ extension FeedAPI {
                         "hasPrevious": true
                       }
                     }
+                  }
+                }
+                """.data(using: .utf8)!
+
+            case .plusReaction:
+                """
+                {
+                  "status": "CONTINUE",
+                  "message": "string",
+                  "timestamp": "2025-11-10T13:44:04.513Z",
+                  "data": {
+                    "selfieId": 1,
+                    "emojiType": "FIRE",
+                    "action": "ADDED",
+                    "totalReactionCount": 4
+                  }
+                }
+                """.data(using: .utf8)!
+            case .cerificatedFriends:
+                """
+                {
+                  "status": "CONTINUE",
+                  "message": "string",
+                  "timestamp": "2025-11-10T14:54:58.433Z",
+                  "data": {
+                    "users": [
+                      {
+                        "userId": 1,
+                        "userName": "러너123",
+                        "userImageUrl": "https://example.com/profile.jpg",
+                        "postingTime": "2025-10-16T14:30:00Z",
+                        "isMe": true
+                      }
+                    ]
                   }
                 }
                 """.data(using: .utf8)!

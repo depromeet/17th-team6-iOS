@@ -17,7 +17,8 @@ struct FeedDetailView: View {
                 feed: store.feedViewModel,
                 onEdit: { store.send(.change) },
                 onDelete: { store.send(.delete) },
-                onSave: { store.send(.save) }
+                onSave: { store.send(.save) },
+                onReaction: { emoji in store.send(.reaction(emoji)) }
             )
             .padding(.top, 40)
             .padding(.horizontal)
