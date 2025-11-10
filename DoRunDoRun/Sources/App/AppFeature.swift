@@ -4,6 +4,9 @@ import ComposableArchitecture
 struct AppFeature {
     @ObservableState
     struct State {
+        var splash = SplashFeature.State()
+        var showSplash = true
+        
         var isLoggedIn = false
         
         // 로그인 전
@@ -19,7 +22,7 @@ struct AppFeature {
     }
 
     enum Action {
-        // 앱 시작
+        case splash(SplashFeature.Action)
         case appStarted
         case refreshTokenResponse(Bool) // refresh 결과 처리
         
@@ -34,6 +37,7 @@ struct AppFeature {
     }
 
     var body: some ReducerOf<Self> {
+        Scope(state: \.splash, action: \.splash) { SplashFeature() }
         Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
         Scope(state: \.running, action: \.running) { RunningFeature() }
         Scope(state: \.feed, action: \.feed) { FeedFeature() }
@@ -41,18 +45,32 @@ struct AppFeature {
 
         Reduce { state, action in
             switch action {
+            case .splash(.splashTimeoutEnded):
+                state.showSplash = false
+                return .send(.appStarted)
+                
             case .appStarted:
-                // refreshToken 존재 시 → 자동 갱신 시도
-                guard let refreshToken = TokenManager.shared.refreshToken,
+                guard let accessToken = TokenManager.shared.accessToken,
+                      let refreshToken = TokenManager.shared.refreshToken,
                       !refreshToken.isEmpty else {
+                    print("❌ 로그인 정보 없음 → 온보딩 전환")
                     state.isLoggedIn = false
                     return .none
                 }
-                return .run { send in
-                    let success = await TokenRefresher.shared.tryRefresh()
-                    await send(.refreshTokenResponse(success))
+
+                // accessToken이 유효한지 검사
+                if TokenRefresher.isAccessTokenValid(accessToken) {
+                    print("✅ accessToken 유효 → 자동 로그인 유지")
+                    state.isLoggedIn = true
+                    return .none
+                } else {
+                    print("♻️ accessToken 만료 → refresh 요청 시작")
+                    return .run { send in
+                        let success = await TokenRefresher.shared.tryRefresh()
+                        await send(.refreshTokenResponse(success))
+                    }
                 }
-                
+
             case let .refreshTokenResponse(success):
                 if success {
                     print("자동 로그인 성공 (토큰 갱신 완료)")

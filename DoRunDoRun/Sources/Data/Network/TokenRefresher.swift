@@ -91,3 +91,28 @@ actor TokenRefresher {
         isRefreshing = value
     }
 }
+
+extension TokenRefresher {
+    static func isAccessTokenValid(_ token: String) -> Bool {
+        guard let payload = decodeJWT(token),
+              let exp = payload["exp"] as? TimeInterval else {
+            return false
+        }
+        let expiration = Date(timeIntervalSince1970: exp)
+        return expiration > Date()
+    }
+
+    private static func decodeJWT(_ token: String) -> [String: Any]? {
+        let segments = token.split(separator: ".")
+        guard segments.count == 3 else { return nil }
+        var base64 = String(segments[1])
+        base64 = base64.replacingOccurrences(of: "-", with: "+")
+                        .replacingOccurrences(of: "_", with: "/")
+        while base64.count % 4 != 0 { base64.append("=") }
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return json
+    }
+}
+
