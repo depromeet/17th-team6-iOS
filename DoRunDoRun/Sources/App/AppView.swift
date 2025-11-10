@@ -6,17 +6,19 @@ struct AppView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            if store.isLoggedIn {
-                // 로그인 후 메인 탭 화면
+            if store.showSplash {
+                SplashView(store: store.scope(state: \.splash, action: \.splash))
+                    .transition(.opacity.combined(with: .scale))
+                    .id("splash")
+            } else if store.isLoggedIn {
                 MainTabView(store: store)
                     .transition(.opacity.combined(with: .scale))
-                    .id("main") // 루트 리셋용 ID
+                    .id("main")
             } else {
-                // 로그인 전 온보딩 화면
                 OnboardingView(
                     store: store.scope(state: \.onboarding, action: \.onboarding)
                 )
-                .transition(.opacity)
+                .transition(.opacity.combined(with: .scale))
                 .id("onboarding")
             }
         }
@@ -25,6 +27,7 @@ struct AppView: View {
         }
     }
 }
+
 
 struct MainTabView: View {
     @Perception.Bindable var store: StoreOf<AppFeature>
