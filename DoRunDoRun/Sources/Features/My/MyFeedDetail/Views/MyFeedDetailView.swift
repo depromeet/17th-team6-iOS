@@ -103,7 +103,7 @@ private extension MyFeedDetailView {
                     }
                     .resizable()
                     .scaledToFill()
-                    .frame(width: (UIScreen.main.bounds.width - 20), height: (UIScreen.main.bounds.width - 20))
+                    .frame(width: (UIScreen.main.bounds.width - 40), height: (UIScreen.main.bounds.width - 40))
                     .cornerRadius(16)
             } else {
                 Rectangle()
@@ -129,19 +129,36 @@ private extension MyFeedDetailView {
             .padding(.horizontal, 12)
             .background(Color.dimLight)
             .clipShape(.capsule)
+            .padding(.top, 20)
+            .padding(.horizontal, 20)
             
             Spacer()
             
-            HStack {
-                metricRow(title: "달린 거리", value: store.feed.totalDistanceText)
-                metricRow(title: "달린 시간", value: store.feed.totalRunTimeText)
+            VStack(spacing: 12) {
+                HStack {
+                    metricRow(title: "달린 거리", value: store.feed.totalDistanceText)
+                    metricRow(title: "달린 시간", value: store.feed.totalRunTimeText)
+                }
+                HStack {
+                    metricRow(title: "평균 페이스", value: store.feed.averagePaceText)
+                    metricRow(title: "평균 케이던스", value: "\(store.feed.cadence) spm")
+                }
             }
-            HStack {
-                metricRow(title: "평균 페이스", value: store.feed.averagePaceText)
-                metricRow(title: "평균 케이던스", value: "\(store.feed.cadence) spm")
-            }
+            .padding(.top, 80)
+            .padding(.bottom, 20)
+            .padding(.horizontal, 20)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(hex: 0x000000, alpha: 0.8), // 아래쪽 진한 검정
+                        Color(hex: 0x000000, alpha: 0.0)  // 위쪽 완전 투명
+                    ],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .cornerRadius(16)
+            )
         }
-        .padding(20)
     }
     
     /// 리액션 바
