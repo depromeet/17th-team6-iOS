@@ -28,7 +28,6 @@ let project = Project(
                     ],
                     "UIUserInterfaceStyle": "Light",
                     "NSLocationWhenInUseUsageDescription": "러닝 중 현재 위치와 이동 경로를 지도에 표시하고, 달린 거리를 계산하기 위해 위치 정보를 사용합니다.",
-                    "NSLocationAlwaysAndWhenInUseUsageDescription": "앱이 백그라운드에 있을 때도 러닝 거리와 경로를 정확히 기록하기 위해 위치 정보를 사용합니다.",
                     "NSMotionUsageDescription": "런닝 중 관련 데이터를 표시하기 위해 움직임 정보를 사용합니다.",
                     "NSPhotoLibraryAddUsageDescription": "인증 피드 이미지를 앨범에 저장하기 위해 사진 보관함 접근이 필요합니다.",
                     "UIBackgroundModes": .array([

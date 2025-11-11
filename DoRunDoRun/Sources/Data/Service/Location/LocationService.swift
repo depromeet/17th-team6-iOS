@@ -30,12 +30,17 @@ final class LocationServiceImpl: NSObject, LocationService {
     
     override init() {
         super.init()
-        
+
         manager.delegate = self
         manager.activityType = .fitness
-        manager.pausesLocationUpdatesAutomatically = true
+
+        // 백그라운드 위치 추적 설정
+        manager.allowsBackgroundLocationUpdates = true
+        manager.showsBackgroundLocationIndicator = true // 사용자 투명성 제공
+        manager.pausesLocationUpdatesAutomatically = false // 연속 추적
+        
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 8 // 5~10m 권장
+        manager.distanceFilter = 5 // 5~10m 권장
     }
     
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error> {
