@@ -9,7 +9,7 @@ import ComposableArchitecture
 @Reducer
 struct RunningActiveFeature {
     // MARK: - Dependencies
-    @Dependency(\.runningActiveUsecase) var runningActiveUseCase
+    @Dependency(\.runningUseCase) var runningUseCase
     
     // Parent notification
     enum Delegate: Equatable {
@@ -80,7 +80,7 @@ struct RunningActiveFeature {
                 // 화면 이탈/중단 시 스트림 취소
             case .onDisappear:
                 return .merge(
-                    .run { [useCase = self.runningActiveUseCase] _ in
+                    .run { [useCase = self.runningUseCase] _ in
                          let _ = await useCase.stop()
                     },
                     .cancel(id: CancelID.stream)
@@ -89,12 +89,12 @@ struct RunningActiveFeature {
                 //MARK: UI
             case .pauseButtonTapped:
                 state.isRunningPaused = true
-                return .run { [useCase = self.runningActiveUseCase] _ in
+                return .run { [useCase = self.runningUseCase] _ in
                     await useCase.pause()
                 }
             case .resumeButtonTapped:
                 state.isRunningPaused = false
-                return .run { [useCase = self.runningActiveUseCase] _ in
+                return .run { [useCase = self.runningUseCase] _ in
                     try await useCase.resume()
                 }
             case .stopButtonTapped:
@@ -107,7 +107,7 @@ struct RunningActiveFeature {
                 state.isShowingStopConfirm = false
 
                 return .merge(
-                    .run { [useCase = self.runningActiveUseCase] send in
+                    .run { [useCase = self.runningUseCase] send in
                         let (detail, sessionId) = await useCase.stop()
 
                         await send(.delegate(.didFinish(final: detail, sessionId: sessionId)))
@@ -127,7 +127,7 @@ struct RunningActiveFeature {
                 return .none
                 //MARK: 러닝 스냅샷 스트림
             case ._startStream:
-                return .run { [useCase = self.runningActiveUseCase] send in
+                return .run { [useCase = self.runningUseCase] send in
                     do {
                         let stream = try await useCase.start()
                         for try await snapshot in stream {

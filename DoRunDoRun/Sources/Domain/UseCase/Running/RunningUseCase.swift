@@ -1,11 +1,11 @@
 //
-//  RunningActiveUseCase.swift
+//  RunningUseCase.swift
 //  DoRunDoRun
 //
 //  Created by zaehorang on 10/22/25.
 //
 
-protocol RunningActiveUseCaseProtocol {
+protocol RunningUseCaseProtocol {
     /// 러닝을 시작하고 스냅샷 스트림을 반환
     func start() async throws -> AsyncThrowingStream<RunningSnapshot, Error>
     func pause() async
@@ -13,7 +13,7 @@ protocol RunningActiveUseCaseProtocol {
     func stop() async -> (detail: RunningDetail, sessionId: Int?)
 }
 
-final class RunningActiveUseCase: RunningActiveUseCaseProtocol {
+final class RunningUseCase: RunningUseCaseProtocol {
     private let trackingRepository: RunningTrackingRepository
     private let sessionRepository: RunningSessionRepository
 

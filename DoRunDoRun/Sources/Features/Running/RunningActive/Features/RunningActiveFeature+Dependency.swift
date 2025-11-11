@@ -9,24 +9,24 @@ import ComposableArchitecture
 
 extension DependencyValues {
     /// 러닝 상태 UseCase
-    var runningActiveUsecase: RunningActiveUseCaseProtocol {
-        get { self[RunningActiveUseCaseKey.self] }
-        set { self[RunningActiveUseCaseKey.self] = newValue }
+    var runningUseCase: RunningUseCaseProtocol {
+        get { self[RunningUseCaseKey.self] }
+        set { self[RunningUseCaseKey.self] = newValue }
     }
 }
 
 // MARK: - Keys
 
-private enum RunningActiveUseCaseKey: DependencyKey {
-    static let liveValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
+private enum RunningUseCaseKey: DependencyKey {
+    static let liveValue: RunningUseCaseProtocol = RunningUseCase(
         trackingRepository: RunningTrackingRepositoryImpl(),
         sessionRepository: RunningSessionRepositoryImpl()
     )
-    static let testValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
+    static let testValue: RunningUseCaseProtocol = RunningUseCase(
         trackingRepository: RunningTrackingRepositoryMock(),
         sessionRepository: RunningSessionRepositoryMock()
     )
-    static let previewValue: RunningActiveUseCaseProtocol = RunningActiveUseCase(
+    static let previewValue: RunningUseCaseProtocol = RunningUseCase(
         trackingRepository: RunningTrackingRepositoryMock(),
         sessionRepository: RunningSessionRepositoryMock()
     )
