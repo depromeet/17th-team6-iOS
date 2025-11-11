@@ -1,5 +1,5 @@
 //
-//  RunningWorker.swift
+//  RunningRecordWorker.swift
 //  DoRunDoRun
 //
 //  Created by Inho Choi on 11/9/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RunningWorker {
+struct RunningRecordWorker {
     private let repository: RunningRecordRepositoryProtocol
 
     init(repository: RunningRecordRepositoryProtocol = RunningRecordRepository()) {
@@ -48,7 +48,7 @@ struct RunningRecordRepository: RunningRecordRepositoryProtocol {
             endString = nil
         }
         service.decoder.dateDecodingStrategy = .iso8601
-        let target = RunningAPI.searchRunnign(isSelfied: isSelfied, startDateTime: startString, endDateTime: endString)
+        let target = RunningRecordAPI.searchRunnign(isSelfied: isSelfied, startDateTime: startString, endDateTime: endString)
         let response: RunningRecordContainerEntity = try await service.request(target: target)
         return response.data.map { RunningRecordMapper.toDomain(from: $0) }
     }

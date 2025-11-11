@@ -34,7 +34,7 @@ struct UploadFeedFeature {
                 case .fetchRunningRecords:
                     return .run { send in
                         do {
-                            let worker = RunningWorker(repository: runningRecordRepository)
+                            let worker = RunningRecordWorker(repository: runningRecordRepository)
                             let twoDaysAgo = Calendar.current.date(byAdding: .day, value: -2, to: .now)
                             let result = try await worker.runningRecords(isSelfied: true, startDateTime: twoDaysAgo, endDateTime: .now)
                             await send(.runningRecordsResponse(.success(result)))

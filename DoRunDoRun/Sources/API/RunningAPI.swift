@@ -8,7 +8,7 @@
 import Foundation
 import Moya
 
-enum RunningAPI {
+enum RunningRecordAPI {
     case searchRunnign(isSelfied: Bool, startDateTime: String?, endDateTime: String?)
 }
 
