@@ -9,6 +9,7 @@ import ComposableArchitecture
 import Foundation
 import PhotosUI
 import SwiftUI
+import Photos
 
 @Reducer
 struct EditFeedImageFeature {
@@ -22,6 +23,8 @@ struct EditFeedImageFeature {
     enum Action {
         case backButtonTapped
         case downloadButtonTapped
+        case saveImageToPhotos(UIImage)
+        case imageSaveCompleted(Result<Void, Error>)
         case changeBackgroundButtonTapped
         case backgroundImageSelected(UIImage?)
         case postButtonTapped
@@ -36,8 +39,28 @@ struct EditFeedImageFeature {
                 return .none
 
             case .downloadButtonTapped:
-                // TODO: 이미지 다운로드 기능 구현
-                print("다운로드 버튼 탭")
+                // 이미지 다운로드 트리거 - View에서 처리
+                return .none
+
+            case let .saveImageToPhotos(image):
+                return .run { send in
+                    do {
+                        try await PHPhotoLibrary.shared().performChanges {
+                            PHAssetChangeRequest.creationRequestForAsset(from: image)
+                        }
+                        await send(.imageSaveCompleted(.success(())))
+                    } catch {
+                        await send(.imageSaveCompleted(.failure(error)))
+                    }
+                }
+
+            case let .imageSaveCompleted(result):
+                switch result {
+                case .success:
+                    print("이미지 저장 성공")
+                case .failure(let error):
+                    print("이미지 저장 실패: \(error)")
+                }
                 return .none
 
             case .changeBackgroundButtonTapped:

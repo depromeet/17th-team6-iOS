@@ -32,7 +32,16 @@ struct EditFeedImageView: View {
 
                     // 다운로드 버튼
                     Button(action: {
-                        store.send(.downloadButtonTapped)
+                        // FeedRunningRecordCard를 이미지로 캡처
+                        let cardView = FeedRunningRecordCard(
+                            record: store.runningRecord,
+                            showDateTime: true,
+                            customBackgroundImage: store.backgroundImage
+                        )
+                        .frame(width: 335, height: 335)
+
+                        let image = cardView.snapshot()
+                        store.send(.saveImageToPhotos(image))
                     }) {
                         Image(systemName: "square.and.arrow.down")
                             .font(.system(size: 20, weight: .medium))
