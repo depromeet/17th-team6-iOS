@@ -7,9 +7,11 @@ struct FeedView: View {
     var body: some View {
         WithPerceptionTracking {
             ZStack(alignment: .bottom) {
+                serverErrorSection
                 mainSection
                 floatingUploadButtonSection
                 popupSection
+                networkErrorPopupSection
             }
             // 시트 표시 상태 변화 감지
             .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { isSheetVisible in
@@ -49,48 +51,63 @@ struct FeedView: View {
     }
 }
 
+// MARK: - Server Error Section
+private extension FeedView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
 // MARK: - Main Section
 private extension FeedView {
     /// Main Section
     @ViewBuilder
     var mainSection: some View {
-        VStack(spacing: 0) {
-            headerSection
-            if store.feeds.isEmpty {
-                VStack(spacing: 0) {
-                    scrollHeaderSection
-                    FeedEmptyView()
-                }
-            } else {
-                ScrollView {
+        if store.serverError.serverErrorType == nil {
+            VStack(spacing: 0) {
+                headerSection
+                if store.feeds.isEmpty {
                     VStack(spacing: 0) {
                         scrollHeaderSection
-                        feedListSection
+                        FeedEmptyView()
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            scrollHeaderSection
+                            feedListSection
+                        }
                     }
                 }
             }
-        }
-        .onAppear { store.send(.onAppear) }
-        // Navigation destinations
-        .navigationDestination(
-            item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
-        ) { store in
-            EditMyFeedDetailView(store: store)
-        }
-        .navigationDestination(
-            item: $store.scope(state: \.certificationList, action: \.certificationList)
-        ) { store in
-            FeedCertificationListView(store: store)
-        }
-        .navigationDestination(
-            item: $store.scope(state: \.friendList, action: \.friendList)
-        ) { store in
-            FriendListView(store: store)
-        }
-        .navigationDestination(
-            item: $store.scope(state: \.notificationList, action: \.notificationList)
-        ) { store in
-            NotificationView(store: store)
+            .onAppear { store.send(.onAppear) }
+            // Navigation destinations
+            .navigationDestination(
+                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
+            ) { store in
+                EditMyFeedDetailView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.certificationList, action: \.certificationList)
+            ) { store in
+                FeedCertificationListView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.friendList, action: \.friendList)
+            ) { store in
+                FriendListView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.notificationList, action: \.notificationList)
+            ) { store in
+                NotificationView(store: store)
+            }
         }
     }
 
@@ -250,7 +267,24 @@ private extension FeedView {
     }
 }
 
-
+// MARK: - Network Error Popup Section
+private extension FeedView {
+    /// Networ Error Popup Section
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
+    }
+}
 
 // MARK: - Preview
 #Preview {

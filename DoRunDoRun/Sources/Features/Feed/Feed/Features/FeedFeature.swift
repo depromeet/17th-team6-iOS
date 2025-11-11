@@ -39,6 +39,18 @@ struct FeedFeature {
         var popup = PopupFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
+        
+        // 실패한 로직 저장
+        enum FailedRequestType: Equatable {
+            case fetchWeekCounts(startDate: String, endDate: String)
+            case fetchSelfieUsers(String)
+            case fetchSelfieFeeds(page: Int)
+            case toggleReaction(feedID: Int, emoji: EmojiType)
+            case addReaction(feedID: Int, emoji: EmojiType)
+            case deleteFeed(Int)
+        }
+        var lastFailedRequest: FailedRequestType? = nil
+
 
         // Navigation
         @Presents var editMyFeedDetail: EditMyFeedDetailFeature.State?
@@ -133,6 +145,9 @@ struct FeedFeature {
         case popup(PopupFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
+        
+        // 실패한 로직 저장
+        case setLastFailedRequest(State.FailedRequestType)
 
         // Navigation
         case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
@@ -204,6 +219,7 @@ struct FeedFeature {
                         let result = try await selfieWeekUseCase.execute(startDate: start, endDate: end)
                         await send(.fetchWeekCountsSuccess(result))
                     } catch {
+                        await send(.setLastFailedRequest(.fetchWeekCounts(startDate: start, endDate: end)))
                         await send(.fetchWeekCountsFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -223,6 +239,7 @@ struct FeedFeature {
                         let users = try await selfieUserUseCase.execute(date: date)
                         await send(.fetchSelfieUsersSuccess(users))
                     } catch {
+                        await send(.setLastFailedRequest(.fetchSelfieUsers(date)))
                         await send(.fetchSelfieUsersFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -254,6 +271,7 @@ struct FeedFeature {
                         let result = try await selfieFeedsUseCase.execute(currentDate: dateStr, userId: nil, page: page, size: 20)
                         await send(.fetchSelfieFeedsSuccess(result))
                     } catch {
+                        await send(.setLastFailedRequest(.fetchSelfieFeeds(page: page)))
                         await send(.fetchSelfieFeedsFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -302,6 +320,7 @@ struct FeedFeature {
                         let result = try await selfieFeedReactionUseCase.execute(feedId: feedID, emojiType: reaction.emojiType.rawValue)
                         await send(.reactionSuccess(result))
                     } catch {
+                        await send(.setLastFailedRequest(.toggleReaction(feedID: feedID, emoji: reaction.emojiType)))
                         await send(.reactionFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -350,6 +369,7 @@ struct FeedFeature {
                         let result = try await selfieFeedReactionUseCase.execute(feedId: feedID, emojiType: emoji.rawValue)
                         await send(.addReactionSuccess(result))
                     } catch {
+                        await send(.setLastFailedRequest(.addReaction(feedID: feedID, emoji: emoji)))
                         await send(.addReactionFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -399,6 +419,7 @@ struct FeedFeature {
                         _ = try await selfieFeedDeleteUseCase.execute(feedId: feedID)
                         await send(.deleteFeedSuccess(feedID))
                     } catch {
+                        await send(.setLastFailedRequest(.deleteFeed(feedID)))
                         await send(.deleteFeedFailure(error as? APIError ?? .unknown))
                     }
                 }
@@ -455,6 +476,30 @@ struct FeedFeature {
                 state.notificationList = nil
                 return .none
                 
+            // MARK: - 실패한 로직 저장
+            case let .setLastFailedRequest(request):
+                state.lastFailedRequest = request
+                return .none
+                
+            // MARK: - 재시도
+            case .networkErrorPopup(.retryButtonTapped),
+                 .serverError(.retryButtonTapped):
+                guard let failed = state.lastFailedRequest else { return .none }
+                switch failed {
+                case let .fetchWeekCounts(start, end):
+                    return .send(.fetchWeekCounts(startDate: start, endDate: end))
+                case let .fetchSelfieUsers(date):
+                    return .send(.fetchSelfieUsers(date))
+                case let .fetchSelfieFeeds(page):
+                    return .send(.fetchSelfieFeeds(page: page))
+                case let .toggleReaction(feedID, emoji):
+                    return .send(.reactionTapped(feedID: feedID, reaction: .init(emojiType: emoji, totalCount: 0, isReactedByMe: false, users: [])))
+                case let .addReaction(feedID, emoji):
+                    return .send(.addReactionTapped(feedID: feedID))
+                case let .deleteFeed(feedID):
+                    return .send(.confirmDelete(feedID))
+                }
+
             default:
                 return .none
             }
@@ -489,8 +534,6 @@ private extension FeedFeature {
 
 // MARK: - Reaction Logic
 private extension FeedFeature {
-    /// 리액션 탭 시 상태를 토글합니다.
-    /// - 이미 내가 누른 상태면 취소하고, 아니라면 추가합니다.
     static func toggleReaction(in reactions: [ReactionViewState], for emoji: EmojiType) -> [ReactionViewState] {
         var updated = reactions.map { item -> ReactionViewState in
             var r = item
