@@ -12,6 +12,7 @@ struct RunningReadyFeature {
     // MARK: - Dependencies
     @Dependency(\.friendRunningStatusUseCase) var statusUseCase
     @Dependency(\.friendReactionUseCase) var reactionUseCase
+    @Dependency(\.userLocationUseCase) var userLocationUseCase
 
     // MARK: - State
     @ObservableState
@@ -26,7 +27,13 @@ struct RunningReadyFeature {
         
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
-        
+
+        /// GPS Following 모드 (사용자 위치 추적 여부)
+        var isFollowingUserLocation: Bool = true
+
+        /// 사용자의 현재 위치
+        var userLocation: UserLocationViewState? = nil
+
         // 페이지네이션
         var currentPage = 0
         var isLoading = false
@@ -41,6 +48,7 @@ struct RunningReadyFeature {
         case serverError(ServerErrorFeature.Action)
         
         case onAppear
+        case onDisappear
         case loadStatuses(page: Int)
         case statusSuccess([FriendRunningStatus])
         case loadNextPageIfNeeded(currentItem: FriendRunningStatusViewState?)
@@ -53,9 +61,11 @@ struct RunningReadyFeature {
         case reactionFailure(Int, String)
         
         case gpsButtonTapped
-        
+        case userLocationUpdated(RunningCoordinate)
+        case mapGestureDetected
+
         case friendListButtonTapped
-        
+
         case startButtonTapped
     }
 
@@ -68,11 +78,32 @@ struct RunningReadyFeature {
         Reduce { state, action in
             switch action {
 
-            // MARK: 화면 진입 시 - 친구 현황 불러오기
+            // MARK: 화면 진입 시 - 친구 현황 불러오기 + 위치 추적 시작
             case .onAppear:
                 guard !state.isLoading else { return .none }
                 state.isLoading = true
-                return .send(.loadStatuses(page: 0))
+                return .merge(
+                    .send(.loadStatuses(page: 0)),
+                    .run { [userLocationUseCase] send in
+                        do {
+                            let locationStream = try await userLocationUseCase.startTracking()
+                            for try await coordinate in locationStream {
+                                await send(.userLocationUpdated(coordinate))
+                            }
+                        } catch {
+                            print("[GPS] 위치 추적 실패: \(error)")
+                        }
+                    }
+                )
+
+            // MARK: 화면 종료 시 - 위치 추적 중단 및 상태 초기화
+            case .onDisappear:
+                state.userLocation = nil
+                state.isFollowingUserLocation = true  // 다음 진입 시를 위해 초기값으로 리셋
+                return .run { [userLocationUseCase] _ in
+                    await userLocationUseCase.stopTracking()
+                    print("[GPS] 위치 추적 중단")
+                }
 
             // MARK: 러닝 상태 조회 (시작 페이지)
             case let .loadStatuses(page):
@@ -105,10 +136,7 @@ struct RunningReadyFeature {
                         }
                         // 첫 페이지
                         state.statuses = mapped
-                        // 포커싱은 첫 로드 시 한 번만
-                        if let me = results.first(where: { $0.isMe }) {
-                            state.focusedFriendID = me.id
-                        }
+                        // focusedFriendID는 사용자가 직접 탭할 때만 설정 (초기에는 nil로 GPS Following 모드)
                     } else {
                         // 다음 페이지 append
                         state.statuses.append(contentsOf: mapped)
@@ -153,8 +181,9 @@ struct RunningReadyFeature {
                  .serverError(.retryButtonTapped):
                 return .send(.onAppear)
 
-            // MARK: 친구 셀 탭 (포커스 전환)
+            // MARK: 친구 셀 탭 (포커스 전환) - GPS Following 해제
             case let .friendTapped(id):
+                state.isFollowingUserLocation = false
                 state.focusedFriendID = id
                 return .none
 
@@ -181,9 +210,23 @@ struct RunningReadyFeature {
                 print("응원 실패 [\(id)]: \(message)")
                 return .none
 
-            // MARK: GPS 버튼
+            // MARK: GPS 버튼 - Following 모드 토글
             case .gpsButtonTapped:
-                // TODO: 내 위치로 카메라 이동 구현
+                state.isFollowingUserLocation.toggle()
+                // Following이 켜지면 친구 포커싱 해제
+                if state.isFollowingUserLocation {
+                    state.focusedFriendID = nil
+                }
+                return .none
+
+            // MARK: 사용자 위치 업데이트
+            case let .userLocationUpdated(coordinate):
+                state.userLocation = UserLocationViewStateMapper.map(from: coordinate)
+                return .none
+
+            // MARK: 지도 제스처 감지 - GPS Following 해제
+            case .mapGestureDetected:
+                state.isFollowingUserLocation = false
                 return .none
                 
             // MARK: 친구 목록 버튼

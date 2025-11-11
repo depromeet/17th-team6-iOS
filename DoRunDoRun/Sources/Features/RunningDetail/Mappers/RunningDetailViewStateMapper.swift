@@ -25,7 +25,8 @@ struct RunningDetailViewStateMapper {
         // Cadence → "144 spm" 형식으로
         let cadenceText = "\(Int(detail.avgCadenceSpm)) spm"
 
-        let points = detail.coordinates.map { toViewState($0) }
+        // 결과 화면에서는 전체 평균 페이스를 모든 좌표에 적용
+        let points = detail.coordinates.map { toViewState($0, pace: detail.avgPaceSecPerKm) }
 
         return RunningDetailViewState(
             // Formatted strings
@@ -149,10 +150,11 @@ private extension RunningDetailViewStateMapper {
         return String(format: "%d'%02d\"", minutes, seconds)
     }
     
-    static func toViewState(_ coordinate: RunningCoordinate) -> RunningCoordinateViewState {
+    static func toViewState(_ coordinate: RunningCoordinate, pace: Double) -> RunningCoordinateViewState {
         RunningCoordinateViewState(
             latitude: coordinate.latitude,
-            longitude: coordinate.longitude
+            longitude: coordinate.longitude,
+            paceSecPerKm: pace
         )
     }
 }

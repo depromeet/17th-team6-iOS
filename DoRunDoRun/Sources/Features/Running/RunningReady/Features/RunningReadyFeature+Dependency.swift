@@ -19,6 +19,12 @@ extension DependencyValues {
         get { self[FriendReactionUseCaseKey.self] }
         set { self[FriendReactionUseCaseKey.self] = newValue }
     }
+
+    /// 사용자 위치 UseCase
+    var userLocationUseCase: UserLocationUseCaseProtocol {
+        get { self[UserLocationUseCaseKey.self] }
+        set { self[UserLocationUseCaseKey.self] = newValue }
+    }
 }
 
 // MARK: - Keys
@@ -38,5 +44,16 @@ private enum FriendReactionUseCaseKey: DependencyKey {
     )
     static let testValue: FriendReactionUseCaseProtocol = FriendReactionUseCase(
         repository: FriendReactionRepositoryMock()
+    )
+}
+
+private enum UserLocationUseCaseKey: DependencyKey {
+    static let liveValue: UserLocationUseCaseProtocol = {
+        // 실제 LocationService 사용
+        return UserLocationUseCase(repository: UserLocationRepositoryImpl())
+    }()
+
+    static let testValue: UserLocationUseCaseProtocol = UserLocationUseCase(
+        repository: UserLocationRepositoryMock()
     )
 }

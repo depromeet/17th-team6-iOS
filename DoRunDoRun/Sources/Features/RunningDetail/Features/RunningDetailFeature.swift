@@ -30,6 +30,12 @@ struct RunningDetailFeature {
         case sendRunningData
         case sessionCompletedSuccessfully
         case sessionCompletedWithError(String)
+
+        case delegate(Delegate)
+
+        enum Delegate: Equatable {
+            case backButtonTapped
+        }
     }
 
     var body: some ReducerOf<Self> {
@@ -37,8 +43,7 @@ struct RunningDetailFeature {
         Reduce { state, action in
             switch action {
             case .backButtonTapped:
-                // TODO: 화면 전환 로직 추가
-                return .none
+                return .send(.delegate(.backButtonTapped))
 
             case .recordVerificationButtonTapped:
                 // TODO: 화면 전환 로직 추가
@@ -86,6 +91,9 @@ struct RunningDetailFeature {
                 return .none
 
             case .binding(_):
+                return .none
+
+            case .delegate:
                 return .none
             }
         }

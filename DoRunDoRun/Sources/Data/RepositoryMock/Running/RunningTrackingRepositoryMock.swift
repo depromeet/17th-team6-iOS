@@ -126,12 +126,13 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
 
         // 1) 이동 파라미터에 약간의 노이즈 추가
         //   - 방향은 -2...+2도 정도로 흔들림
-        //   - 속도는 ±0.3 m/s 범위에서 천천히 흔들림
+        //   - 속도는 ±0.4 m/s 범위에서 변화 (페이스 색상 변화를 위해 증폭)
         headingDeg += Double.random(in: -2...2)
         headingDeg.formTruncatingRemainder(dividingBy: 360)
 
-        let speedNoise = Double.random(in: -0.2...0.2)
-        speedMps = max(1.5, min(5.5, speedMps + speedNoise))
+        let speedNoise = Double.random(in: -0.4...0.4)
+        // 속도 범위: 2.0-5.0 m/s (8:20/km - 3:20/km) → PaceColorMapper 범위에 최적화
+        speedMps = max(2.0, min(5.0, speedMps + speedNoise))
 
         // 케이던스는 속도와 느슨하게 연동 (대략 160~185 spm 사이)
         let cadenceBase = 160.0 + (speedMps - 2.0) * 10.0
@@ -177,10 +178,13 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
         let km = totalDistanceMeters / 1000.0
         let avgPaceSecPerKm: Double = km > 0 ? (elapsedSec / km) : 0
 
+        // 순간 페이스 계산: speedMps(m/s)를 페이스(초/km)로 변환
+        let currentPaceSecPerKm: Double = speedMps > 0 ? (1000.0 / speedMps) : 0
+
         let metrics = RunningMetrics(
             totalDistanceMeters: totalDistanceMeters,
             elapsed: .seconds(elapsedSec),
-            currentPaceSecPerKm: avgPaceSecPerKm,
+            currentPaceSecPerKm: currentPaceSecPerKm,
             currentCadenceSpm: cadenceSpm
         )
 

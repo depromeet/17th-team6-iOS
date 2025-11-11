@@ -91,6 +91,11 @@ struct AppFeature {
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 return .none
+
+            // Running delegate: RunningDetail 뒤로가기 → Feed 탭 전환
+            case .running(.delegate(.navigateToFeed)):
+                state.selectedTab = .feed
+                return .none
                 
             case .my(.delegate(.logoutCompleted)),
                  .my(.delegate(.withdrawCompleted)):

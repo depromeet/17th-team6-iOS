@@ -14,6 +14,17 @@ struct RunningView: View {
                     phase: store.phase,
                     statuses: store.ready.statuses,
                     focusedFriendID: store.ready.focusedFriendID,
+                    isFollowingLocation: store.phase == .ready
+                        ? store.ready.isFollowingUserLocation
+                        : store.active.isFollowingLocation,
+                    onMapGestureDetected: {
+                        if store.phase == .ready {
+                            store.send(.ready(.mapGestureDetected))
+                        } else {
+                            store.send(.active(.mapGestureDetected))
+                        }
+                    },
+                    userLocation: store.ready.userLocation,
                     runningCoordinates: store.active.routeCoordinates
                 )
                 .ignoresSafeArea(

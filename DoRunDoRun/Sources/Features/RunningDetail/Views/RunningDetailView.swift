@@ -62,7 +62,7 @@ struct RunningDetailView: View {
                             .fill(Color.gray50)
                     }
                     .padding(.bottom, 16)
-                     
+                    
                     // 상태에 따라 이미지 or 지도
                     Group {
                         if let imageUrl = store.detail.mapImageURL { // 이전 기록을 보는 경우
@@ -79,11 +79,11 @@ struct RunningDetailView: View {
                     }
                     .cornerRadius(16)
                     .padding(.bottom, 8)
-       
+                    
                     paceColorBar
                     
                     Spacer()
-
+                    
                     recordVerificationButton {
                         store.send(.recordVerificationButtonTapped)
                     }
@@ -92,13 +92,13 @@ struct RunningDetailView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-              ToolbarItem(placement: .cancellationAction) {
-                  Button {
-                      store.send(.backButtonTapped)
-                  } label: {
-                      Image("Left_M")
-                  }
-              }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image("Left_M")
+                    }
+                }
             }
             .navigationBarBackButtonHidden(true)
         }
@@ -118,15 +118,16 @@ private extension RunningDetailView {
                 .frame(height: 8)
                 .background(
                     LinearGradient(
-                        stops: [
-                            Gradient.Stop(color: Color(red: 1, green: 0, blue: 0), location: 0.00),
-                            Gradient.Stop(color: Color(red: 1, green: 0.48, blue: 0), location: 0.25),
-                            Gradient.Stop(color: Color(red: 1, green: 0.84, blue: 0), location: 0.50),
-                            Gradient.Stop(color: Color(red: 0.15, green: 1, blue: 0), location: 0.73),
-                            Gradient.Stop(color: Color(red: 0.28, green: 0.32, blue: 1), location: 1.00),
-                        ],
-                        startPoint: UnitPoint(x: 0, y: 0.5),
-                        endPoint: UnitPoint(x: 1, y: 0.5)
+                      stops: [
+                        // 파(빠름) → 연녹 → 노 → 주 → 빨(느림)
+                        .init(color: Color(red: 0.28, green: 0.32, blue: 1.00), location: 0.00), // 파랑
+                        .init(color: Color(red: 0.15, green: 1.00,  blue: 0.00), location: 0.25), // 연녹
+                        .init(color: Color(red: 1.00, green: 0.84, blue: 0.00), location: 0.50), // 노랑
+                        .init(color: Color(red: 1.00, green: 0.48, blue: 0.00), location: 0.75), // 주황
+                        .init(color: Color(red: 1.00, green: 0.00, blue: 0.00), location: 1.00)  // 빨강
+                      ],
+                      startPoint: .leading,
+                      endPoint: .trailing
                     )
                 )
                 .cornerRadius(41)
@@ -141,8 +142,8 @@ private extension RunningDetailView {
         } label: {
             HStack(spacing: 12) {
                 Rectangle()
-                  .foregroundColor(.gray100)
-                  .frame(width: 50, height: 50)
+                    .foregroundColor(.gray100)
+                    .frame(width: 50, height: 50)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     TypographyText(text: "아직 인증하지 않았어요!", style: .b2_400, color: .gray500)
@@ -171,7 +172,7 @@ private extension RunningDetailView {
                     Color.gray50
                     ProgressView()
                 }
-
+                
             case .success(let image):
                 image
                     .resizable()
@@ -180,9 +181,12 @@ private extension RunningDetailView {
                 ZStack {
                     // TODO: 디자인 수정
                     Color.gray50
-                    TypographyText(text: "이미지를 불러올 수 없어요", style: .c1_400, color: .gray500)
+                    TypographyText(
+                        text: "이미지를 불러올 수 없어요",
+                        style: .c1_400, color: .gray500
+                    )
                 }
-
+                
             @unknown default:
                 EmptyView()
             }

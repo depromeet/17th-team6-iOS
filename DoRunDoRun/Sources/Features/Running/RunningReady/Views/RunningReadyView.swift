@@ -70,6 +70,8 @@ private extension RunningReadyView {
         } label: {
             Image(.gps)
                 .resizable()
+                .renderingMode(.template)
+                .foregroundStyle(store.isFollowingUserLocation ? Color.blue600 : Color.gray800)
                 .frame(width: 24, height: 24)
                 .padding(10)
                 .background(Color.gray0)
@@ -102,6 +104,9 @@ private extension RunningReadyView {
         )
         .onAppear {
             store.send(.onAppear)
+        }
+        .onDisappear {
+            store.send(.onDisappear)
         }
         .zIndex(1)
     }

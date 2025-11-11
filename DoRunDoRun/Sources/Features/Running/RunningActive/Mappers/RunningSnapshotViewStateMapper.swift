@@ -58,12 +58,13 @@ struct RunningSnapshotViewStateMapper {
         String(format: "%.0f spm", cadenceSpm)
     }
 
-    /// 마지막 좌표를 CoordinateViewState로 생성
+    /// 마지막 좌표를 CoordinateViewState로 생성 (페이스 정보 포함)
     private static func makeLastCoordinate(from snapshot: RunningSnapshot) -> RunningCoordinateViewState? {
         guard let point = snapshot.lastPoint else { return nil }
         return .init(
             latitude: point.coordinate.latitude,
-            longitude: point.coordinate.longitude
+            longitude: point.coordinate.longitude,
+            paceSecPerKm: snapshot.metrics.currentPaceSecPerKm
         )
     }
 }

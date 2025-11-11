@@ -23,12 +23,18 @@ struct RunningFeature {
     
     enum Action: Equatable {
         case runningDetail(PresentationAction<RunningDetailFeature.Action>)
-        
+
         case ready(RunningReadyFeature.Action)
         case countdown(RunningCountdownFeature.Action)
         case active(RunningActiveFeature.Action)
-        
+
         case updatePhase(RunningPhase)
+
+        case delegate(Delegate)
+
+        enum Delegate: Equatable {
+            case navigateToFeed
+        }
     }
     
     var body: some ReducerOf<Self> {
@@ -68,8 +74,18 @@ struct RunningFeature {
             case let .updatePhase(phase):
                 state.phase = phase
                 return .none
+
+            // RunningDetail delegate: 뒤로가기 버튼
+            case .runningDetail(.presented(.delegate(.backButtonTapped))):
+                state.runningDetail = nil
+                return .send(.delegate(.navigateToFeed))
+
             case .runningDetail:
                 return .none
+
+            case .delegate:
+                return .none
+
             default:
                 return .none
             }
