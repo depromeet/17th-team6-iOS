@@ -76,23 +76,20 @@ struct RunningMapView: UIViewRepresentable {
 
     // MARK: - UIView 갱신
     func updateUIView(_ uiView: NMFNaverMapView, context: Context) {
-        // Phase 변경 감지 및 플래그 리셋
+        // Phase 변경 감지 및 상태 리셋
         if context.coordinator.lastPhase != phase {
             context.coordinator.lastPhase = phase
 
-            // Ready phase로 진입할 때마다 플래그 리셋
+            // Ready phase로 진입할 때마다 상태 리셋
             if phase == .ready {
-                context.coordinator.didCenterUserLocationOnReady = false
-                context.coordinator.didSetContentInset = false
-
+                context.coordinator.readyState = ReadyPhaseState()
                 context.coordinator.routeSegmentManager.clear()
             }
 
-            // Active phase로 진입할 때마다 플래그 리셋 및 contentInset 초기화
+            // Active phase로 진입할 때마다 상태 리셋 및 contentInset 초기화
             if phase == .active {
-                context.coordinator.didCenterInitialCamera = false
+                context.coordinator.activeState = ActivePhaseState()
                 uiView.mapView.contentInset = .zero
-
                 context.coordinator.friendMarkerManager.clear()
             }
         }
@@ -208,14 +205,24 @@ struct RunningMapView: UIViewRepresentable {
         }
     }
 
+    // MARK: - Phase States
+    struct ReadyPhaseState {
+        var didCenterUserLocation = false
+        var didSetContentInset = false
+    }
+
+    struct ActivePhaseState {
+        var didCenterInitialCamera = false
+    }
+
     // MARK: - Coordinator
     class Coordinator: NSObject, NMFMapViewCameraDelegate {
         let friendMarkerManager = FriendMarkerManager()
         let routeSegmentManager = RouteSegmentManager()
-        var didCenterInitialCamera = false    // Active 최초 1회 카메라 센터링 여부
-        var didCenterUserLocationOnReady = false  // Ready 최초 1회 사용자 위치 센터링 여부
-        var lastPhase: RunningPhase?          // Phase 변경 감지용
-        var didSetContentInset = false        // Ready contentInset 설정 여부
+
+        var readyState = ReadyPhaseState()
+        var activeState = ActivePhaseState()
+        var lastPhase: RunningPhase?
 
         var onMapGestureDetected: (() -> Void)?
         private var isUserGesture = false
@@ -243,7 +250,7 @@ private extension RunningMapView {
     /// Ready 단계에서 지도 상태를 갱신합니다.
     func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
         // contentInset 설정 (Ready phase 진입 시 1회만)
-        if !context.coordinator.didSetContentInset {
+        if !context.coordinator.readyState.didSetContentInset {
             // collapsed state 만큼 올리기
             uiView.mapView.contentInset = UIEdgeInsets(
                 top: 0,
@@ -251,14 +258,14 @@ private extension RunningMapView {
                 bottom: MapConstants.readyPhaseBottomInset,
                 right: 0
             )
-            context.coordinator.didSetContentInset = true
+            context.coordinator.readyState.didSetContentInset = true
         }
 
         // 1. 초기 진입 시 사용자 위치로 카메라 센터링 (1회만)
-        if !context.coordinator.didCenterUserLocationOnReady,
+        if !context.coordinator.readyState.didCenterUserLocation,
             let userLoc = userLocation {
             centerCamera(on: userLoc, in: uiView.mapView)
-            context.coordinator.didCenterUserLocationOnReady = true
+            context.coordinator.readyState.didCenterUserLocation = true
 
             return
         }
@@ -307,9 +314,9 @@ private extension RunningMapView {
     /// Active 단계에서 지도 상태를 갱신합니다.
     func updateForActive(_ uiView: NMFNaverMapView, context: Context) {
         // Active 진입 시 최초 1회만 카메라 센터링
-        if !context.coordinator.didCenterInitialCamera, let first = runningCoordinates.first {
+        if !context.coordinator.activeState.didCenterInitialCamera, let first = runningCoordinates.first {
             centerCamera(on: first, in: uiView.mapView)
-            context.coordinator.didCenterInitialCamera = true
+            context.coordinator.activeState.didCenterInitialCamera = true
         }
 
         // Following ON일 때 자동으로 내 위치 추적
