@@ -99,7 +99,7 @@ struct MyFeedDetailFeature {
         case reactionTapped(ReactionViewState)
         
         /// 리액션 탭 서버 응답 성공
-        case reactionSuccess(SelfieFeedReaction)
+        case reactionSuccess(SelfieFeedReactionResult)
         
         /// 리액션 탭 서버 응답 실패
         case reactionFailure(APIError)
@@ -111,7 +111,7 @@ struct MyFeedDetailFeature {
         case addReactionTapped
         
         /// 리액션 추가 서버 응답 성공
-        case addReactionSuccess(SelfieFeedReaction)
+        case addReactionSuccess(SelfieFeedReactionResult)
         
         /// 리액션 추가 서버 응답 실패
         case addReactionFailure(APIError)
@@ -261,7 +261,7 @@ struct MyFeedDetailFeature {
                 return .none
                 
             // MARK: - 수정 완료 후 delegate 처리
-            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(imageURL)))):
+            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(_, imageURL)))):
                 state.feed.imageURL = imageURL
                 state.editMyFeedDetail = nil
                 return .send(.delegate(.feedUpdated(imageURL: imageURL)))

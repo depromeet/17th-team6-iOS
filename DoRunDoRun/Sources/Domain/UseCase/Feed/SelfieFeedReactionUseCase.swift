@@ -6,7 +6,7 @@
 //
 
 protocol SelfieFeedReactionUseCaseProtocol {
-    func execute(feedId: Int, emojiType: String) async throws -> SelfieFeedReaction
+    func execute(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResult
 }
 
 final class SelfieFeedReactionUseCase: SelfieFeedReactionUseCaseProtocol {
@@ -16,7 +16,7 @@ final class SelfieFeedReactionUseCase: SelfieFeedReactionUseCaseProtocol {
         self.repository = repository
     }
 
-    func execute(feedId: Int, emojiType: String) async throws -> SelfieFeedReaction {
+    func execute(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResult {
         try await repository.sendReaction(feedId: feedId, emojiType: emojiType)
     }
 }

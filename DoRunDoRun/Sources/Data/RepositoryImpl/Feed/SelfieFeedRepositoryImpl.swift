@@ -15,6 +15,6 @@ final class SelfieFeedRepositoryImpl: SelfieFeedRepository {
     func fetchFeeds(currentDate: String?, userId: Int?, page: Int, size: Int) async throws -> SelfieFeedResult {
         let dto = try await service.fetchFeeds(currentDate: currentDate, userId: userId, page: page, size: size)
         let feeds = dto.data.feeds.contents.map { $0.toDomain() }
-        let summary = dto.data.userSummary.toDomain()
+        let summary = dto.data.userSummary?.toDomain()
         return SelfieFeedResult(userSummary: summary, feeds: feeds)
     }}

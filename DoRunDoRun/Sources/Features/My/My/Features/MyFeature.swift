@@ -259,9 +259,11 @@ struct MyFeature {
                     state.currentPage += 1
                 }
                 
-                let userSummary = result.userSummary
-                state.userSummary = UserSummaryViewStateMapper.map(from: userSummary)
-                
+                if let userSummary = result.userSummary {
+                    state.userSummary = UserSummaryViewStateMapper.map(from: userSummary)
+                } else {
+                    state.userSummary = nil
+                }
                 return .none
 
             // MARK: - 무한 스크롤

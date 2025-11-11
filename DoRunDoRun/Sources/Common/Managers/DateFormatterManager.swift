@@ -70,6 +70,11 @@ final class DateFormatterManager {
     }
 
     // MARK: - Date → String
+    /// 서버 API 요청용 날짜 포맷 ("yyyy-MM-dd")
+    func formatAPIDateText(from date: Date) -> String {
+        formattedISODate.string(from: date)
+    }
+
     /// "yyyy" → 2025
     func formatYear(from date: Date) -> String { formattedYear.string(from: date) }
 

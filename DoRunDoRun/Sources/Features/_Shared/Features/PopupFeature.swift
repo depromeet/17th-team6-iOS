@@ -19,6 +19,8 @@ struct PopupFeature {
             case logout
             case withdraw
             case deleteFriend(Int)
+            case deleteFeed(Int)
+            case reportFeed(Int)
         }
         var action: PopupAction = .none
         var isVisible = false

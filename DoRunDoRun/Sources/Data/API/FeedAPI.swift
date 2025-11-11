@@ -13,6 +13,8 @@ enum FeedAPI {
     case postReaction(feedId: Int, emojiType: String)
     case updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?)
     case deleteFeed(feedId: Int)
+    case getWeeklySelfieCount(startDate: String, endDate: String)
+    case getSelfieUsersByDate(date: String)
 }
 
 extension FeedAPI: TargetType {
@@ -27,6 +29,11 @@ extension FeedAPI: TargetType {
         case let .updateFeed(feedId, _, _),
              let .deleteFeed(feedId):
             return "/api/selfie/feeds/\(feedId)"
+        case .getWeeklySelfieCount:
+            return "/api/selfie/week"
+        case .getSelfieUsersByDate:
+            return "/api/selfie/users"
+
         }
     }
 
@@ -36,6 +43,8 @@ extension FeedAPI: TargetType {
         case .postReaction: return .post
         case .updateFeed: return .put
         case .deleteFeed: return .delete
+        case .getWeeklySelfieCount: return .get
+        case .getSelfieUsersByDate: return .get
         }
     }
 
@@ -73,10 +82,21 @@ extension FeedAPI: TargetType {
             }
 
             return .uploadMultipart(formData)
-
-
+            
         case .deleteFeed:
             return .requestPlain
+            
+        case let .getWeeklySelfieCount(startDate, endDate):
+            return .requestParameters(
+                parameters: ["startDate": startDate, "endDate": endDate],
+                encoding: URLEncoding.queryString
+            )
+            
+        case let .getSelfieUsersByDate(date):
+            return .requestParameters(
+                parameters: ["date": date],
+                encoding: URLEncoding.queryString
+            )
         }
     }
 

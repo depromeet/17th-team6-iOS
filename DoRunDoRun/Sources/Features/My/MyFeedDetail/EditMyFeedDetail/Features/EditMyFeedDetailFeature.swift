@@ -44,7 +44,7 @@ struct EditMyFeedDetailFeature {
         
         case backButtonTapped
         
-        enum Delegate: Equatable { case updateCompleted(imageURL: String) }
+        enum Delegate: Equatable { case updateCompleted(feedID: Int, imageURL: String) }
         case delegate(Delegate)
     }
 
@@ -96,7 +96,7 @@ struct EditMyFeedDetailFeature {
             // MARK: - 업로드 성공
             case let .uploadSuccess(result):
                 state.isUploading = false
-                return .send(.delegate(.updateCompleted(imageURL: result.updatedImageUrl)))
+                return .send(.delegate(.updateCompleted(feedID: state.feed.feedID, imageURL: result.updatedImageUrl)))
 
             // MARK: - 업로드 실패
             case let .uploadFailure(apiError):

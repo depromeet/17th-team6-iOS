@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol SelfieFeedUpdateUseCase {
+protocol SelfieFeedUpdateUseCaseProtocol {
     func execute(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResult
 }
 
-final class SelfieFeedUpdateUseCaseImpl: SelfieFeedUpdateUseCase {
+final class SelfieFeedUpdateUseCase: SelfieFeedUpdateUseCaseProtocol {
     private let repository: SelfieFeedUpdateRepository
 
     init(repository: SelfieFeedUpdateRepository = SelfieFeedUpdateRepositoryImpl()) {

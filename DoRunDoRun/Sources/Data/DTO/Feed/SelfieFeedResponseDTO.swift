@@ -19,7 +19,7 @@ struct SelfieFeedResponseDTO: Codable {
 /// 셀피 피드 데이터 컨테이너
 /// 유저 요약 정보 + 피드 리스트를 함께 담고 있음
 struct SelfieFeedDataDTO: Codable {
-    let userSummary: UserSummaryDTO
+    let userSummary: UserSummaryDTO?
     let feeds: SelfieFeedContainerDTO
 }
 

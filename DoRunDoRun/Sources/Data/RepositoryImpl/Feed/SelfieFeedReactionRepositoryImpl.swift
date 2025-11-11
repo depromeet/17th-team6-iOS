@@ -12,7 +12,7 @@ final class SelfieFeedReactionRepositoryImpl: SelfieFeedReactionRepository {
         self.service = service
     }
 
-    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReaction {
+    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResult {
         let dto = try await service.sendReaction(feedId: feedId, emojiType: emojiType)
         return dto.data.toDomain()
     }

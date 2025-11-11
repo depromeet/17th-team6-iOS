@@ -12,6 +12,8 @@ protocol SelfieFeedService {
     func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResponseDTO
     func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO
     func deleteFeed(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO
+    func fetchWeeklySelfieCount(startDate: String, endDate: String) async throws -> SelfieWeekResponseDTO
+    func fetchUsersByDate(date: String) async throws -> SelfieUsersByDateResponseDTO
 }
 
 final class SelfieFeedServiceImpl: SelfieFeedService {
@@ -46,6 +48,20 @@ final class SelfieFeedServiceImpl: SelfieFeedService {
         try await apiClient.request(
             FeedAPI.deleteFeed(feedId: feedId),
             responseType: SelfieFeedDeleteResponseDTO.self
+        )
+    }
+    
+    func fetchWeeklySelfieCount(startDate: String, endDate: String) async throws -> SelfieWeekResponseDTO {
+        try await apiClient.request(
+            FeedAPI.getWeeklySelfieCount(startDate: startDate, endDate: endDate),
+            responseType: SelfieWeekResponseDTO.self
+        )
+    }
+    
+    func fetchUsersByDate(date: String) async throws -> SelfieUsersByDateResponseDTO {
+        try await apiClient.request(
+            FeedAPI.getSelfieUsersByDate(date: date),
+            responseType: SelfieUsersByDateResponseDTO.self
         )
     }
 }
