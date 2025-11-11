@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "mcp__figma-desktop__get_design_context",
-      "mcp__figma-desktop__get_screenshot"
+      "mcp__figma-desktop__get_screenshot",
+      "WebFetch(domain:www.figma.com)",
+      "Bash(xcodebuild:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

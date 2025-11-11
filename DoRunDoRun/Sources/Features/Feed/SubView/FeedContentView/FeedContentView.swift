@@ -5,6 +5,7 @@
 //  Created by Inho Choi on 11/1/25.
 //
 
+import ComposableArchitecture
 import SwiftUI
 
 struct FeedContentView: View {
@@ -32,8 +33,9 @@ struct FeedContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
+        WithPerceptionTracking {
+            VStack(spacing: 0) {
+                HStack {
                 Circle()
                     .frame(width: 32, height: 32)
                     .padding(.trailing, 8)
@@ -86,66 +88,83 @@ struct FeedContentView: View {
                 }
             }
 
-            Rectangle()
-                .foregroundStyle(Color.gray300)
-                .aspectRatio(1, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay {
-
-                    VStack(alignment: .leading) {
-                        if let time = feed.selfieTime {
-                            Text(time)
-                                .font(.pretendard(.regular, size: 12))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.black.opacity(0.4))
-                                .clipShape(Capsule())
-                        }
-
-                        Spacer()
-
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("달린 거리")
-                                    .font(.pretendard(.regular, size: 12))
-                                Text(feed.totalDistance)
-                                    .font(.pretendard(.bold, size: 28))
-                                    .padding(.bottom, 12)
-
-
-                                Text("평균 페이스")
-                                    .font(.pretendard(.regular, size: 12))
-                                Text(feed.averagePace)
-                                    .font(.pretendard(.bold, size: 20))
-                            }
-
-
-                            VStack(alignment: .leading) {
-                                Text("달린 시간")
-                                    .font(.pretendard(.regular, size: 12))
-                                Text(feed.totalRunTime)
-                                    .font(.pretendard(.bold, size: 28))
-                                    .padding(.bottom, 12)
-
-                                Text("평균 케이던스")
-                                    .font(.pretendard(.regular, size: 12))
-                                Text(feed.cadence)
-                                    .font(.pretendard(.bold, size: 20))
-                            }
-                            .frame(maxWidth: .infinity)
-
-                        }
+            ZStack(alignment: .topLeading) {
+                // 배경 이미지
+                if let imageURL = URL(string: feed.imageURL) {
+                    AsyncImage(url: imageURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color.gray300
                     }
-                    .padding(20)
-                    .foregroundStyle(Color.white)
+                } else {
+                    Color.gray300
                 }
-                .padding(.vertical, 20)
+
+                VStack(alignment: .leading) {
+                    if let time = feed.selfieTime {
+                        Text(time)
+                            .font(.pretendard(.regular, size: 12))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.black.opacity(0.4))
+                            .clipShape(Capsule())
+                    }
+
+                    Spacer()
+
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("달린 거리")
+                                .font(.pretendard(.regular, size: 12))
+                            Text(feed.totalDistance)
+                                .font(.pretendard(.bold, size: 28))
+                                .padding(.bottom, 12)
+
+                            Text("평균 페이스")
+                                .font(.pretendard(.regular, size: 12))
+                            Text(feed.averagePace)
+                                .font(.pretendard(.bold, size: 20))
+                        }
+
+                        VStack(alignment: .leading) {
+                            Text("달린 시간")
+                                .font(.pretendard(.regular, size: 12))
+                            Text(feed.totalRunTime)
+                                .font(.pretendard(.bold, size: 28))
+                                .padding(.bottom, 12)
+
+                            Text("평균 케이던스")
+                                .font(.pretendard(.regular, size: 12))
+                            Text(feed.cadence)
+                                .font(.pretendard(.bold, size: 20))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(20)
+                .foregroundStyle(Color.white)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.black.opacity(0),
+                            Color.black.opacity(0.6)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.vertical, 20)
 
             ReactionView
 
             Spacer()
-        }
-        .sheet(isPresented: $showEmojiPicker) {
+            }
+            .sheet(isPresented: $showEmojiPicker) {
             EmojiPickerView(onEmojiSelected: { emoji in
                 onReaction?(emoji)
                 showEmojiPicker = false
@@ -153,8 +172,9 @@ struct FeedContentView: View {
             .presentationDetents([.height(200)])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showReactionDetail) {
-            ReactionDetailView(reactions: feed.reactions)
+            .sheet(isPresented: $showReactionDetail) {
+                ReactionDetailView(reactions: feed.reactions)
+            }
         }
     }
 

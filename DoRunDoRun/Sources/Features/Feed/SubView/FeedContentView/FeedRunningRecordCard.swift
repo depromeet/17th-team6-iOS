@@ -5,6 +5,7 @@
 //  Created by Inho Choi on 11/11/25.
 //
 
+import ComposableArchitecture
 import SwiftUI
 
 struct FeedRunningRecordCard: View {
@@ -15,6 +16,7 @@ struct FeedRunningRecordCard: View {
     let pace: String
     let cadence: String
     let showDateTime: Bool
+    let customBackgroundImage: UIImage?
 
     init(
         mapImageURL: URL?,
@@ -23,7 +25,8 @@ struct FeedRunningRecordCard: View {
         duration: String,
         pace: String,
         cadence: String,
-        showDateTime: Bool = true
+        showDateTime: Bool = true,
+        customBackgroundImage: UIImage? = nil
     ) {
         self.mapImageURL = mapImageURL
         self.createdAt = createdAt
@@ -32,10 +35,11 @@ struct FeedRunningRecordCard: View {
         self.pace = pace
         self.cadence = cadence
         self.showDateTime = showDateTime
+        self.customBackgroundImage = customBackgroundImage
     }
 
     // RunningRecord로부터 초기화하는 편의 생성자
-    init(record: RunningRecord, showDateTime: Bool = true) {
+    init(record: RunningRecord, showDateTime: Bool = true, customBackgroundImage: UIImage? = nil) {
         self.mapImageURL = record.mapImageURL
         self.createdAt = record.createdAt
         self.distance = record.distanceTotal.formatDistance()
@@ -43,13 +47,19 @@ struct FeedRunningRecordCard: View {
         self.pace = record.paceAvg.formatPace()
         self.cadence = "\(record.cadanceAvg) spm"
         self.showDateTime = showDateTime
+        self.customBackgroundImage = customBackgroundImage
     }
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topLeading) {
-                // 배경 지도 이미지
-                if let mapImageURL = mapImageURL {
+            WithPerceptionTracking {
+                ZStack(alignment: .topLeading) {
+                // 배경 이미지 (커스텀 이미지 우선, 없으면 지도 이미지)
+                if let customImage = customBackgroundImage {
+                    Image(uiImage: customImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else if let mapImageURL = mapImageURL {
                     AsyncImage(url: mapImageURL) { image in
                         image
                             .resizable()
@@ -134,8 +144,9 @@ struct FeedRunningRecordCard: View {
                         )
                     )
                 }
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .aspectRatio(1, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 16))

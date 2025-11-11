@@ -48,7 +48,8 @@ struct EditFeedImageView: View {
                 VStack(spacing: 12) {
                     FeedRunningRecordCard(
                         record: store.runningRecord,
-                        showDateTime: true
+                        showDateTime: true,
+                        customBackgroundImage: store.backgroundImage
                     )
                     .frame(width: 335, height: 335)
 
