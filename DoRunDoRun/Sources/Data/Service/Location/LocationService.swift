@@ -40,7 +40,7 @@ final class LocationServiceImpl: NSObject, LocationService {
         manager.pausesLocationUpdatesAutomatically = false // 연속 추적
         
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = kCLDistanceFilterNone
+        manager.distanceFilter = 5 // 5~10m 권장
     }
     
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error> {
