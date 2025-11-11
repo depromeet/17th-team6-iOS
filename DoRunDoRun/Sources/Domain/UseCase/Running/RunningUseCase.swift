@@ -6,8 +6,12 @@
 //
 
 protocol RunningUseCaseProtocol {
-    /// 러닝을 시작하고 스냅샷 스트림을 반환
-    func start() async throws -> AsyncThrowingStream<RunningSnapshot, Error>
+    /// 서버 세션 생성 (Ready 단계에서 호출)
+    func createSession() async throws -> Int
+
+    /// 로컬 추적 시작 및 스냅샷 스트림 반환 (Active 단계에서 호출)
+    func startTracking() async throws -> AsyncThrowingStream<RunningSnapshot, Error>
+
     func pause() async
     func resume() async throws
     func stop() async -> (detail: RunningDetail, sessionId: Int?)
@@ -31,22 +35,22 @@ final class RunningUseCase: RunningUseCaseProtocol {
         self.sessionRepository = sessionRepository
     }
 
-    func start() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
-        // 1. 서버 세션 생성
-        do {
-            sessionId = try await sessionRepository.createSession()
-        } catch {
-            // 서버 세션 생성 실패 시에도 로컬 추적은 진행
-            print("⚠️ Failed to create server session: \(error)")
-        }
+    func createSession() async throws -> Int {
+        // 서버 세션 생성하고 ID 반환
+        let id = try await sessionRepository.createSession()
+        sessionId = id
+        print("✅ Session created: \(id)")
+        return id
+    }
 
-        // 2. 로컬 추적 시작
+    func startTracking() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
+        // 1. 로컬 추적 시작
         let stream = try await trackingRepository.startTracking()
 
-        // 3. 5분마다 세그먼트 자동 저장 시작
+        // 2. 5분마다 세그먼트 자동 저장 시작
         startPeriodicSegmentSave()
 
-        // 4. 스냅샷을 소비하며 포인트 누적
+        // 3. 스냅샷을 소비하며 포인트 누적
         return AsyncThrowingStream { continuation in
             Task {
                 do {
