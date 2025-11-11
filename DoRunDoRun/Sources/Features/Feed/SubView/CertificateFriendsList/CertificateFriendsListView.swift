@@ -38,7 +38,7 @@ struct CertificateFriendsListView: View {
 }
 
 struct FriendCertificateRow: View {
-    let friend: FriendCertificate
+    let friend: CertificatedFriendViewModel
 
     var body: some View {
         HStack(spacing: 12) {
@@ -78,7 +78,7 @@ struct FriendCertificateRow: View {
 
 #Preview {
     CertificateFriendsListView(store: .init(
-        initialState: .init(),
+        initialState: .init(selectedDate: .now),
         reducer: {
             CertificateFriendsListFeature()
         }

@@ -150,7 +150,7 @@ struct FeedView: View {
                             .foregroundStyle(Color.gray500)
                             .padding(.bottom, 8)
 
-                        Button(action: { print("Action Tap \(dayInfo.day)") }) {
+                        Button(action: { store.send(.selectDate(dayInfo.date)) }) {
                             if dayInfo.isItToday {
                                 Text("오늘")
                                     .frame(width: 40, height: 28)
@@ -208,16 +208,17 @@ struct FeedView: View {
 }
 
 #Preview {
+    let today = Date()
     FeedView(store: Store(
         initialState: FeedFeature.State(
             weekDayInfos: [
-                FeedDayInfo(weekDay: .sun, day: 11, isItToday: false, count: 8),
-                FeedDayInfo(weekDay: .mon, day: 12, isItToday: false, count: 6),
-                FeedDayInfo(weekDay: .tue, day: 13, isItToday: false, count: 0),
-                FeedDayInfo(weekDay: .wed, day: 14, isItToday: false, count: 0),
-                FeedDayInfo(weekDay: .thu, day: 15, isItToday: true, count: 11),
-                FeedDayInfo(weekDay: .fri, day: 16, isItToday: false, count: 4),
-                FeedDayInfo(weekDay: .sat, day: 17, isItToday: false, count: 0)
+                FeedDayInfo(weekDay: .sun, day: 11, date: today, isItToday: false, count: 8),
+                FeedDayInfo(weekDay: .mon, day: 12, date: today, isItToday: false, count: 6),
+                FeedDayInfo(weekDay: .tue, day: 13, date: today, isItToday: false, count: 0),
+                FeedDayInfo(weekDay: .wed, day: 14, date: today, isItToday: false, count: 0),
+                FeedDayInfo(weekDay: .thu, day: 15, date: today, isItToday: true, count: 11),
+                FeedDayInfo(weekDay: .fri, day: 16, date: today, isItToday: false, count: 4),
+                FeedDayInfo(weekDay: .sat, day: 17, date: today, isItToday: false, count: 0)
             ]
         ),
         reducer: {

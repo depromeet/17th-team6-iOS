@@ -21,11 +21,16 @@ struct FeedWorker {
     func plusReaction(feedID: Int, emojiType: Emoji) async throws {
         try await repository.plusReaction(feedID: feedID, emojiType: emojiType.rawValue)
     }
+
+    func certificatedFriends(date: String) async throws -> [CertificatedFriend] {
+        return try await repository.certificatedFriends(date: date)
+    }
 }
 
 protocol FeedRepositoryProtocol {
     func feedList(currentDate: String, userId: Int, page: Int, size: Int) async throws -> FeedList
     func plusReaction(feedID: Int, emojiType: String) async throws
+    func certificatedFriends(date: String) async throws -> [CertificatedFriend]
 }
 
 struct FeedRepository: FeedRepositoryProtocol {
@@ -52,8 +57,11 @@ struct FeedRepository: FeedRepositoryProtocol {
     }
 
     /// date: "2024-11-01"
-    func certificatedFriends(date: String) async throws -> [FriendsEntity] {
-
+    func certificatedFriends(date: String) async throws -> [CertificatedFriend] {
+        let target = FeedAPI.certificatedFriends(date: date)
+        let entity: CerificatedFriendsContainerEntity = try await service.request(target: target)
+        let domain = CertificatedFriendsMapper.toDomain(entity)
+        return domain
     }
 }
 

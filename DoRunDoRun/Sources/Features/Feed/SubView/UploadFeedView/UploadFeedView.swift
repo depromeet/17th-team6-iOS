@@ -35,7 +35,7 @@ struct UploadFeedView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 24)
 
-                if groupedRecords.isEmpty == false {
+                if groupedRecords.isEmpty {
                     // 빈 상태 UI
                     VStack(spacing: 24) {
                         Spacer()
