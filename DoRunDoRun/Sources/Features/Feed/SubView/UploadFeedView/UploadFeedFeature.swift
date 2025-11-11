@@ -15,6 +15,7 @@ struct UploadFeedFeature {
         var isLoaded = false
         var runningRecords: [RunningRecord] = []
         var selectedRecordID: Int? = nil
+        @Presents var editFeedImage: EditFeedImageFeature.State?
     }
 
     enum Action {
@@ -22,6 +23,7 @@ struct UploadFeedFeature {
         case runningRecordsResponse(Result<[RunningRecord], Error>)
         case selectRecord(Int)
         case loadRecord
+        case editFeedImage(PresentationAction<EditFeedImageFeature.Action>)
     }
 
     @Dependency(\.getRunningRecordsRepository) var runningRecordRepository: RunningRecordRepositoryProtocol
@@ -56,11 +58,23 @@ struct UploadFeedFeature {
                     return .none
 
                 case .loadRecord:
-                    // TODO: 불러오기 기능 구현
-                    guard let selectedID = state.selectedRecordID else { return .none }
-                    print("Load record with ID: \(selectedID)")
+                    guard let selectedID = state.selectedRecordID,
+                          let selectedRecord = state.runningRecords.first(where: { $0.runSessionID == selectedID })
+                    else { return .none }
+
+                    state.editFeedImage = EditFeedImageFeature.State(runningRecord: selectedRecord)
+                    return .none
+
+                case .editFeedImage(.presented(.backButtonTapped)):
+                    state.editFeedImage = nil
+                    return .none
+
+                case .editFeedImage:
                     return .none
             }
+        }
+        .ifLet(\.$editFeedImage, action: \.editFeedImage) {
+            EditFeedImageFeature()
         }
     }
 }
