@@ -24,7 +24,7 @@ struct RunningReadyFeature {
 
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
-        
+
         /// 현재 포커싱된 친구의 ID (지도 이동 / 하이라이트용)
         var focusedFriendID: Int? = nil
 
@@ -38,6 +38,13 @@ struct RunningReadyFeature {
         var currentPage = 0
         var isLoading = false
         var hasNextPage = true
+
+        /// API 요청 실패 시, 어떤 요청이 실패했는지 저장하여 재시도 시 사용
+        enum FailedRequestType: Equatable {
+            case loadStatuses
+            case createSession
+        }
+        var lastFailedRequest: FailedRequestType? = nil
     }
 
     // MARK: - Action
@@ -163,6 +170,7 @@ struct RunningReadyFeature {
             // MARK: 러닝 상태 조회 실패
             case let .statusFailure(apiError):
                 state.isLoading = false
+                state.lastFailedRequest = .loadStatuses
                 switch apiError {
                 case .networkError:
                     return .send(.networkErrorPopup(.show))
@@ -175,11 +183,18 @@ struct RunningReadyFeature {
                 default:
                     return .send(.toast(.show(apiError.userMessage)))
                 }
-                
+
             // MARK: 재시도
             case .networkErrorPopup(.retryButtonTapped),
                  .serverError(.retryButtonTapped):
-                return .send(.onAppear)
+                guard let failed = state.lastFailedRequest else { return .none }
+
+                switch failed {
+                case .loadStatuses:
+                    return .send(.onAppear)
+                case .createSession:
+                    return .send(.startButtonTapped)
+                }
 
             // MARK: 친구 셀 탭 (포커스 전환) - GPS Following 해제
             case let .friendTapped(id):
