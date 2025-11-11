@@ -11,7 +11,7 @@ import Foundation
 enum FeedAPI {
     case feedList(currentDate: String, userId: Int?, page: Int, size: Int)
     case plusReaction(feedID: Int, emojiType: String)
-    case cerificatedFriends(date: String)
+    case certificatedFriends(date: String)
 }
 
 
@@ -26,7 +26,7 @@ extension FeedAPI: TargetType {
                 "/api/selfie/feeds"
             case .plusReaction:
                 "/api/selfie/feeds/reaction"
-            case .cerificatedFriends:
+            case .certificatedFriends:
                 "/api/selfie/users"
         }
     }
@@ -37,7 +37,7 @@ extension FeedAPI: TargetType {
                 .get
             case .plusReaction:
                 .post
-            case .cerificatedFriends:
+            case .certificatedFriends:
                 .get
         }
     }
@@ -57,7 +57,7 @@ extension FeedAPI: TargetType {
                     "emojiType": emojiType
                 ]
                 return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
-            case let .cerificatedFriends(date):
+            case let .certificatedFriends(date):
                 return .requestParameters(parameters: [
                     "date": date
                 ], encoding: JSONEncoding.default)
@@ -65,13 +65,17 @@ extension FeedAPI: TargetType {
     }
 
     var headers: [String : String]? {
+        let token = "1"
+        let common = [
+            "Authorization": "Bearer \(token)" // TODO: 토큰 교체
+        ]
         switch self {
             case .feedList:
-                nil
+                return common
             case .plusReaction:
-                nil
-            case .cerificatedFriends:
-                nil
+                return common
+            case .certificatedFriends:
+                return common
         }
     }
 }
@@ -154,7 +158,7 @@ extension FeedAPI {
                   }
                 }
                 """.data(using: .utf8)!
-            case .cerificatedFriends:
+            case .certificatedFriends:
                 """
                 {
                   "status": "CONTINUE",

@@ -70,4 +70,12 @@ extension Date {
     func startOfDay() -> Date {
         return Calendar.current.startOfDay(for: self)
     }
+
+    func toYYYYMMDD() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+
+        return formatter.string(from: self)
+    }
 }

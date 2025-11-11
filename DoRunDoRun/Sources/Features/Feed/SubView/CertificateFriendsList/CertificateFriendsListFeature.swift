@@ -5,18 +5,21 @@
 //  Created by Inho Choi on 11/9/25.
 //
 
+import Foundation
 import ComposableArchitecture
 
 @Reducer
 struct CertificateFriendsListFeature {
     @ObservableState
     struct State {
-        var friends: [FriendCertificate] = []
+        var selectedDate: Date
+        var friends: [CertificatedFriendViewModel] = []
+        var friendsModel: [CertificatedFriend] = []
     }
 
     enum Action {
         case onAppear
-        case setFriends([FriendCertificate])
+        case setFriends([CertificatedFriend])
     }
 
     @Dependency(\.getFeedRepository) var feedRepository: FeedRepositoryProtocol
@@ -25,19 +28,21 @@ struct CertificateFriendsListFeature {
         Reduce { state, action in
             switch action {
                 case .onAppear:
+                    let dateString = state.selectedDate.toYYYYMMDD()
                     return .run { send in
-                        // TODO: 여기에 API 호출 해야 함.
-                        let worker = FeedWorker(repository: feedRepository)
+                        do {
+                            let worker = FeedWorker(repository: feedRepository)
+                            let friends = try await worker.certificatedFriends(date: dateString)
+                            await send(.setFriends(friends))
+                        } catch {
+                            print(#file, #line, "Error fetching certificated friends:", error)
+                        }
                     }
                 case let .setFriends(friends):
-                    state.friends = friends
+                    state.friendsModel = friends
+                    state.friends = friends.map { CertificatedFriendsMapper.toViewModel($0) }
                     return .none
             }
         }
     }
-}
-
-struct FriendCertificate {
-    let name: String
-    let daysAgo: Int
 }

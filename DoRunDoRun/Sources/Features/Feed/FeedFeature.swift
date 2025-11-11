@@ -9,6 +9,7 @@ struct FeedFeature {
         var weekDayInfos: [FeedDayInfo] = []
         var currentWeekOfMonth: Int = 2
         var feedList: FeedList? = nil
+        var selectedDate: Date = Date()
 
         var viewModel = ViewModel()
         struct ViewModel {
@@ -26,6 +27,7 @@ struct FeedFeature {
         case tapFeedItem(FeedViewModel)
         case tapUploadButton
         case tapCertificateFriends
+        case selectDate(Date)
         case previousWeek
         case nextWeek
         case destination(PresentationAction<Destination.Action>)
@@ -65,10 +67,15 @@ struct FeedFeature {
 
         for (index, weekDay) in weekDays.enumerated() {
             let day = sundayDay + index
+            var dateComponents = components
+            dateComponents.day = day
+            let date = calendar.date(from: dateComponents) ?? today
+
             weekDayInfos.append(
                 FeedDayInfo(
                     weekDay: weekDay,
                     day: day,
+                    date: date,
                     isItToday: day == todayDay,
                     count: 0
                 )
@@ -116,8 +123,11 @@ struct FeedFeature {
                     return .none
                 case .tapCertificateFriends:
                     state.destination = .certificateFriendsList(
-                        CertificateFriendsListFeature.State()
+                        CertificateFriendsListFeature.State(selectedDate: state.selectedDate)
                     )
+                    return .none
+                case let .selectDate(date):
+                    state.selectedDate = date
                     return .none
                 case .previousWeek:
                     if state.currentWeekOfMonth > 1 {
@@ -158,6 +168,7 @@ private enum FeedRepositoryKey: DependencyKey {
 struct FeedDayInfo {
     let weekDay: WeekDay
     let day: Int
+    let date: Date
     let isItToday: Bool
     let count: Int
 }
