@@ -76,31 +76,28 @@ struct RunningMapView: UIViewRepresentable {
 
     // MARK: - UIView 갱신
     func updateUIView(_ uiView: NMFNaverMapView, context: Context) {
-        // Phase 변경 감지 및 상태 리셋
+        // Phase 전환 감지 및 초기 설정 (1회만)
         if context.coordinator.lastPhase != phase {
             context.coordinator.lastPhase = phase
 
-            // Ready phase로 진입할 때마다 상태 리셋
-            if phase == .ready {
-                context.coordinator.readyState = ReadyPhaseState()
-                context.coordinator.routeSegmentManager.clear()
-            }
-
-            // Active phase로 진입할 때마다 상태 리셋 및 contentInset 초기화
-            if phase == .active {
-                context.coordinator.activeState = ActivePhaseState()
-                uiView.mapView.contentInset = .zero
-                context.coordinator.friendMarkerManager.clear()
+            switch phase {
+            case .ready:
+                setupForReady(uiView, context: context)
+            case .active:
+                setupForActive(uiView, context: context)
+            case .countdown:
+                break
             }
         }
 
+        // 지속적인 업데이트 (매 렌더링마다)
         switch phase {
         case .ready:
             updateForReady(uiView, context: context)
-        case .countdown:
-            return
         case .active:
             updateForActive(uiView, context: context)
+        case .countdown:
+            return
         }
     }
 
@@ -205,23 +202,11 @@ struct RunningMapView: UIViewRepresentable {
         }
     }
 
-    // MARK: - Phase States
-    struct ReadyPhaseState {
-        var didCenterUserLocation = false
-        var didSetContentInset = false
-    }
-
-    struct ActivePhaseState {
-        var didCenterInitialCamera = false
-    }
-
     // MARK: - Coordinator
     class Coordinator: NSObject, NMFMapViewCameraDelegate {
         let friendMarkerManager = FriendMarkerManager()
         let routeSegmentManager = RouteSegmentManager()
-
-        var readyState = ReadyPhaseState()
-        var activeState = ActivePhaseState()
+        
         var lastPhase: RunningPhase?
 
         var onMapGestureDetected: (() -> Void)?
@@ -247,41 +232,40 @@ struct RunningMapView: UIViewRepresentable {
 
 // MARK: - Ready Phase
 private extension RunningMapView {
-    /// Ready 단계에서 지도 상태를 갱신합니다.
-    func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
-        // contentInset 설정 (Ready phase 진입 시 1회만)
-        if !context.coordinator.readyState.didSetContentInset {
-            // collapsed state 만큼 올리기
-            uiView.mapView.contentInset = UIEdgeInsets(
-                top: 0,
-                left: 0,
-                bottom: MapConstants.readyPhaseBottomInset,
-                right: 0
-            )
-            context.coordinator.readyState.didSetContentInset = true
-        }
+    /// Ready phase 진입 시 초기 설정 (1회만)
+    func setupForReady(_ uiView: NMFNaverMapView, context: Context) {
+        // ContentInset 설정 (collapsed state 만큼)
+        uiView.mapView.contentInset = UIEdgeInsets(
+            top: 0,
+            left: 0,
+            bottom: MapConstants.readyPhaseBottomInset,
+            right: 0
+        )
 
-        // 1. 초기 진입 시 사용자 위치로 카메라 센터링 (1회만)
-        if !context.coordinator.readyState.didCenterUserLocation,
-            let userLoc = userLocation {
+        // 사용자 위치로 초기 카메라 센터링
+        if let userLoc = userLocation {
             centerCamera(on: userLoc, in: uiView.mapView)
-            context.coordinator.readyState.didCenterUserLocation = true
-
-            return
         }
 
-        // 2. 친구 포커싱이 활성화된 경우 친구 마커 표시 및 카메라 이동
+        // Active에서 남은 경로 제거
+        context.coordinator.routeSegmentManager.clear()
+    }
+
+    /// Ready 단계에서 지도 상태를 갱신합니다 (매 렌더링마다)
+    func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
+        // 친구 마커 업데이트
         context.coordinator.friendMarkerManager.update(
             friends: statuses,
             focusedID: focusedFriendID,
             on: uiView.mapView
         )
 
+        // 카메라 업데이트
         if focusedFriendID != nil {
             // 포커스된 친구로 카메라 이동
             moveCamera(to: focusedFriendID, in: uiView.mapView)
         } else {
-            // GPS Following ON이고 사용자 위치가 있으면 카메라 추적
+            // GPS Following 카메라 추적
             updateCameraForFollowing(
                 isFollowing: isFollowingLocation,
                 location: userLocation,
@@ -311,22 +295,25 @@ private extension RunningMapView {
 // MARK: - RunningActive
 
 private extension RunningMapView {
-    /// Active 단계에서 지도 상태를 갱신합니다.
-    func updateForActive(_ uiView: NMFNaverMapView, context: Context) {
-        // Active 진입 시 최초 1회만 카메라 센터링
-        if !context.coordinator.activeState.didCenterInitialCamera, let first = runningCoordinates.first {
-            centerCamera(on: first, in: uiView.mapView)
-            context.coordinator.activeState.didCenterInitialCamera = true
-        }
+    /// Active phase 진입 시 초기 설정 (1회만)
+    func setupForActive(_ uiView: NMFNaverMapView, context: Context) {
+        // ContentInset 초기화
+        uiView.mapView.contentInset = .zero
 
-        // Following ON일 때 자동으로 내 위치 추적
+        // Ready에서 남은 친구 마커 제거
+        context.coordinator.friendMarkerManager.clear()
+    }
+
+    /// Active 단계에서 지도 상태를 갱신합니다 (매 렌더링마다)
+    func updateForActive(_ uiView: NMFNaverMapView, context: Context) {
+        // GPS Following 카메라 추적
         updateCameraForFollowing(
             isFollowing: isFollowingLocation,
             location: runningCoordinates.last,
             in: uiView.mapView
         )
 
-        // 이후에는 경로만 갱신
+        // 경로 세그먼트 업데이트
         context.coordinator.routeSegmentManager.update(
             coordinates: runningCoordinates,
             on: uiView.mapView
