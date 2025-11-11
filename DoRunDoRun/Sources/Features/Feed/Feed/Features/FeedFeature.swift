@@ -494,8 +494,8 @@ struct FeedFeature {
                     return .send(.fetchSelfieFeeds(page: page))
                 case let .toggleReaction(feedID, emoji):
                     return .send(.reactionTapped(feedID: feedID, reaction: .init(emojiType: emoji, totalCount: 0, isReactedByMe: false, users: [])))
-                case let .addReaction(feedID, emoji):
-                    return .send(.addReactionTapped(feedID: feedID))
+                case let .addReaction(_, emoji):
+                    return .send(.reactionPicker(.reactionSelected(emoji)))
                 case let .deleteFeed(feedID):
                     return .send(.confirmDelete(feedID))
                 }
