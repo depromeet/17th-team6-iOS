@@ -57,20 +57,11 @@ struct FeedFeature {
         @Presents var certificationList: FeedCertificationListFeature.State?
         @Presents var friendList: FriendListFeature.State?
         @Presents var notificationList: NotificationFeature.State?
+        @Presents var myFeedDetail: MyFeedDetailFeature.State?
 
         // MARK: - Helpers (UI 계산용)
         func displayedReactions(for feed: SelfieFeedItem) -> [ReactionViewState] {
-            let formatter = ISO8601DateFormatter()
-            let newReactions = feed.reactions.filter { $0.totalCount == 1 }
-            let existingReactions = feed.reactions.filter { $0.totalCount > 1 }
-
-            let sortedNew = newReactions.sorted {
-                let lhsDate = $0.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
-                let rhsDate = $1.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
-                return lhsDate > rhsDate
-            }
-
-            return Array((sortedNew + existingReactions).prefix(3))
+            return Array(feed.reactions.prefix(3))
         }
 
         func hiddenReactions(for feed: SelfieFeedItem) -> [ReactionViewState] {
@@ -107,6 +98,9 @@ struct FeedFeature {
         case fetchSelfieFeedsSuccess(SelfieFeedResult)
         case fetchSelfieFeedsFailure(APIError)
         case loadNextPageIfNeeded(currentItem: SelfieFeedItem?)
+        
+        // 피드 디테일
+        case showFeedDetail(SelfieFeedItem)
 
         // 리액션
         case reactionTapped(feedID: Int, reaction: ReactionViewState)
@@ -154,6 +148,7 @@ struct FeedFeature {
         case certificationList(PresentationAction<FeedCertificationListFeature.Action>)
         case friendList(PresentationAction<FriendListFeature.Action>)
         case notificationList(PresentationAction<NotificationFeature.Action>)
+        case myFeedDetail(PresentationAction<MyFeedDetailFeature.Action>)
     }
 
     // MARK: - Reducer
@@ -312,6 +307,27 @@ struct FeedFeature {
                     return .send(.fetchSelfieFeeds(page: state.currentPage + 1))
                 }
                 return .none
+                
+            // MARK: - 피드 디테일
+            case let .showFeedDetail(feed):
+                state.myFeedDetail = .init(feed: feed)
+                return .none
+
+            case .myFeedDetail(.presented(.delegate(.feedDeleted(let feedID)))):
+                state.feeds.removeAll(where: { $0.feedID == feedID })
+                return .none
+
+            case .myFeedDetail(.presented(.delegate(.feedUpdated(let feedID, let imageURL)))):
+                if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feeds[index].imageURL = imageURL
+                }
+                return .none
+
+                
+            case .myFeedDetail(.presented(.backButtonTapped)):
+                state.myFeedDetail = nil
+                return .none
+
 
             // MARK: - 리액션
             case let .reactionTapped(feedID, reaction):
@@ -508,6 +524,7 @@ struct FeedFeature {
         .ifLet(\.$certificationList, action: \.certificationList) { FeedCertificationListFeature() }
         .ifLet(\.$friendList, action: \.friendList) { FriendListFeature() }
         .ifLet(\.$notificationList, action: \.notificationList) { NotificationFeature() }
+        .ifLet(\.$myFeedDetail, action: \.myFeedDetail) { MyFeedDetailFeature() }
     }
 }
 
@@ -535,52 +552,84 @@ private extension FeedFeature {
 // MARK: - Reaction Logic
 private extension FeedFeature {
     static func toggleReaction(in reactions: [ReactionViewState], for emoji: EmojiType) -> [ReactionViewState] {
-        var updated = reactions.map { item -> ReactionViewState in
-            var r = item
-            if item.emojiType == emoji {
-                if item.isReactedByMe {
-                    r.isReactedByMe = false
-                    r.totalCount = max(0, item.totalCount - 1)
-                    r.users.removeAll(where: \.isMe)
-                } else {
-                    r.isReactedByMe = true
-                    r.totalCount += 1
-                    r.users.append(makeMyReactionUser())
-                }
-            }
-            return r
+        var updatedReactions = reactions
+        
+        // 1. 대상 리액션의 인덱스를 찾습니다.
+        guard let index = updatedReactions.firstIndex(where: { $0.emojiType == emoji }) else {
+            // 이 액션은 이미 있는 리액션을 누를 때 발생해야 하므로, 찾지 못하면 기존 배열을 반환합니다.
+            return reactions
         }
-        updated.removeAll(where: { $0.totalCount == 0 })
-        return updated
-    }
-
-    static func addOrToggleReaction(in reactions: [ReactionViewState], emoji: EmojiType) -> [ReactionViewState] {
-        var updated = reactions
-        if let i = updated.firstIndex(where: { $0.emojiType == emoji }) {
-            var r = updated[i]
-            if r.isReactedByMe {
-                r.isReactedByMe = false
-                r.totalCount = max(0, r.totalCount - 1)
-                r.users.removeAll(where: \.isMe)
-            } else {
-                r.isReactedByMe = true
-                r.totalCount += 1
-                r.users.append(makeMyReactionUser())
-            }
-            updated[i] = r
+        
+        var targetReaction = updatedReactions[index]
+        
+        if targetReaction.isReactedByMe {
+            // 2. 내가 누른 상태 → 취소
+            targetReaction.isReactedByMe = false
+            targetReaction.totalCount = max(0, targetReaction.totalCount - 1)
+            targetReaction.users.removeAll(where: { $0.isMe })
         } else {
-            let new = ReactionViewState(
+            // 3. 내가 새로 추가 (토글이므로, 이모지 타입은 이미 존재함)
+            targetReaction.isReactedByMe = true
+            targetReaction.totalCount += 1
+            targetReaction.users.append(Self.makeMyReactionUser())
+        }
+        
+        // 4. 업데이트된 리액션을 기존 위치에 다시 넣거나, 카운트가 0이면 제거합니다.
+        if targetReaction.totalCount > 0 {
+            updatedReactions[index] = targetReaction // 순서 변경 없이 기존 위치에 업데이트
+        } else {
+            updatedReactions.remove(at: index) // 카운트 0이면 제거
+        }
+        
+        return updatedReactions
+    }
+    
+    /// 피커에서 선택된 리액션을 추가하거나 토글합니다.
+    /// - 이미 존재하면 토글, 없으면 새로 추가합니다.
+    static func addOrToggleReaction(in reactions: [ReactionViewState], emoji: EmojiType) -> [ReactionViewState] {
+        var updatedReactions = reactions
+        
+        if let index = updatedReactions.firstIndex(where: { $0.emojiType == emoji }) {
+            // 1. 이미 존재하는 리액션 → 순서 유지
+            var targetReaction = updatedReactions[index]
+            
+            // 기존 로직과 동일하게 토글 처리
+            if targetReaction.isReactedByMe {
+                // 1-1. 내가 이미 누른 상태 → 취소
+                targetReaction.isReactedByMe = false
+                targetReaction.totalCount = max(0, targetReaction.totalCount - 1)
+                targetReaction.users.removeAll(where: { $0.isMe })
+                
+                if targetReaction.totalCount > 0 {
+                    updatedReactions[index] = targetReaction // 순서 유지하며 업데이트
+                } else {
+                    updatedReactions.remove(at: index) // 카운트 0이면 제거
+                }
+                
+            } else {
+                // 1-2. 다른 사람이 누른 상태 → 내가 추가
+                targetReaction.isReactedByMe = true
+                targetReaction.totalCount += 1
+                targetReaction.users.append(Self.makeMyReactionUser())
+                updatedReactions[index] = targetReaction // 순서 유지하며 업데이트
+            }
+            
+        } else {
+            // 2. 존재하지 않는 리액션 → 새로 생성하여 가장 앞에 추가
+            let newReaction = ReactionViewState(
                 emojiType: emoji,
                 totalCount: 1,
                 isReactedByMe: true,
-                users: [makeMyReactionUser()]
+                users: [Self.makeMyReactionUser()]
             )
-            updated.append(new)
+            updatedReactions.insert(newReaction, at: 0) // 요청에 따라 가장 앞에 삽입
         }
-        updated.removeAll(where: { $0.totalCount == 0 })
-        return updated
+        
+        return updatedReactions
     }
-
+    
+    /// 현재 유저의 리액션 정보를 생성합니다.
+    /// - 본인 정보(UserManager)를 기반으로 새 ReactionUserViewState 생성
     static func makeMyReactionUser() -> ReactionUserViewState {
         ReactionUserViewState(
             id: UserManager.shared.userId,

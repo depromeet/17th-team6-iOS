@@ -108,6 +108,12 @@ private extension FeedView {
             ) { store in
                 NotificationView(store: store)
             }
+            .navigationDestination(
+                item: $store.scope(state: \.myFeedDetail, action: \.myFeedDetail)
+            ) { store in
+                MyFeedDetailView(store: store)
+            }
+
         }
     }
 
@@ -188,8 +194,11 @@ private extension FeedView {
                     onEditTapped: { store.send(.editButtonTapped(feedID: feed.feedID)) },
                     onDeleteTapped: { store.send(.showDeletePopup(feed.feedID)) },
                     onSaveImageTapped: { store.send(.saveImageButtonTapped(feed: feed)) },
-                    onReportTapped: {}
+                    onReportTapped: { store.send(.showReportPopup(feed.feedID)) }
                 )
+                .onTapGesture {
+                    store.send(.showFeedDetail(feed))
+                }
             }
         }
         .padding(.top, 32)
