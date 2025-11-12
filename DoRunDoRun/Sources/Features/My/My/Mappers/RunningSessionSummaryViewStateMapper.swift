@@ -9,17 +9,17 @@ import Foundation
 
 struct RunningSessionSummaryViewStateMapper {
     static func map(from entity: RunningSessionSummary) -> RunningSessionSummaryViewState {
-        let formatter = DateFormatterManager.shared
-        
         // MARK: 날짜 / 시간 텍스트
-        let dateText = formatter.formatDateWithWeekdayText(from: entity.createdAt)
-        let timeText = formatter.formatTime(from: entity.createdAt)
+        let dateFormatter = DateFormatterManager.shared
+        let dateText = dateFormatter.formatDateWithWeekdayText(from: entity.createdAt)
+        let timeText = dateFormatter.formatTime(from: entity.createdAt)
         
         // MARK: 거리 / 시간 / 페이스
-        let distanceText = String(format: "%.2fkm", entity.totalDistanceMeters / 1000)
-        let durationText = formatDuration(entity.totalDurationSeconds)
-        let paceText = formatPace(entity.avgPaceSecPerKm)
-        let spmText = "\(entity.avgCadenceSpm) spm"
+        let runningFormatter = RunningFormatterManager.shared
+        let distanceText = runningFormatter.formatDistance(from: entity.totalDistanceMeters)
+        let durationText = runningFormatter.formatDuration(from: entity.totalDurationSeconds)
+        let paceText = runningFormatter.formatPace(from: entity.avgPaceSecPerKm)
+        let spmText = runningFormatter.formatCadence(from: entity.avgCadenceSpm)
         
         // MARK: 인증 상태 계산
         let tagStatus: CertificationStatus = {
@@ -51,24 +51,5 @@ struct RunningSessionSummaryViewStateMapper {
             tagStatus: tagStatus,
             mapImageURL: String(describing: entity.mapImageURL)
         )
-    }
-}
-
-// MARK: - Formatter Helpers
-private extension RunningSessionSummaryViewStateMapper {
-    static func formatDuration(_ seconds: Int) -> String {
-        let hours = seconds / 3600
-        let minutes = (seconds % 3600) / 60
-        let secs = seconds % 60
-        return hours > 0
-            ? String(format: "%d:%02d:%02d", hours, minutes, secs)
-            : String(format: "%02d:%02d", minutes, secs)
-    }
-    
-    static func formatPace(_ seconds: Double) -> String {
-        let paceSeconds = Int(seconds)
-        let paceMin = paceSeconds / 60
-        let paceSec = paceSeconds % 60
-        return String(format: "%d'%02d\"", paceMin, paceSec)
     }
 }
