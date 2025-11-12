@@ -89,6 +89,11 @@ private extension FeedView {
             .onAppear { store.send(.onAppear) }
             // Navigation destinations
             .navigationDestination(
+                item: $store.scope(state: \.selectSession, action: \.selectSession)
+            ) { store in
+                SelectSessionView(store: store)
+            }
+            .navigationDestination(
                 item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
             ) { store in
                 EditMyFeedDetailView(store: store)
@@ -213,7 +218,7 @@ private extension FeedView {
         HStack {
             Spacer()
             Button {
-                // store.send(.uploadButtonTapped)
+                store.send(.uploadButtonTapped)
             } label: {
                 Image(.add, size: .medium)
                     .renderingMode(.template)

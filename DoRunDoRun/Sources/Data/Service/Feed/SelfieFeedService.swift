@@ -10,6 +10,7 @@ import Foundation
 protocol SelfieFeedService {
     func fetchFeeds(currentDate: String?, userId: Int?, page: Int, size: Int) async throws -> SelfieFeedResponseDTO
     func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResponseDTO
+    func createFeed(data: SelfieFeedCreateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedCreateResponseDTO
     func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO
     func deleteFeed(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO
     func fetchWeeklySelfieCount(startDate: String, endDate: String) async throws -> SelfieWeekResponseDTO
@@ -34,6 +35,13 @@ final class SelfieFeedServiceImpl: SelfieFeedService {
         try await apiClient.request(
             FeedAPI.postReaction(feedId: feedId, emojiType: emojiType),
             responseType: SelfieFeedReactionResponseDTO.self
+        )
+    }
+    
+    func createFeed(data: SelfieFeedCreateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedCreateResponseDTO {
+        try await apiClient.request(
+            FeedAPI.createFeed(data: data, selfieImage: selfieImage),
+            responseType: SelfieFeedCreateResponseDTO.self
         )
     }
     

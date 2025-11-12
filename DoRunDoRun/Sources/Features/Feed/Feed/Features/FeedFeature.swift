@@ -53,6 +53,7 @@ struct FeedFeature {
 
 
         // Navigation
+        @Presents var selectSession: SelectSessionFeature.State?
         @Presents var editMyFeedDetail: EditMyFeedDetailFeature.State?
         @Presents var certificationList: FeedCertificationListFeature.State?
         @Presents var friendList: FriendListFeature.State?
@@ -79,7 +80,7 @@ struct FeedFeature {
         case onAppear
         case selectDate(Date)
         case changeWeek(Int)
-
+        
         // 주간 데이터
         case fetchWeekCounts(startDate: String, endDate: String)
         case fetchWeekCountsSuccess([SelfieWeekCountResult])
@@ -129,6 +130,9 @@ struct FeedFeature {
         case showReportPopup(Int)
         case confirmReport(Int)
         
+        // 피드 업로드
+        case uploadButtonTapped
+        
         // 친구 리스트
         case friendListButtonTapped
         
@@ -142,8 +146,9 @@ struct FeedFeature {
         
         // 실패한 로직 저장
         case setLastFailedRequest(State.FailedRequestType)
-
+        
         // Navigation
+        case selectSession(PresentationAction<SelectSessionFeature.Action>)
         case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
         case certificationList(PresentationAction<FeedCertificationListFeature.Action>)
         case friendList(PresentationAction<FriendListFeature.Action>)
@@ -473,6 +478,20 @@ struct FeedFeature {
             case let .confirmReport(feedID):
                 print("신고 완료 (feedID: \(feedID))")
                 return .none
+              
+            // MARK: - 피드 업로드
+            case .uploadButtonTapped:
+                state.selectSession = .init()
+                return .none
+                
+            case .selectSession(.presented(.delegate(.feedUploadCompleted))):
+                state.selectSession = nil
+                let dateStr = DateFormatterManager.shared.formatAPIDateText(from: state.selectedDate)
+                return .send(.fetchSelfieFeeds(page: 0))
+                
+            case .selectSession(.presented(.backButtonTapped)):
+                state.selectSession = nil
+                return .none
                 
             // MARK: - 친구 리스트
             case .friendListButtonTapped:
@@ -520,6 +539,7 @@ struct FeedFeature {
                 return .none
             }
         }
+        .ifLet(\.$selectSession, action: \.selectSession) { SelectSessionFeature() }
         .ifLet(\.$editMyFeedDetail, action: \.editMyFeedDetail) { EditMyFeedDetailFeature() }
         .ifLet(\.$certificationList, action: \.certificationList) { FeedCertificationListFeature() }
         .ifLet(\.$friendList, action: \.friendList) { FriendListFeature() }

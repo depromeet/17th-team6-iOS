@@ -6,6 +6,8 @@
 //
 
 enum GraphicStyle: String {
+    // MARK: Certification
+    case certificationCompleted = "graphic_certification_completed"
     // MARK: - Running
     case runningStart = "graphic_running_start"
     case runningVerified = "graphic_running_verified"

@@ -11,6 +11,7 @@ import Moya
 enum FeedAPI {
     case getFeedsByDate(currentDate: String?, userId: Int?, page: Int, size: Int)
     case postReaction(feedId: Int, emojiType: String)
+    case createFeed(data: SelfieFeedCreateRequestDTO, selfieImage: Data?)
     case updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?)
     case deleteFeed(feedId: Int)
     case getWeeklySelfieCount(startDate: String, endDate: String)
@@ -22,7 +23,7 @@ extension FeedAPI: TargetType {
 
     var path: String {
         switch self {
-        case .getFeedsByDate:
+        case .getFeedsByDate, .createFeed:
             return "/api/selfie/feeds"
         case .postReaction:
             return "/api/selfie/feeds/reaction"
@@ -41,6 +42,7 @@ extension FeedAPI: TargetType {
         switch self {
         case .getFeedsByDate: return .get
         case .postReaction: return .post
+        case .createFeed: return .post
         case .updateFeed: return .put
         case .deleteFeed: return .delete
         case .getWeeklySelfieCount: return .get
@@ -62,6 +64,26 @@ extension FeedAPI: TargetType {
         case let .postReaction(feedId, emojiType):
             let body = SelfieFeedReactionRequestDTO(feedId: feedId, emojiType: emojiType)
             return .requestJSONEncodable(body)
+            
+        case let .createFeed(data, selfieImage):
+            var formData: [MultipartFormData] = []
+
+            // JSON 데이터 인코딩
+            if let jsonData = try? JSONEncoder().encode(data) {
+                formData.append(.init(provider: .data(jsonData),
+                                      name: "data",
+                                      mimeType: "application/json"))
+            }
+
+            // 이미지 파일 추가 (선택)
+            if let selfieImage = selfieImage {
+                formData.append(.init(provider: .data(selfieImage),
+                                      name: "selfieImage",
+                                      fileName: "image.jpg",
+                                      mimeType: "image/jpeg"))
+            }
+
+            return .uploadMultipart(formData)
 
         case let .updateFeed(_, data, selfieImage):
             var formData: [MultipartFormData] = []
