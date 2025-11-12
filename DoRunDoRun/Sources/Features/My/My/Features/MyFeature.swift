@@ -48,7 +48,6 @@ struct MyFeature {
                 CalendarManager.shared.calendar.isDate($0.date, equalTo: currentMonth, toGranularity: .month)
             }
         }
-        var sessionCache: [String: [RunningSessionSummaryViewState]] = [:]
 
         // MARK: Sub Features State
         var networkErrorPopup = NetworkErrorPopupFeature.State()
@@ -91,7 +90,6 @@ struct MyFeature {
         // Sessions
         case fetchSessions
         case fetchSessionsSuccess([RunningSessionSummary])
-        case fetchSessionsSuccessCached([RunningSessionSummaryViewState])
         case fetchSessionsFailure(APIError)
 
         // Failed Requests
@@ -167,14 +165,10 @@ struct MyFeature {
             case let .sessionCardTapped(session):
                 state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session), viewMode: .viewing)))
                 return .none
-                
+
             case .path(.element(id: _, action: .runningDetail(.delegate(.backButtonTapped)))):
                 state.path.removeLast()
                 return .none
-
-//            case .path(.element(id: _, action: .runningDetail(.backButtonTapped))):
-//                state.path.removeLast()
-//                return .none
 
             // MARK: - Navigation: Setting
             case .settingButtonTapped:
@@ -240,7 +234,6 @@ struct MyFeature {
                 if let currentIndex = state.feeds.firstIndex(where: { $0.id == currentItem.id }),
                    currentIndex >= threshold {
                     let nextPage = state.currentPage + 1
-                    print("[DEBUG] 다음 페이지 요청: \(nextPage)")
                     return .send(.fetchSelfieFeeds(page: nextPage))
                 }
                 return .none
@@ -264,14 +257,7 @@ struct MyFeature {
 
             // MARK: - Session API
             case .fetchSessions:
-                return .run { [currentMonth = state.currentMonth, cache = state.sessionCache] send in
-                    let key = DateFormatterManager.shared.formatYearMonthLabel(from: currentMonth)
-                    if let cached = cache[key] {
-                        print("[DEBUG] \(key) 캐시 데이터 사용")
-                        await send(.fetchSessionsSuccessCached(cached))
-                        return
-                    }
-
+                return .run { [currentMonth = state.currentMonth] send in
                     do {
                         let calendar = Calendar.current
                         let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
@@ -289,14 +275,7 @@ struct MyFeature {
                 }
 
             case let .fetchSessionsSuccess(sessions):
-                let mapped = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
-                state.sessions = mapped
-                let key = DateFormatterManager.shared.formatYearMonthLabel(from: state.currentMonth)
-                state.sessionCache[key] = mapped
-                return .none
-
-            case let .fetchSessionsSuccessCached(cached):
-                state.sessions = cached
+                state.sessions = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
                 return .none
 
             case let .fetchSessionsFailure(apiError):
