@@ -79,11 +79,17 @@ private extension SelfieFeedViewStateMapper {
         let dayText = formatter.formatDayLabel(from: date)
         let dateText = formatter.formatDateText(from: date)
         let timeText = formatter.formatTime(from: date)
-        let isMap = feed.imageUrl.lowercased().contains("map")
-        let durationText = formatDuration(feed.totalRunTime)
-        let paceText = formatPace(feed.averagePace)
-        let reactions = mapReactions(from: feed.reactions, using: formatter)
         let relativeTimeText = formatter.formatRelativeTime(from: feed.selfieTime)
+        
+        // 러닝 포맷 관련
+        let runningFormatter = RunningFormatterManager.shared
+        let distanceText = runningFormatter.formatDistance(from: feed.totalDistance * 1000) // km → m 변환
+        let durationText = runningFormatter.formatDuration(from: Int(feed.totalRunTime))
+        let paceText = runningFormatter.formatPace(from: feed.averagePace)
+        
+        // 기타 정보
+        let isMap = feed.imageUrl.lowercased().contains("map")
+        let reactions = mapReactions(from: feed.reactions, using: formatter)
 
         return .init(
             isMyFeed: feed.isMyFeed,
@@ -93,7 +99,7 @@ private extension SelfieFeedViewStateMapper {
             isMap: isMap,
             userName: feed.userName,
             profileImageURL: feed.profileImageUrl,
-            totalDistanceText: String(format: "%.2fkm", feed.totalDistance),
+            totalDistanceText: distanceText,
             totalRunTimeText: durationText,
             averagePaceText: paceText,
             cadence: feed.cadence,
@@ -125,25 +131,5 @@ private extension SelfieFeedViewStateMapper {
                 users: users
             )
         }
-    }
-}
-
-// MARK: - Formatter Helpers
-private extension SelfieFeedViewStateMapper {
-    static func formatDuration(_ seconds: Double) -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let secs = totalSeconds % 60
-        return hours > 0
-            ? String(format: "%d:%02d:%02d", hours, minutes, secs)
-            : String(format: "%02d:%02d", minutes, secs)
-    }
-    
-    static func formatPace(_ seconds: Double) -> String {
-        let paceSeconds = Int(seconds)
-        let paceMin = paceSeconds / 60
-        let paceSec = paceSeconds % 60
-        return String(format: "%d'%02d\"", paceMin, paceSec)
     }
 }
