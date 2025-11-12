@@ -8,6 +8,8 @@
 import Foundation
 
 struct RunningDetail: Equatable {
+    /// 서버 세션 ID (로컬 추적만 한 경우 nil)
+    let sessionId: Int?
     /// 달리기 시작 시간
     let startedAt: Date
     /// 달리기 종료 시각
@@ -48,6 +50,7 @@ struct FeedSummary: Equatable, Sendable {
 #if DEBUG
 extension RunningDetail {
     static let mock = RunningDetail(
+        sessionId: 123,
         startedAt: Date(),
         finishedAt: Date().addingTimeInterval(3600),
         totalDistanceMeters: 3210.5,

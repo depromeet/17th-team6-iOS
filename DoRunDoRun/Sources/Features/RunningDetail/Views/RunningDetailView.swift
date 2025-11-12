@@ -95,21 +95,26 @@ struct RunningDetailView: View {
                     .padding(.bottom, 8)
                     
                     paceColorBar
-                    
+
                     Spacer()
-                    
-                    recordVerificationButton {
-                        store.send(.recordVerificationButtonTapped)
+
+                    // completing 모드이면서 당일 시작한 러닝만 버튼 표시
+                    if case .completing = store.viewMode, store.detail.shouldShowRecordButton {
+                        recordVerificationButton {
+                            store.send(.recordVerificationButtonTapped)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
                 
-                // MARK: - Image Capture Dim Overlay (completing 모드에서만)
-                if case .completing = store.viewMode, store.isCapturingImage {
+                // MARK: - Image Capture Dim Overlay (completing 모드이고 mapImageURL이 없을 때만)
+                if case .completing = store.viewMode,
+                   store.detail.mapImageURL == nil,
+                   store.isCapturingImage {
                     ZStack {
                         Color.dimLight
                             .ignoresSafeArea()
-                        
+
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .scaleEffect(1.5)
@@ -258,7 +263,7 @@ private extension RunningDetailView {
             store: Store(
                 initialState: RunningDetailFeature.State(
                     detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
-                    viewMode: .completing(sessionId: 123)
+                    viewMode: .completing
                 ),
                 reducer: { RunningDetailFeature() }
             )

@@ -19,8 +19,8 @@ struct RunningDetailFeature {
 
         /// 뷰 모드
         enum ViewMode: Equatable {
-            case viewing              // 과거 기록 보기 (읽기 전용)
-            case completing(sessionId: Int)  // 방금 끝난 러닝 (이미지 캡처 + 서버 업로드)
+            case viewing     // 과거 기록 보기 (읽기 전용)
+            case completing  // 방금 끝난 러닝 (이미지 캡처 + 서버 업로드)
         }
         var viewMode: ViewMode
 
@@ -55,7 +55,7 @@ struct RunningDetailFeature {
         case getRouteImageData
 
         case sendRunningData
-        case sessionCompletedSuccessfully
+        case sessionCompletedSuccessfully(mapImageURL: String?)
         case sessionCompletedWithError(APIError)
 
         // 에러 처리
@@ -67,6 +67,7 @@ struct RunningDetailFeature {
 
         enum Delegate: Equatable {
             case backButtonTapped
+            case navigateToCreateFeed(summary: RunningSessionSummaryViewState)
         }
     }
 
@@ -86,8 +87,18 @@ struct RunningDetailFeature {
                 return .send(.delegate(.backButtonTapped))
 
             case .recordVerificationButtonTapped:
-                // TODO: 화면 전환 로직 추가
-                return .none
+                // completing 모드에서만 동작 & sessionId가 있어야 함
+                guard case .completing = state.viewMode,
+                      let sessionId = state.detail.sessionId else {
+                    return .none
+                }
+
+                // RunningDetailViewState → RunningSessionSummaryViewState 변환
+                let summary = RunningSessionSummaryViewStateMapper.mapFromDetail(
+                    from: state.detail
+                )
+
+                return .send(.delegate(.navigateToCreateFeed(summary: summary)))
 
             // MARK: - 이미지 캡처
             case .startImageCapture:
@@ -145,7 +156,8 @@ struct RunningDetailFeature {
 
             case .sendRunningData:
                 // completing 모드에서만 서버 업로드 실행
-                guard case .completing(let sessionId) = state.viewMode,
+                guard case .completing = state.viewMode,
+                      let sessionId = state.detail.sessionId,
                       let mapImageData = state.detail.mapImageData,
                       !state.isCompletingSession else {
                     print("⚠️ Session completion skipped: viewMode=\(state.viewMode), hasMapImage=\(state.detail.mapImageData != nil), isCompleting=\(state.isCompletingSession)")
@@ -158,12 +170,12 @@ struct RunningDetailFeature {
                     do {
                         // ViewState → Domain 변환
                         let domainDetail = RunningDetailViewStateMapper.toDomain(from: detail)
-                        try await completer.complete(
+                        let mapImageURL = try await completer.complete(
                             sessionId: sessionId,
                             detail: domainDetail,
                             mapImage: mapImageData
                         )
-                        await send(.sessionCompletedSuccessfully)
+                        await send(.sessionCompletedSuccessfully(mapImageURL: mapImageURL))
                     } catch let error as APIError {
                         await send(.sessionCompletedWithError(error))
                     } catch {
@@ -171,9 +183,12 @@ struct RunningDetailFeature {
                     }
                 }
 
-            case .sessionCompletedSuccessfully:
+            case .sessionCompletedSuccessfully(let mapImageURL):
                 state.isCompletingSession = false
-                print("✅ Session completed successfully")
+                if let urlString = mapImageURL, let url = URL(string: urlString) {
+                    state.detail.mapImageURL = url
+                }
+                print("✅ Session completed successfully, mapImageURL: \(mapImageURL ?? "nil")")
                 return .none
 
             case .sessionCompletedWithError(let error):

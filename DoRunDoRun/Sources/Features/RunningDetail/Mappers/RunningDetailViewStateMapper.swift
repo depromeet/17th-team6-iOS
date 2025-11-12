@@ -29,6 +29,8 @@ struct RunningDetailViewStateMapper {
         let points = detail.coordinates.map { toViewState($0, pace: detail.avgPaceSecPerKm) }
 
         return RunningDetailViewState(
+            // 세션 정보
+            sessionId: detail.sessionId,
             // Formatted strings
             finishedAtText: finishedAtText,
             totalDistanceText: distanceText,
@@ -58,6 +60,7 @@ struct RunningDetailViewStateMapper {
     /// ViewState → Domain (Reverse Mapping)
     static func toDomain(from viewState: RunningDetailViewState) -> RunningDetail {
         return RunningDetail(
+            sessionId: viewState.sessionId,
             startedAt: viewState.startedAt,
             finishedAt: viewState.finishedAt,
             totalDistanceMeters: viewState.totalDistanceMeters,
@@ -81,6 +84,9 @@ struct RunningDetailViewStateMapper {
             .trimmingCharacters(in: .whitespaces)) ?? 0.0
 
         return RunningDetailViewState(
+            // MARK: - 세션 정보
+            sessionId: summary.id,
+
             // MARK: - 표시용 텍스트
             finishedAtText: summary.timeText,
             totalDistanceText: summary.distanceText,

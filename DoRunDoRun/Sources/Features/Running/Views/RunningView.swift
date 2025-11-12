@@ -5,8 +5,24 @@ import NMapsMap
 /// 러닝 전체 화면 (Ready → Countdown → Active)
 struct RunningView: View {
     @Perception.Bindable var store: StoreOf<RunningFeature>
-    
+
     var body: some View {
+        WithPerceptionTracking {
+            NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+                content
+            } destination: { pathStore in
+                switch pathStore.case {
+                case .detail(let detailStore):
+                    RunningDetailView(store: detailStore)
+                case .createFeed(let createFeedStore):
+                    CreateFeedView(store: createFeedStore)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    var content: some View {
         WithPerceptionTracking {
             ZStack(alignment: .bottom) {
                 // 공통 지도 View
