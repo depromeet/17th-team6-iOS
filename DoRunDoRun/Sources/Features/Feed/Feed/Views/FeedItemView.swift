@@ -154,10 +154,6 @@ private extension FeedItemView {
                     .scaledToFill()
                     .frame(width: (UIScreen.main.bounds.width - 40), height: (UIScreen.main.bounds.width - 40))
                     .cornerRadius(16)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onImageTapped()
-                    }
             } else {
                 Rectangle()
                     .fill(Color.gray100)
@@ -167,6 +163,10 @@ private extension FeedItemView {
             
             // 달리기 정보
             runningInfoOverlay
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onImageTapped()
         }
     }
     
