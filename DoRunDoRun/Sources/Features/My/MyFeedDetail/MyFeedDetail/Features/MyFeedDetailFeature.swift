@@ -151,6 +151,7 @@ struct MyFeedDetailFeature {
         enum Delegate: Equatable {
             case feedUpdated(feedID: Int, imageURL: String?)
             case feedDeleted(feedID: Int)
+            case reactionUpdated(feedID: Int, reactions: [ReactionViewState])
         }
         case delegate(Delegate)
     }
@@ -194,7 +195,10 @@ struct MyFeedDetailFeature {
                     in: state.feed.reactions,
                     for: result.emojiType
                 )
-                return .none
+                return .send(.delegate(.reactionUpdated(
+                    feedID: state.feed.feedID,
+                    reactions: state.feed.reactions
+                )))
                 
                 // MARK: - 리액션 토글 실패
             case let .reactionFailure(apiError):
@@ -251,7 +255,10 @@ struct MyFeedDetailFeature {
                     in: state.feed.reactions,
                     emoji: result.emojiType
                 )
-                return .none
+                return .send(.delegate(.reactionUpdated(
+                    feedID: state.feed.feedID,
+                    reactions: state.feed.reactions
+                )))
                 
                 // MARK: - 리액션 추가 실패
             case let .addReactionFailure(apiError):
