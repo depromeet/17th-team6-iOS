@@ -55,7 +55,7 @@ struct RunningDetailFeature {
         case getRouteImageData
 
         case sendRunningData
-        case sessionCompletedSuccessfully
+        case sessionCompletedSuccessfully(mapImageURL: String?)
         case sessionCompletedWithError(APIError)
 
         // 에러 처리
@@ -158,12 +158,12 @@ struct RunningDetailFeature {
                     do {
                         // ViewState → Domain 변환
                         let domainDetail = RunningDetailViewStateMapper.toDomain(from: detail)
-                        try await completer.complete(
+                        let mapImageURL = try await completer.complete(
                             sessionId: sessionId,
                             detail: domainDetail,
                             mapImage: mapImageData
                         )
-                        await send(.sessionCompletedSuccessfully)
+                        await send(.sessionCompletedSuccessfully(mapImageURL: mapImageURL))
                     } catch let error as APIError {
                         await send(.sessionCompletedWithError(error))
                     } catch {
@@ -171,9 +171,12 @@ struct RunningDetailFeature {
                     }
                 }
 
-            case .sessionCompletedSuccessfully:
+            case .sessionCompletedSuccessfully(let mapImageURL):
                 state.isCompletingSession = false
-                print("✅ Session completed successfully")
+                if let urlString = mapImageURL, let url = URL(string: urlString) {
+                    state.detail.mapImageURL = url
+                }
+                print("✅ Session completed successfully, mapImageURL: \(mapImageURL ?? "nil")")
                 return .none
 
             case .sessionCompletedWithError(let error):

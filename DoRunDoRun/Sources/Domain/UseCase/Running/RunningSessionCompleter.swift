@@ -15,11 +15,12 @@ protocol RunningSessionCompleterProtocol {
     ///   - sessionId: 세션 ID
     ///   - detail: 러닝 상세 정보
     ///   - mapImage: 지도 이미지 데이터
+    /// - Returns: 서버에서 반환한 지도 이미지 URL
     func complete(
         sessionId: Int,
         detail: RunningDetail,
         mapImage: Data?
-    ) async throws
+    ) async throws -> String?
 }
 
 final class RunningSessionCompleter: RunningSessionCompleterProtocol {
@@ -33,8 +34,8 @@ final class RunningSessionCompleter: RunningSessionCompleterProtocol {
         sessionId: Int,
         detail: RunningDetail,
         mapImage: Data?
-    ) async throws {
-        try await sessionRepository.completeSession(
+    ) async throws -> String? {
+        return try await sessionRepository.completeSession(
             sessionId: sessionId,
             detail: detail,
             mapImage: mapImage

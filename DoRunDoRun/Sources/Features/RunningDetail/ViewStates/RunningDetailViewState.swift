@@ -30,7 +30,7 @@ struct RunningDetailViewState: Equatable {
     let points: [RunningCoordinateViewState]
     let coordinates: [RunningCoordinate]  // Domain 좌표 (서버 전송용)
     var mapImageData: Data?
-    let mapImageURL: URL?
+    var mapImageURL: URL?
 
     // MARK: - 기타
     let feed: FeedSummary?

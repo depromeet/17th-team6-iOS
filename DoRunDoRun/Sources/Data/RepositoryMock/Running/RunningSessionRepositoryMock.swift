@@ -29,8 +29,9 @@ final class RunningSessionRepositoryMock: RunningSessionRepository {
         sessionId: Int,
         detail: RunningDetail,
         mapImage: Data?
-    ) async throws {
+    ) async throws -> String? {
         // Mock 응답 반환 (서버에 데이터 전송 시뮬레이션)
+        return "https://example.com/mock-map-image.jpg"
     }
 
     func fetchSessions(
