@@ -19,8 +19,8 @@ struct RunningDetailFeature {
 
         /// 뷰 모드
         enum ViewMode: Equatable {
-            case viewing              // 과거 기록 보기 (읽기 전용)
-            case completing(sessionId: Int)  // 방금 끝난 러닝 (이미지 캡처 + 서버 업로드)
+            case viewing     // 과거 기록 보기 (읽기 전용)
+            case completing  // 방금 끝난 러닝 (이미지 캡처 + 서버 업로드)
         }
         var viewMode: ViewMode
 
@@ -156,7 +156,8 @@ struct RunningDetailFeature {
 
             case .sendRunningData:
                 // completing 모드에서만 서버 업로드 실행
-                guard case .completing(let sessionId) = state.viewMode,
+                guard case .completing = state.viewMode,
+                      let sessionId = state.detail.sessionId,
                       let mapImageData = state.detail.mapImageData,
                       !state.isCompletingSession else {
                     print("⚠️ Session completion skipped: viewMode=\(state.viewMode), hasMapImage=\(state.detail.mapImageData != nil), isCompleting=\(state.isCompletingSession)")

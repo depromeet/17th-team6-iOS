@@ -261,7 +261,7 @@ private extension RunningDetailView {
             store: Store(
                 initialState: RunningDetailFeature.State(
                     detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
-                    viewMode: .completing(sessionId: 123)
+                    viewMode: .completing
                 ),
                 reducer: { RunningDetailFeature() }
             )

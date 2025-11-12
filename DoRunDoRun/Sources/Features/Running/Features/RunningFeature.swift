@@ -205,11 +205,7 @@ struct RunningFeature {
 
             // Active → Parent delegate: 최종 상세 결과 전달
             case let .active(.delegate(.didFinish(final))):
-                let viewMode: RunningDetailFeature.State.ViewMode = if let sessionId = final.sessionId {
-                    .completing(sessionId: sessionId)
-                } else {
-                    .viewing
-                }
+                let viewMode: RunningDetailFeature.State.ViewMode = final.sessionId != nil ? .completing : .viewing
 
                 let detailState = RunningDetailFeature.State(
                     detail: RunningDetailViewStateMapper.map(from: final),
