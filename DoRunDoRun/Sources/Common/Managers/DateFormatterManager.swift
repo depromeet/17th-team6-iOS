@@ -48,7 +48,7 @@ final class DateFormatterManager {
     private func makeFormatter(_ format: String) -> DateFormatter {
         let f = DateFormatter()
         f.locale = Locale(identifier: "ko_KR")
-        f.timeZone = .current
+        f.timeZone = TimeZone(secondsFromGMT: 0)
         f.dateFormat = format
         return f
     }
@@ -66,7 +66,8 @@ final class DateFormatterManager {
     // MARK: - String → Date (ISO 8601)
     func isoDate(from isoString: String) -> Date? {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // 마이크로초(.576007) 지원
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter.date(from: isoString)
     }
 
@@ -75,7 +76,7 @@ final class DateFormatterManager {
     func formatAPIDateText(from date: Date) -> String {
         formattedISODate.string(from: date)
     }
-
+    
     /// "yyyy" → 2025
     func formatYear(from date: Date) -> String { formattedYear.string(from: date) }
 

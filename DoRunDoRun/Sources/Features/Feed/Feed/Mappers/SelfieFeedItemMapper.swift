@@ -10,8 +10,8 @@ import Foundation
 struct SelfieFeedItemMapper {
     static func map(from feed: SelfieFeed) -> SelfieFeedItem {
         let formatter = DateFormatterManager.shared
-        let date = formatter.date(from: feed.date) ?? Date()
-
+        let date = formatter.isoDate(from: feed.selfieTime) ?? Date()
+        
         // 날짜 관련 포맷
         let dayText = formatter.formatDayLabel(from: date)
         let dateText = formatter.formatDateText(from: date)
