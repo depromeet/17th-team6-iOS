@@ -99,7 +99,7 @@ struct RunningFeature {
                 state.ready.lastFailedRequest = .createSession
 
                 // handleAPIError 메서드 사용
-                return handleAPIError(error, state: &state)
+                return handleAPIError(error)
 
             // Countdown 완료 → Active: 스트림 시작
             case .countdown(.countdownCompleted):
@@ -167,9 +167,15 @@ struct RunningFeature {
 
             // Active → Parent delegate: 최종 상세 결과 전달
             case let .active(.delegate(.didFinish(final, sessionId))):
+                let viewMode: RunningDetailFeature.State.ViewMode = if let sessionId {
+                    .completing(sessionId: sessionId)
+                } else {
+                    .viewing
+                }
+
                 state.runningDetail = RunningDetailFeature.State(
                     detail: RunningDetailViewStateMapper.map(from: final),
-                    sessionId: sessionId
+                    viewMode: viewMode
                 )
 
                 // 초기 상태로 복귀
@@ -206,7 +212,7 @@ struct RunningFeature {
     }
 
     // MARK: - 에러 처리
-    private func handleAPIError(_ apiError: APIError, state: inout State) -> Effect<Action> {
+    private func handleAPIError(_ apiError: APIError) -> Effect<Action> {
         switch apiError {
         case .networkError:
             return .send(.ready(.networkErrorPopup(.show)))

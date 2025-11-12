@@ -182,7 +182,7 @@ struct MyFeature {
 
             // MARK: - 러닝 상세 화면 이동
             case let .sessionCardTapped(session):
-                state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session))))
+                state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session), viewMode: .viewing)))
                 return .none
 
             // 러닝 상세 → 뒤로가기 시
