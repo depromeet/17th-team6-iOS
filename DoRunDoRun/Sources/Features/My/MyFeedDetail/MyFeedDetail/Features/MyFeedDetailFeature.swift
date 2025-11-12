@@ -23,6 +23,9 @@ struct MyFeedDetailFeature {
         /// 현재 표시 중인 피드 아이템
         var feed: SelfieFeedItem
         
+        /// 토스트 상태
+        var toast = ToastFeature.State()
+        
         /// 팝업 상태
         var popup = PopupFeature.State()
         
@@ -75,6 +78,9 @@ struct MyFeedDetailFeature {
     
     // MARK: - Action
     enum Action: Equatable {
+        /// 토스트 액션
+        case toast(ToastFeature.Action)
+        
         /// 팝업 액션
         case popup(PopupFeature.Action)
         
@@ -159,6 +165,7 @@ struct MyFeedDetailFeature {
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
         // MARK: - 하위 피처 연결
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.popup, action: \.popup) { PopupFeature() }
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
@@ -339,8 +346,7 @@ struct MyFeedDetailFeature {
                 }
                 //MARK: - 피드 이미지 저장 성공
             case .saveImageSuccess:
-                print("이미지 저장 완료")
-                return .none
+                return .send(.toast(.show("이미지를 저장했어요.")))
                 
                 // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):

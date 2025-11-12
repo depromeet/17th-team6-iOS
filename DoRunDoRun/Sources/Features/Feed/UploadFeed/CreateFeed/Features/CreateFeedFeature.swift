@@ -21,6 +21,7 @@ struct CreateFeedFeature {
         var selectedImage: UIImage? = nil
         var selectedImageData: Data? = nil
         var isUploading = false
+        var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
     }
@@ -31,6 +32,7 @@ struct CreateFeedFeature {
         case uploadButtonTapped
         case uploadSuccess
         case uploadFailure(APIError)
+        case toast(ToastFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
         case saveImageButtonTapped
@@ -44,6 +46,7 @@ struct CreateFeedFeature {
 
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
 
@@ -101,8 +104,7 @@ struct CreateFeedFeature {
                 
             //MARK: - 피드 이미지 저장 성공
             case .saveImageSuccess:
-                print("이미지 저장 완료")
-                return .none
+                return .send(.toast(.show("이미지를 저장했어요.")))
 
             default:
                 return .none

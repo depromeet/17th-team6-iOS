@@ -48,6 +48,7 @@ private extension CreateFeedView {
                 feedImageSection
                 selectImageButton
                 Spacer()
+                toast
                 uploadButton
             }
             .padding(.horizontal, 20)
@@ -206,6 +207,20 @@ private extension CreateFeedView {
                     store.send(.imageDataPicked(data))
                 }
             }
+        }
+    }
+    
+    /// 토스트
+    @ViewBuilder
+    var toast: some View {
+        if store.toast.isVisible {
+            ActionToastView(
+                message: store.toast.message,
+                icon: Image(.checkCircle, fill: .fill, size: .medium),
+                iconColor: .blue200
+            )
+            .frame(maxWidth: .infinity)
+            .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
         }
     }
     

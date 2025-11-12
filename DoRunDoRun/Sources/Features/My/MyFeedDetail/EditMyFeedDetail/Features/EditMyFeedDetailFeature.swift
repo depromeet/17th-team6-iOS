@@ -24,6 +24,7 @@ struct EditMyFeedDetailFeature {
         
         var isUploading = false
         
+        var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
         
@@ -33,6 +34,7 @@ struct EditMyFeedDetailFeature {
 
     // MARK: - Action
     enum Action: Equatable {
+        case toast(ToastFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
         
@@ -53,6 +55,7 @@ struct EditMyFeedDetailFeature {
 
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
 
@@ -116,8 +119,7 @@ struct EditMyFeedDetailFeature {
                 
             //MARK: - 피드 이미지 저장 성공
             case .saveImageSuccess:
-                print("이미지 저장 완료")
-                return .none
+                return .send(.toast(.show("이미지를 저장했어요.")))
                 
             // MARK: - 재시도
             case .networkErrorPopup(.retryButtonTapped),

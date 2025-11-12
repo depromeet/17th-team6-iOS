@@ -18,6 +18,7 @@ struct MyFeedDetailView: View {
             ZStack(alignment: .bottom) {
                 serverErrorSection
                 mainSection
+                toastSection
                 popupSection
                 networkErrorPopupSection
                 sheetOverlaySection
@@ -289,6 +290,23 @@ private extension MyFeedDetailView {
                 TypographyText(text: value, style: .h1_700, color: .gray0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+// MARK: - Toast Section
+private extension MyFeedDetailView {
+    @ViewBuilder
+    private var toastSection: some View {
+        if store.toast.isVisible {
+            ActionToastView(
+                message: store.toast.message,
+                icon: Image(.checkCircle, fill: .fill, size: .medium),
+                iconColor: .blue200
+            )
+                .padding(.bottom, 12)
+                .frame(maxWidth: .infinity)
+                .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
         }
     }
 }

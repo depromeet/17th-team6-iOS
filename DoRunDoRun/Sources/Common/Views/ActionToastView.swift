@@ -2,17 +2,21 @@ import SwiftUI
 
 struct ActionToastView: View {
     let message: String
-    let imageName: String?
+    let icon: Image?
+    let iconColor: Color?
 
-    init(message: String, imageName: String? = nil) {
+    init(message: String, icon: Image? = nil, iconColor: Color? = nil) {
         self.message = message
-        self.imageName = imageName
+        self.icon = icon
+        self.iconColor = iconColor
     }
 
     var body: some View {
         HStack(spacing: 8) {
-            if let imageName {
-                Image(imageName)
+            if let icon {
+                icon
+                    .renderingMode(.template)
+                    .foregroundStyle(iconColor ?? Color.red)
             }
             TypographyText(text: message, style: .b1_500, color: .gray0)
         }
