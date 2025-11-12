@@ -83,7 +83,7 @@ private extension SelfieFeedViewStateMapper {
         
         // 러닝 포맷 관련
         let runningFormatter = RunningFormatterManager.shared
-        let distanceText = runningFormatter.formatDistance(from: feed.totalDistance * 1000) // km → m 변환
+        let distanceText = runningFormatter.formatDistance(from: feed.totalDistance)
         let durationText = runningFormatter.formatDuration(from: Int(feed.totalRunTime))
         let paceText = runningFormatter.formatPace(from: feed.averagePace)
         

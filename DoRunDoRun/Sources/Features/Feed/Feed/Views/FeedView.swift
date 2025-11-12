@@ -10,6 +10,7 @@ struct FeedView: View {
                 serverErrorSection
                 mainSection
                 floatingUploadButtonSection
+                toastSection
                 popupSection
                 networkErrorPopupSection
             }
@@ -239,6 +240,23 @@ private extension FeedView {
         .transition(.scale.combined(with: .opacity))
         .animation(.spring(response: 0.3, dampingFraction: 0.8),
                    value: store.isReactionDetailPresented || store.isReactionPickerPresented)
+    }
+}
+
+// MARK: - Toast Section
+private extension FeedView {
+    @ViewBuilder
+    private var toastSection: some View {
+        if store.toast.isVisible {
+            ActionToastView(
+                message: store.toast.message,
+                icon: Image(.checkCircle, fill: .fill, size: .medium),
+                iconColor: .blue200
+            )
+                .padding(.bottom, 12)
+                .frame(maxWidth: .infinity)
+                .animation(.easeInOut(duration: 0.3), value: store.toast.isVisible)
+        }
     }
 }
 

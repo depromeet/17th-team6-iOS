@@ -35,7 +35,8 @@ struct FeedFeature {
         var isReactionPickerPresented = false
         var selectedFeedIDForReaction: Int? = nil
 
-        // 팝업 & 에러
+        // 토스트 & 팝업 & 에러
+        var toast = ToastFeature.State()
         var popup = PopupFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
@@ -139,7 +140,8 @@ struct FeedFeature {
         // 알림 리스트
         case notificationButtonTapped
         
-        // 팝업 & 에러
+        // 토스트 & 팝업 & 에러
+        case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
@@ -163,6 +165,7 @@ struct FeedFeature {
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
         Scope(state: \.popup, action: \.popup) { PopupFeature() }
+        Scope(state: \.toast, action: \.toast) { ToastFeature() }
 
         Reduce { state, action in
             let calendar = Calendar.current
@@ -468,8 +471,7 @@ struct FeedFeature {
                 }
 
             case .saveImageSuccess:
-                print("이미지 저장 완료")
-                return .none
+                return .send(.toast(.show("이미지를 저장했어요.")))
                 
             // MARK: - 게시물 신고
             case let .showReportPopup(feedID):
