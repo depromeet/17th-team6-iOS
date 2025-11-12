@@ -273,7 +273,7 @@ struct MyFeature {
                         let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
                         let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
                         let sessions = try await runSessionsUseCase.fetchSessions(
-                            isSelfied: false,
+                            isSelfied: nil,
                             startDateTime: startOfMonth,
                             endDateTime: endOfMonth
                         )
