@@ -199,11 +199,9 @@ private extension FeedView {
                     onEditTapped: { store.send(.editButtonTapped(feedID: feed.feedID)) },
                     onDeleteTapped: { store.send(.showDeletePopup(feed.feedID)) },
                     onSaveImageTapped: { store.send(.saveImageButtonTapped(feed: feed)) },
-                    onReportTapped: { store.send(.showReportPopup(feed.feedID)) }
+                    onReportTapped: { store.send(.showReportPopup(feed.feedID)) },
+                    onImageTapped: { store.send(.showFeedDetail(feed)) }
                 )
-                .onTapGesture {
-                    store.send(.showFeedDetail(feed))
-                }
             }
         }
         .padding(.top, 32)

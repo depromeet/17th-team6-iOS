@@ -20,6 +20,7 @@ struct FeedItemView: View {
     let onDeleteTapped: () -> Void
     let onSaveImageTapped: () -> Void
     let onReportTapped: () -> Void
+    let onImageTapped: () -> Void
 
     @State private var showMenu = false
     
@@ -153,6 +154,10 @@ private extension FeedItemView {
                     .scaledToFill()
                     .frame(width: (UIScreen.main.bounds.width - 40), height: (UIScreen.main.bounds.width - 40))
                     .cornerRadius(16)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onImageTapped()
+                    }
             } else {
                 Rectangle()
                     .fill(Color.gray100)
