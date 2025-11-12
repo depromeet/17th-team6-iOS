@@ -452,6 +452,9 @@ struct FeedFeature {
 
             case let .deleteFeedSuccess(feedID):
                 state.feeds.removeAll(where: { $0.feedID == feedID })
+                if let myIndex = state.selfieUsers.firstIndex(where: { $0.isMe }) {
+                    state.selfieUsers.remove(at: myIndex)
+                }
                 return .none
 
             case let .deleteFeedFailure(error):
@@ -491,7 +494,6 @@ struct FeedFeature {
                 
             case .selectSession(.presented(.delegate(.feedUploadCompleted))):
                 state.selectSession = nil
-                let dateStr = DateFormatterManager.shared.formatAPIDateText(from: state.selectedDate)
                 return .send(.fetchSelfieFeeds(page: 0))
                 
             case .selectSession(.presented(.backButtonTapped)):
