@@ -14,36 +14,21 @@ struct RunningFeature {
 
     @ObservableState
     struct State {
-        @Presents var runningDetail: RunningDetailFeature.State?
-
-        var phase: RunningPhase = .ready
-
-        // 세션 ID 관리
         var sessionId: Int? = nil
-
+        
+        var phase: RunningPhase = .ready
         var ready = RunningReadyFeature.State()
         var countdown = RunningCountdownFeature.State()
         var active = RunningActiveFeature.State()
-
-        // Path 기반 네비게이션
-        var path = StackState<Path.State>()
-    }
-
-    @Reducer
-    enum Path {
-        case detail(RunningDetailFeature)
-        case createFeed(CreateFeedFeature)
+        
+        @Presents var runningDetail: RunningDetailFeature.State?
     }
 
     enum Action {
-        case path(StackAction<Path.State, Path.Action>)
-        case runningDetail(PresentationAction<RunningDetailFeature.Action>)
-
+        case updatePhase(RunningPhase)
         case ready(RunningReadyFeature.Action)
         case countdown(RunningCountdownFeature.Action)
         case active(RunningActiveFeature.Action)
-
-        case updatePhase(RunningPhase)
 
         // 세션 생성 관련
         case _createSession
@@ -60,17 +45,13 @@ struct RunningFeature {
         case pauseRunning
         case resumeRunning
         case stopRunning
-
+        
+        case runningDetail(PresentationAction<RunningDetailFeature.Action>)
+        enum Delegate: Equatable { case navigateToFeed }
         case delegate(Delegate)
-
-        enum Delegate: Equatable {
-            case navigateToFeed
-        }
     }
     
-    private enum CancelID {
-        case runningStream
-    }
+    private enum CancelID { case runningStream }
 
     var body: some ReducerOf<Self> {
         Scope(state: \.ready, action: \.ready) { RunningReadyFeature() }
@@ -79,35 +60,6 @@ struct RunningFeature {
 
         Reduce { state, action in
             switch action {
-
-            // MARK: - Path Navigation
-            case .path(.element(id: _, action: .detail(.delegate(.navigateToCreateFeed(let summary))))):
-                // Detail에서 CreateFeed로 이동
-                state.path.append(.createFeed(CreateFeedFeature.State(session: summary)))
-                return .none
-
-            case .path(.element(id: _, action: .detail(.delegate(.backButtonTapped)))):
-                // Detail에서 뒤로가기
-                state.path.removeAll()
-                state.runningDetail = nil
-                return .send(.delegate(.navigateToFeed))
-
-            case .path(.element(id: _, action: .createFeed(.delegate(.uploadCompleted)))):
-                // CreateFeed 업로드 완료 → Feed 탭으로 이동
-                state.path.removeAll()
-                state.runningDetail = nil
-                return .send(.delegate(.navigateToFeed))
-
-            case .path(.element(id: _, action: .createFeed(.backButtonTapped))):
-                // CreateFeed에서 뒤로가기 → Detail로 돌아가기
-                if state.path.count > 1 {
-                    state.path.removeLast()
-                }
-                return .none
-
-            case .path:
-                return .none
-
             // Ready → 세션 생성 시작
             case .ready(.startButtonTapped):
                 return .send(._createSession)
@@ -125,18 +77,13 @@ struct RunningFeature {
                 }
 
             case ._sessionCreated(let id):
-                // 세션 생성 성공 → Countdown으로 전환
-                state.sessionId = id
-                
-                UIApplication.shared.setTabBarHidden(true)
                 state.phase = .countdown
+                state.sessionId = id
+                UIApplication.shared.setTabBarHidden(true)
                 return .none
 
             case ._sessionCreationFailed(let error):
-                // lastFailedRequest 설정 (재시도용)
                 state.ready.lastFailedRequest = .createSession
-
-                // handleAPIError 메서드 사용
                 return handleAPIError(error)
 
             // Countdown 완료 → Active: 스트림 시작
@@ -173,7 +120,6 @@ struct RunningFeature {
 
             case ._streamFailed:
                 print("⚠️ Running stream failed")
-                // TODO: 에러 처리
                 return .none
 
             // Active Feature delegate 처리
@@ -205,21 +151,15 @@ struct RunningFeature {
 
             // Active → Parent delegate: 최종 상세 결과 전달
             case let .active(.delegate(.didFinish(final))):
+                let detail = RunningDetailViewStateMapper.map(from: final)
                 // mapImageURL이 없으면 completing (방금 끝난 러닝), 있으면 viewing (과거 기록)
                 let viewMode: RunningDetailFeature.State.ViewMode = final.mapImageURL == nil ? .completing : .viewing
-
-                let detailState = RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: final),
-                    viewMode: viewMode
-                )
-
-                // path에 Detail 추가
-                state.path.append(.detail(detailState))
+                state.runningDetail = RunningDetailFeature.State(detail: detail, viewMode: viewMode)
 
                 // 초기 상태로 복귀
-                UIApplication.shared.setTabBarHidden(false)
                 state.phase = .ready
                 state.sessionId = nil
+                UIApplication.shared.setTabBarHidden(false)
                 state.active = RunningActiveFeature.State()
 
                 return .none
@@ -234,12 +174,6 @@ struct RunningFeature {
                 state.runningDetail = nil
                 return .send(.delegate(.navigateToFeed))
 
-            case .runningDetail:
-                return .none
-
-            case .delegate:
-                return .none
-
             default:
                 return .none
             }
@@ -247,7 +181,6 @@ struct RunningFeature {
         .ifLet(\.$runningDetail, action: \.runningDetail) {
             RunningDetailFeature()
         }
-        .forEach(\.path, action: \.path)
     }
 
     // MARK: - 에러 처리
