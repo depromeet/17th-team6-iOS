@@ -167,10 +167,14 @@ struct MyFeature {
             case let .sessionCardTapped(session):
                 state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session), viewMode: .viewing)))
                 return .none
-
-            case .path(.element(id: _, action: .runningDetail(.backButtonTapped))):
+                
+            case .path(.element(id: _, action: .runningDetail(.delegate(.backButtonTapped)))):
                 state.path.removeLast()
                 return .none
+
+//            case .path(.element(id: _, action: .runningDetail(.backButtonTapped))):
+//                state.path.removeLast()
+//                return .none
 
             // MARK: - Navigation: Setting
             case .settingButtonTapped:
