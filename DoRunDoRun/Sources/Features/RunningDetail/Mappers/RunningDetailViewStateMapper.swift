@@ -57,55 +57,6 @@ struct RunningDetailViewStateMapper {
         )
     }
 
-    /// Domain → ViewState (기존 호환성 유지를 위한 오버로드) - deprecated
-    @available(*, deprecated, message: "Use map(from:) instead. sessionId is now part of RunningDetail")
-    static func map(from detail: RunningDetail, sessionId: Int?) -> RunningDetailViewState {
-        // FinishedAt → "2025.10.09 · 오전 10:11" 형식으로
-        let finishedAtText = formatDate(detail.finishedAt)
-
-        let distanceText = formatDistance(detail.totalDistanceMeters)
-
-        // Duration → "1:52:06" 형식으로
-        let elapsedText = formatDuration(detail.elapsed)
-
-        // Pace → "7'30\"" 형식으로
-        let paceText = formatPace(detail.avgPaceSecPerKm)
-
-        // Cadence → "144 spm" 형식으로
-        let cadenceText = "\(Int(detail.avgCadenceSpm)) spm"
-
-        // 결과 화면에서는 전체 평균 페이스를 모든 좌표에 적용
-        let points = detail.coordinates.map { toViewState($0, pace: detail.avgPaceSecPerKm) }
-
-        return RunningDetailViewState(
-            // 세션 정보
-            sessionId: nil,
-            // Formatted strings
-            finishedAtText: finishedAtText,
-            totalDistanceText: distanceText,
-            avgPaceText: paceText,
-            durationText: elapsedText,
-            cadenceText: cadenceText,
-            // Domain 원본 값
-            startedAt: detail.startedAt,
-            finishedAt: detail.finishedAt,
-            totalDistanceMeters: detail.totalDistanceMeters,
-            elapsed: detail.elapsed,
-            avgPaceSecPerKm: detail.avgPaceSecPerKm,
-            avgCadenceSpm: detail.avgCadenceSpm,
-            maxCadenceSpm: detail.maxCadenceSpm,
-            fastestPaceSecPerKm: detail.fastestPaceSecPerKm,
-            coordinateAtmaxPace: detail.coordinateAtmaxPace,
-            // 지도
-            points: points,
-            coordinates: detail.coordinates,
-            mapImageData: detail.mapImageData,
-            mapImageURL: detail.mapImageURL,
-            // 기타
-            feed: detail.feed
-        )
-    }
-
     /// ViewState → Domain (Reverse Mapping)
     static func toDomain(from viewState: RunningDetailViewState) -> RunningDetail {
         return RunningDetail(
