@@ -28,15 +28,15 @@ struct SelfieFeedViewState: Identifiable, Equatable {
 // MARK: - SelfieFeedItem
 /// 개별 피드 셀에서 표시할 데이터
 struct SelfieFeedItem: Equatable {
+    /// 내 피드인지 여부
     let isMyFeed: Bool
-
     /// 피드 고유 ID
     let feedID: Int
     /// 일자 텍스트 (ex. "15일")
     let dayText: String
     /// 이미지 URL (지도 or 셀피)
     var imageURL: String?
-    /// 지도 이미지 여부
+    /// 지도 이미지 여부 (true면 지도 이미지)
     let isMap: Bool
 
     // MARK: - 상세 표시용 데이터
@@ -50,7 +50,7 @@ struct SelfieFeedItem: Equatable {
     let totalRunTimeText: String
     /// 평균 페이스 텍스트 (ex. "7'30\"")
     let averagePaceText: String
-    /// 평균 케이던스 (spm)
+    /// 평균 케이던스 (단위: spm)
     let cadence: Int
     /// 리액션 리스트 (이모지, 카운트, 유저 정보 등)
     var reactions: [ReactionViewState]
@@ -60,7 +60,6 @@ struct SelfieFeedItem: Equatable {
     let timeText: String
     /// 피드가 작성된 시각을 상대적으로 표시 ("3분 전", "2시간 전" 등)
     let relativeTimeText: String
-
 }
 
 // MARK: - ReactionViewState
@@ -89,6 +88,6 @@ struct ReactionUserViewState: Identifiable, Equatable {
     let profileImageUrl: String?
     /// 현재 로그인한 유저인지 여부
     let isMe: Bool
-    /// 리액션한 시각 텍스트 (포맷팅 완료 상태)
+    /// 리액션한 시각 텍스트 (포맷팅 완료 상태, 예: "3분 전")
     let reactedAtText: String
 }

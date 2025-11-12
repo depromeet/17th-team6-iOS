@@ -14,16 +14,17 @@ struct MonthNavigationHeaderView: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            // 이전 달로 이동 버튼
             Button(action: onPreviousTapped) {
                 Image(.arrowLeft, size: .small)
                     .renderingMode(.template)
                     .foregroundStyle(Color.gray300)
             }
             
-            Text(monthTitle)
-                .font(.subheadline.bold())
-                .foregroundColor(.gray900)
+            // 현재 월 텍스트 (예: "2025년 11월")
+            TypographyText(text: monthTitle, style: .b1_500)
 
+            // 다음 달로 이동 버튼
             Button(action: onNextTapped) {
                 Image(.arrowRight, size: .small)
                     .renderingMode(.template)
