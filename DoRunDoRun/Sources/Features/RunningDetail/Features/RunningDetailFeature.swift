@@ -105,7 +105,7 @@ struct RunningDetailFeature {
                     try await Task.sleep(for: .seconds(3))
                     await send(.imageCaptureTimeout)
                 }
-                .cancellable(id: CancelID.imageCaptureTimeout, cancelInFlight: true)
+                .cancellable(id: CancelID.imageCaptureTimeout)
 
             case .imageCaptureTimeout:
                 // 이미 이미지가 들어왔으면 무시
@@ -123,7 +123,7 @@ struct RunningDetailFeature {
                         try await Task.sleep(for: .seconds(3))
                         await send(.imageCaptureTimeout)
                     }
-                    .cancellable(id: CancelID.imageCaptureTimeout, cancelInFlight: true)
+                    .cancellable(id: CancelID.imageCaptureTimeout)
                 } else {
                     // 3회 실패
                     return .send(.imageCaptureMaxRetriesReached)

@@ -76,7 +76,7 @@ struct RunningDetailView: View {
                                 // URL이 없으면 빈 placeholder
                                 placeholderMapView
                             }
-
+                            
                         case .completing:
                             // 방금 끝난 러닝: 지도에서 이미지 캡처
                             SquareRouteMap(
@@ -109,18 +109,10 @@ struct RunningDetailView: View {
                     ZStack {
                         Color.dimLight
                             .ignoresSafeArea()
-
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(1.5)
-
-                            TypographyText(
-                                text: "지도 이미지를 캡처하는 중...",
-                                style: .b1_500,
-                                color: .white
-                            )
-                        }
+                        
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
                     }
                     .transition(.opacity)
                     .zIndex(5)
@@ -161,7 +153,7 @@ struct RunningDetailView: View {
 // MARK: - UI Components
 
 private extension RunningDetailView {
-
+    
     var placeholderMapView: some View {
         ZStack {
             Color.gray50
@@ -173,7 +165,7 @@ private extension RunningDetailView {
         }
         .aspectRatio(1, contentMode: .fit)
     }
-
+    
     var paceColorBar: some View {
         HStack(alignment: .center, spacing: 8) {
             TypographyText(text: "빠름", style: .b2_700, color: .blue600)
