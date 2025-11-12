@@ -9,19 +9,20 @@ import Foundation
 
 struct SelfieFeedItemMapper {
     static func map(from feed: SelfieFeed) -> SelfieFeedItem {
-        let formatter = DateFormatterManager.shared
-        let date = formatter.isoDate(from: feed.selfieTime) ?? Date()
+        let dateFormatter = DateFormatterManager.shared
+        let runningFormatter = RunningFormatterManager.shared
+        let date = dateFormatter.isoDate(from: feed.selfieTime) ?? Date()
         
         // 날짜 관련 포맷
-        let dayText = formatter.formatDayLabel(from: date)
-        let dateText = formatter.formatDateText(from: date)
-        let timeText = formatter.formatTime(from: date)
-        let relativeTimeText = formatter.formatRelativeTime(from: feed.selfieTime)
+        let dayText = dateFormatter.formatDayLabel(from: date)
+        let dateText = dateFormatter.formatDateText(from: date)
+        let timeText = dateFormatter.formatTime(from: date)
+        let relativeTimeText = dateFormatter.formatRelativeTime(from: feed.selfieTime)
 
         // 러닝 데이터 포맷
-        let totalDistanceText = String(format: "%.2fkm", feed.totalDistance)
-        let totalRunTimeText = formatDuration(feed.totalRunTime)
-        let averagePaceText = formatPace(feed.averagePace)
+        let totalDistanceText = runningFormatter.formatDistance(from: feed.totalDistance)
+        let totalRunTimeText = runningFormatter.formatDuration(from: Int(feed.totalRunTime))
+        let averagePaceText = runningFormatter.formatPace(from: feed.averagePace)
 
         // 리액션 리스트 변환
         let reactions = feed.reactions.map { reaction in
@@ -31,7 +32,7 @@ struct SelfieFeedItemMapper {
                     nickname: $0.nickname,
                     profileImageUrl: $0.profileImageUrl,
                     isMe: $0.isMe,
-                    reactedAtText: formatter.formatRelativeTime(from: $0.reactedAt)
+                    reactedAtText: dateFormatter.formatRelativeTime(from: $0.reactedAt)
                 )
             }
             return ReactionViewState(
@@ -63,25 +64,5 @@ struct SelfieFeedItemMapper {
 
     static func mapList(from feeds: [SelfieFeed]) -> [SelfieFeedItem] {
         feeds.map { map(from: $0) }
-    }
-}
-
-// MARK: - Formatter Helpers
-private extension SelfieFeedItemMapper {
-    static func formatDuration(_ seconds: Double) -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let secs = totalSeconds % 60
-        return hours > 0
-            ? String(format: "%d:%02d:%02d", hours, minutes, secs)
-            : String(format: "%02d:%02d", minutes, secs)
-    }
-
-    static func formatPace(_ seconds: Double) -> String {
-        let paceSeconds = Int(seconds)
-        let paceMin = paceSeconds / 60
-        let paceSec = paceSeconds % 60
-        return String(format: "%d'%02d\"", paceMin, paceSec)
     }
 }

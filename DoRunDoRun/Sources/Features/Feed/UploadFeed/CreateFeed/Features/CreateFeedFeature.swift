@@ -65,7 +65,6 @@ struct CreateFeedFeature {
 
             // MARK: - 업로드 버튼 탭
             case .uploadButtonTapped:
-                guard let imageData = state.selectedImageData else { return .none }
                 state.isUploading = true
 
                 // DTO에는 텍스트 데이터만 포함
@@ -73,6 +72,8 @@ struct CreateFeedFeature {
                     runningSessionId: state.session.id,
                     content: "오늘도 완주!"
                 )
+                
+                let imageData = state.selectedImageData
 
                 return .run { send in
                     do {

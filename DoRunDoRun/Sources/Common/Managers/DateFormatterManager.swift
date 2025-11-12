@@ -48,7 +48,7 @@ final class DateFormatterManager {
     private func makeFormatter(_ format: String) -> DateFormatter {
         let f = DateFormatter()
         f.locale = Locale(identifier: "ko_KR")
-        f.timeZone = TimeZone(secondsFromGMT: 0)
+        f.timeZone = TimeZone(identifier: "Asia/Seoul")
         f.dateFormat = format
         return f
     }
@@ -109,12 +109,12 @@ final class DateFormatterManager {
         // 포맷터 생성 및 옵션 명시 (fractionalSeconds 포함)
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
         
         // 변환 시도 (fractionalSeconds 미포함 포맷까지 2단계 fallback)
         let fallbackFormatter = ISO8601DateFormatter()
         fallbackFormatter.formatOptions = [.withInternetDateTime]
-        fallbackFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        fallbackFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
         
         guard let date = formatter.date(from: isoString) ?? fallbackFormatter.date(from: isoString) else {
             print("❌ formatRelativeTime: 변환 실패 - \(isoString)")
