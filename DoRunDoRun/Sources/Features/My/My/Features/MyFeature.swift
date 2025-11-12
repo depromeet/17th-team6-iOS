@@ -28,7 +28,7 @@ struct MyFeature {
         enum Tab: Int, CaseIterable {
             /// 피드 탭
             case feed
-            /// 세션  탭
+            /// 세션 탭
             case session
         }
 
@@ -195,7 +195,7 @@ struct MyFeature {
                 state.path.append(.setting(SettingFeature.State()))
                 return .none
                 
-                // 설정 → 뒤로가기 시
+            // 설정 → 뒤로가기 시
             case .path(.element(id: _, action: .setting(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
@@ -271,7 +271,6 @@ struct MyFeature {
                 guard let currentItem else { return .none }
                 guard !state.isLoading && state.hasNextPage else { return .none }
 
-                // 리스트 끝 근처에서 다음 페이지 요청
                 let threshold = max(state.feeds.count - 5, 0)
                 if let currentIndex = state.feeds.firstIndex(where: { $0.id == currentItem.id }),
                    currentIndex >= threshold {
@@ -284,26 +283,13 @@ struct MyFeature {
             // MARK: - 셀피 피드 요청 실패
             case let .fetchSelfieFeedsFailure(apiError):
                 state.isLoading = false
-                switch apiError {
-                case .networkError:
-                    return .send(.networkErrorPopup(.show))
-                case .notFound:
-                    return .send(.serverError(.show(.notFound)))
-                case .internalServer:
-                    return .send(.serverError(.show(.internalServer)))
-                case .badGateway:
-                    return .send(.serverError(.show(.badGateway)))
-                default:
-                    print(apiError.userMessage)
-                    return .none
-                }
+                return handleAPIError(apiError)
 
             // MARK: - 세션 데이터 요청
             case .fetchSessions:
                 return .run { [currentMonth = state.currentMonth, cache = state.sessionCache] send in
                     let key = DateFormatterManager.shared.formatYearMonthLabel(from: currentMonth)
 
-                    // 이미 캐시되어 있다면 API 요청 생략
                     if let cached = cache[key] {
                         print("[DEBUG] \(key) 캐시 데이터 사용")
                         await send(.fetchSessionsSuccessCached(cached))
@@ -336,7 +322,6 @@ struct MyFeature {
                 let mapped = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
                 state.sessions = mapped
 
-                // 캐시에 저장
                 let key = DateFormatterManager.shared.formatYearMonthLabel(from: state.currentMonth)
                 state.sessionCache[key] = mapped
                 return .none
@@ -346,22 +331,10 @@ struct MyFeature {
                 state.sessions = cached
                 return .none
                 
-            // MARK: - 셀피 피드 요청 실패
+            // MARK: - 세션 요청 실패
             case let .fetchSessionsFailure(apiError):
                 state.isLoading = false
-                switch apiError {
-                case .networkError:
-                    return .send(.networkErrorPopup(.show))
-                case .notFound:
-                    return .send(.serverError(.show(.notFound)))
-                case .internalServer:
-                    return .send(.serverError(.show(.internalServer)))
-                case .badGateway:
-                    return .send(.serverError(.show(.badGateway)))
-                default:
-                    print(apiError.userMessage)
-                    return .none
-                }
+                return handleAPIError(apiError)
 
             // MARK: - 이전 달 버튼 탭
             case .previousMonthTapped:
@@ -377,9 +350,9 @@ struct MyFeature {
                 }
                 return .send(.fetchSessions)
                 
-            // MARK: 재시도
+            // MARK: - 재시도
             case .networkErrorPopup(.retryButtonTapped),
-                    .serverError(.retryButtonTapped):
+                 .serverError(.retryButtonTapped):
                 return .send(.onAppear)
                 
             // MARK: - Path 액션 처리
@@ -393,7 +366,6 @@ struct MyFeature {
                 return .none
             }
         }
-        // Path 관련 액션 처리 (하위 리듀서 연결)
         .forEach(\.path, action: \.path)
     }
 
@@ -406,6 +378,25 @@ struct MyFeature {
         case runningDetail(RunningDetailFeature)
         /// 설정 화면
         case setting(SettingFeature)
+    }
+}
 
+// MARK: - API Error Handler
+private extension MyFeature {
+    /// API 에러를 공통 처리하는 함수
+    func handleAPIError(_ apiError: APIError) -> Effect<Action> {
+        switch apiError {
+        case .networkError:
+            return .send(.networkErrorPopup(.show))
+        case .notFound:
+            return .send(.serverError(.show(.notFound)))
+        case .internalServer:
+            return .send(.serverError(.show(.internalServer)))
+        case .badGateway:
+            return .send(.serverError(.show(.badGateway)))
+        default:
+            print("[API ERROR]", apiError.userMessage)
+            return .none
+        }
     }
 }
