@@ -8,6 +8,7 @@
 import SwiftUI
 
 import ComposableArchitecture
+import Kingfisher
 
 struct RunningDetailView: View {
     @Perception.Bindable var store: StoreOf<RunningDetailFeature>
@@ -15,6 +16,7 @@ struct RunningDetailView: View {
     var body: some View {
         WithPerceptionTracking {
             ZStack {
+                // MARK: - Main Content
                 VStack(spacing: .zero) {
                     HStack(spacing: 4) {
                         Image("Fill_S")
@@ -63,15 +65,27 @@ struct RunningDetailView: View {
                     }
                     .padding(.bottom, 16)
                     
-                    // 상태에 따라 이미지 or 지도
+                    // ViewMode에 따라 이미지 or 지도
                     Group {
-                        if let imageUrl = store.detail.mapImageURL { // 이전 기록을 보는 경우
-                            squareRouteImage(url: imageUrl)
-                        } else { // 런닝 종료 시
+                        switch store.viewMode {
+                        case .viewing:
+                            // 과거 기록 보기: URL에서 이미지 로드
+                            if let imageUrl = store.detail.mapImageURL {
+                                squareRouteImage(url: imageUrl)
+                            } else {
+                                // URL이 없으면 빈 placeholder
+                                placeholderMapView
+                            }
+                            
+                        case .completing:
+                            // 방금 끝난 러닝: 지도에서 이미지 캡처
                             SquareRouteMap(
                                 points: store.detail.points,
                                 outerPadding: 20,
                                 data: $store.detail.mapImageData)
+                            .onAppear {
+                                store.send(.startImageCapture)
+                            }
                             .onChange(of: store.detail.mapImageData) { _ in
                                 store.send(.getRouteImageData)
                             }
@@ -89,6 +103,20 @@ struct RunningDetailView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+                
+                // MARK: - Image Capture Dim Overlay (completing 모드에서만)
+                if case .completing = store.viewMode, store.isCapturingImage {
+                    ZStack {
+                        Color.dimLight
+                            .ignoresSafeArea()
+                        
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                    }
+                    .transition(.opacity)
+                    .zIndex(5)
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -101,6 +129,23 @@ struct RunningDetailView: View {
                 }
             }
             .navigationBarBackButtonHidden(true)
+            // MARK: - Error Handling
+            .errorHandling(
+                networkErrorPopupStore: store.scope(
+                    state: \.networkErrorPopup,
+                    action: \.networkErrorPopup
+                ),
+                serverErrorStore: store.scope(
+                    state: \.serverError,
+                    action: \.serverError
+                ),
+                onNetworkRetry: {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                },
+                onServerRetry: {
+                    store.send(.serverError(.retryButtonTapped))
+                }
+            )
         }
     }
 }
@@ -108,6 +153,18 @@ struct RunningDetailView: View {
 // MARK: - UI Components
 
 private extension RunningDetailView {
+    
+    var placeholderMapView: some View {
+        ZStack {
+            Color.gray50
+            TypographyText(
+                text: "지도 이미지가 없습니다",
+                style: .b1_500,
+                color: .gray500
+            )
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
     
     var paceColorBar: some View {
         HStack(alignment: .center, spacing: 8) {
@@ -118,16 +175,16 @@ private extension RunningDetailView {
                 .frame(height: 8)
                 .background(
                     LinearGradient(
-                      stops: [
-                        // 파(빠름) → 연녹 → 노 → 주 → 빨(느림)
-                        .init(color: Color(red: 0.28, green: 0.32, blue: 1.00), location: 0.00), // 파랑
-                        .init(color: Color(red: 0.15, green: 1.00,  blue: 0.00), location: 0.25), // 연녹
-                        .init(color: Color(red: 1.00, green: 0.84, blue: 0.00), location: 0.50), // 노랑
-                        .init(color: Color(red: 1.00, green: 0.48, blue: 0.00), location: 0.75), // 주황
-                        .init(color: Color(red: 1.00, green: 0.00, blue: 0.00), location: 1.00)  // 빨강
-                      ],
-                      startPoint: .leading,
-                      endPoint: .trailing
+                        stops: [
+                            // 파(빠름) → 연녹 → 노 → 주 → 빨(느림)
+                            .init(color: Color(red: 0.28, green: 0.32, blue: 1.00), location: 0.00), // 파랑
+                            .init(color: Color(red: 0.15, green: 1.00,  blue: 0.00), location: 0.25), // 연녹
+                            .init(color: Color(red: 1.00, green: 0.84, blue: 0.00), location: 0.50), // 노랑
+                            .init(color: Color(red: 1.00, green: 0.48, blue: 0.00), location: 0.75), // 주황
+                            .init(color: Color(red: 1.00, green: 0.00, blue: 0.00), location: 1.00)  // 빨강
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
                 )
                 .cornerRadius(41)
@@ -165,42 +222,43 @@ private extension RunningDetailView {
     }
     
     func squareRouteImage(url: URL) -> some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .empty:
+        KFImage(url)
+            .placeholder {
                 ZStack {
                     Color.gray50
                     ProgressView()
                 }
-                
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            case .failure:
-                ZStack {
-                    // TODO: 디자인 수정
-                    Color.gray50
-                    TypographyText(
-                        text: "이미지를 불러올 수 없어요",
-                        style: .c1_400, color: .gray500
-                    )
-                }
-                
-            @unknown default:
-                EmptyView()
             }
-        }
-        .aspectRatio(1, contentMode: .fit)
+            .onFailure { error in
+                print("⚠️ Failed to load image: \(error)")
+            }
+            .resizable()
+            .scaledToFill()
+            .aspectRatio(1, contentMode: .fit)
     }
 }
 
-#Preview {
+#Preview("Viewing Mode") {
     NavigationStack {
         RunningDetailView(
             store: Store(
                 initialState: RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock)
+                    detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
+                    viewMode: .viewing
+                ),
+                reducer: { RunningDetailFeature() }
+            )
+        )
+    }
+}
+
+#Preview("Completing Mode") {
+    NavigationStack {
+        RunningDetailView(
+            store: Store(
+                initialState: RunningDetailFeature.State(
+                    detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
+                    viewMode: .completing(sessionId: 123)
                 ),
                 reducer: { RunningDetailFeature() }
             )
