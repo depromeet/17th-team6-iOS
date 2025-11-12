@@ -245,7 +245,7 @@ private extension View {
             .background(Color.gray0)
             .cornerRadius(12)
             .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
-            .offset(x: 0, y: 48)
+            .offset(x: 0, y: 28)
             .transition(.opacity)
             .zIndex(10)
     }
