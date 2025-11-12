@@ -34,9 +34,9 @@ struct ReactionBarView: View {
                 if extraReactionCount > 0 {
                     extraReactionButton
                 }
-                Spacer()
                 // MARK: 리액션 추가 버튼
                 addReactionButton
+                Spacer()
             }
         }
     }

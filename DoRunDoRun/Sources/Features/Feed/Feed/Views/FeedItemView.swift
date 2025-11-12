@@ -20,6 +20,7 @@ struct FeedItemView: View {
     let onDeleteTapped: () -> Void
     let onSaveImageTapped: () -> Void
     let onReportTapped: () -> Void
+    let onImageTapped: () -> Void
 
     @State private var showMenu = false
     
@@ -163,6 +164,10 @@ private extension FeedItemView {
             // 달리기 정보
             runningInfoOverlay
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onImageTapped()
+        }
     }
     
     /// 달리기 정보 오버레이
@@ -240,7 +245,7 @@ private extension View {
             .background(Color.gray0)
             .cornerRadius(12)
             .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
-            .offset(x: 0, y: 48)
+            .offset(x: 0, y: 28)
             .transition(.opacity)
             .zIndex(10)
     }
