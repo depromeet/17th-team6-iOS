@@ -8,6 +8,7 @@
 import SwiftUI
 
 import ComposableArchitecture
+import Kingfisher
 
 struct RunningDetailView: View {
     @Perception.Bindable var store: StoreOf<RunningDetailFeature>
@@ -229,32 +230,19 @@ private extension RunningDetailView {
     }
     
     func squareRouteImage(url: URL) -> some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .empty:
+        KFImage(url)
+            .placeholder {
                 ZStack {
                     Color.gray50
                     ProgressView()
                 }
-
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            case .failure:
-                ZStack {
-                    Color.gray50
-                    TypographyText(
-                        text: "이미지를 불러올 수 없어요",
-                        style: .c1_400, color: .gray500
-                    )
-                }
-
-            @unknown default:
-                EmptyView()
             }
-        }
-        .aspectRatio(1, contentMode: .fit)
+            .onFailure { error in
+                print("⚠️ Failed to load image: \(error)")
+            }
+            .resizable()
+            .scaledToFill()
+            .aspectRatio(1, contentMode: .fit)
     }
 }
 
