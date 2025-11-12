@@ -28,6 +28,8 @@ struct SelfieFeedViewState: Identifiable, Equatable {
 // MARK: - SelfieFeedItem
 /// 개별 피드 셀에서 표시할 데이터
 struct SelfieFeedItem: Equatable {
+    let isMyFeed: Bool
+
     /// 피드 고유 ID
     let feedID: Int
     /// 일자 텍스트 (ex. "15일")

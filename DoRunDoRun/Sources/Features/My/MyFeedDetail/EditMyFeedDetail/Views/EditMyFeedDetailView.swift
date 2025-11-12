@@ -62,6 +62,15 @@ private extension EditMyFeedDetailView {
                             .foregroundColor(.gray800)
                     }
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        store.send(.saveImageButtonTapped)
+                    } label: {
+                        Image(.download, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
             }
         }
     }

@@ -9,7 +9,7 @@ import ComposableArchitecture
 
 extension DependencyValues {
     // MARK: - 인증 피드 수정
-    var selfieFeedUpdateUseCase: SelfieFeedUpdateUseCase {
+    var selfieFeedUpdateUseCase: SelfieFeedUpdateUseCaseProtocol {
         get { self[SelfieFeedUpdateUseCaseKey.self] }
         set { self[SelfieFeedUpdateUseCaseKey.self] = newValue }
     }
@@ -17,8 +17,8 @@ extension DependencyValues {
 
 // MARK: - Keys
 private enum SelfieFeedUpdateUseCaseKey: DependencyKey {
-    static let liveValue: SelfieFeedUpdateUseCase =
-        SelfieFeedUpdateUseCaseImpl(repository: SelfieFeedUpdateRepositoryImpl())
-    static let testValue: SelfieFeedUpdateUseCase =
-        SelfieFeedUpdateUseCaseImpl(repository: SelfieFeedUpdateRepositoryMock())
+    static let liveValue: SelfieFeedUpdateUseCaseProtocol =
+        SelfieFeedUpdateUseCase(repository: SelfieFeedUpdateRepositoryImpl())
+    static let testValue: SelfieFeedUpdateUseCaseProtocol =
+        SelfieFeedUpdateUseCase(repository: SelfieFeedUpdateRepositoryMock())
 }

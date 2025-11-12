@@ -6,9 +6,9 @@
 //
 
 final class SelfieFeedReactionRepositoryMock: SelfieFeedReactionRepository {
-    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReaction {
+    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResult {
         print("[Mock] 리액션 \(emojiType) 전송 성공 (feedId: \(feedId))")
-        return SelfieFeedReaction(
+        return SelfieFeedReactionResult(
             selfieId: feedId,
             emojiType: EmojiType(rawValue: emojiType) ?? .surprise,
             action: .added,

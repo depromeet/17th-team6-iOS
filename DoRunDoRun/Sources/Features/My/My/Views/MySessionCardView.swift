@@ -77,7 +77,10 @@ struct MySessionCardView: View {
             .padding(.horizontal, 20)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.gray100, lineWidth: 1)
+                    .strokeBorder(
+                        Color.gray100,
+                        lineWidth: 1
+                    )
             )
             .contentShape(Rectangle())
         }

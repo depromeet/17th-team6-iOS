@@ -18,13 +18,11 @@ struct MyFeedDetailView: View {
             ZStack(alignment: .bottom) {
                 serverErrorSection
                 mainSection
+                popupSection
                 networkErrorPopupSection
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
-//            .onTapGesture {
-//                if showMenu { withAnimation { showMenu = false } }
-//            }
         }
     }
 }
@@ -81,7 +79,7 @@ private extension MyFeedDetailView {
                     } label: {
                         Image(.arrowLeft, size: .medium)
                             .renderingMode(.template)
-                            .foregroundColor(.gray800)
+                            .foregroundColor(.gray0)
                     }
                 }
             }
@@ -102,7 +100,15 @@ private extension MyFeedDetailView {
                 style: .plain,
                 size: .small
             )
-            TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
+            HStack(spacing: 4) {
+                TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
+                if store.feed.isMyFeed {
+                    Circle()
+                        .fill(Color.blue600)
+                        .frame(width: 20, height: 20)
+                        .overlay(Text("나").typography(.c1_700, color: .gray0))
+                }
+            }
             TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
             Spacer()
             Button {
@@ -122,55 +128,72 @@ private extension MyFeedDetailView {
     }
     
     /// 메뉴 섹션
+    @ViewBuilder
     var menuSection: some View {
+        if store.feed.isMyFeed {
+            myFeedMenu
+        } else {
+            otherFeedMenu
+        }
+    }
+    
+    /// 유저 피드 메뉴
+    var myFeedMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
                 withAnimation { showMenu = false }
-                 store.send(.editButtonTapped)
+                store.send(.editButtonTapped)
             } label: {
-                TypographyText(text: "수정하기", style: .b2_400, color: .gray700)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
-                    .padding(.horizontal, 12)
+                menuRow("수정하기")
             }
-
-            Rectangle()
-                .frame(height: 1)
-                .foregroundStyle(Color.gray50)
-
+            
+            divider
+            
             Button {
                 withAnimation { showMenu = false }
-                 store.send(.deleteButtonTapped)
+                store.send(.showDeletePopup(store.feed.feedID))
             } label: {
-                TypographyText(text: "삭제하기", style: .b2_400, color: .gray700)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 12)
+                menuRow("삭제하기")
             }
-
-            Rectangle()
-                .frame(height: 1)
-                .foregroundStyle(Color.gray50)
-
+            
+            divider
+            
             Button {
                 withAnimation { showMenu = false }
-                 store.send(.saveImageButtonTapped)
+                store.send(.saveImageButtonTapped)
             } label: {
-                TypographyText(text: "이미지 저장", style: .b2_400, color: .gray700)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 4)
-                    .padding(.bottom, 8)
-                    .padding(.horizontal, 12)
+                menuRow("이미지 저장")
             }
         }
-        .frame(width: 144)
-        .background(Color.gray0)
-        .cornerRadius(12)
-        .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
-        .offset(x: 0, y: 48)
-        .transition(.opacity)
-        .zIndex(10)
+        .menuContainerStyle()
+    }
+    
+    /// 다른 유저 피드 메뉴
+    var otherFeedMenu: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation { showMenu = false }
+                store.send(.showReportPopup(store.feed.feedID))
+            } label: {
+                menuRow("게시물 신고")
+            }
+        }
+        .menuContainerStyle()
+    }
+    
+    /// 공통 메뉴 행
+    func menuRow(_ text: String) -> some View {
+        TypographyText(text: text, style: .b2_400, color: .gray700)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+    }
+    
+    /// 구분선
+    var divider: some View {
+        Rectangle()
+            .frame(height: 1)
+            .foregroundStyle(Color.gray50)
     }
     
     /// 피드 이미지 섹션
@@ -270,6 +293,43 @@ private extension MyFeedDetailView {
     }
 }
 
+// MARK: - Popup Section
+private extension MyFeedDetailView {
+    @ViewBuilder
+    private var popupSection: some View {
+        if store.popup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                    .onTapGesture { store.send(.popup(.hide)) }
+
+                ActionPopupView(
+                    title: store.popup.title,
+                    message: store.popup.message,
+                    actionTitle: store.popup.actionTitle,
+                    cancelTitle: store.popup.cancelTitle,
+                    style: .destructive,
+                    onAction: {
+                        switch store.popup.action {
+                        case let .deleteFeed(feedID):
+                            store.send(.popup(.hide))
+                            store.send(.confirmDelete(feedID))
+                        case let .reportFeed(feedID):
+                            store.send(.popup(.hide))
+                            store.send(.confirmReport(feedID))
+                        default:
+                            break
+                        }
+                    },
+                    onCancel: { store.send(.popup(.hide)) }
+                )
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(20)
+        }
+    }
+}
+
 // MARK: - Network Error Popup Section
 private extension MyFeedDetailView {
     /// Networ Error Popup Section
@@ -318,5 +378,18 @@ private extension MyFeedDetailView {
         .edgesIgnoringSafeArea(.all)
         .animation(.easeInOut(duration: 0.3),
                    value: store.isReactionDetailPresented || store.isReactionPickerPresented)
+    }
+}
+
+private extension View {
+    func menuContainerStyle() -> some View {
+        self
+            .frame(width: 144)
+            .background(Color.gray0)
+            .cornerRadius(12)
+            .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
+            .offset(x: 0, y: 48)
+            .transition(.opacity)
+            .zIndex(10)
     }
 }

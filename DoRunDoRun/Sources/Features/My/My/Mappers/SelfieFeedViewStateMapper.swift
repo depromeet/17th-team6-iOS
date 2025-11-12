@@ -86,6 +86,7 @@ private extension SelfieFeedViewStateMapper {
         let relativeTimeText = formatter.formatRelativeTime(from: feed.selfieTime)
 
         return .init(
+            isMyFeed: feed.isMyFeed,
             feedID: feed.id,
             dayText: dayText,
             imageURL: feed.imageUrl,

@@ -149,7 +149,7 @@ struct MyFeature {
                 state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feed: feed)))
                 return .none
                 
-            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(imageURL))))):
+            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(_, imageURL))))):
                 // feed.id로 찾아서 해당 셀만 업데이트
                 if let index = state.feeds.firstIndex(where: {
                     if case let .feed(item) = $0.kind {
@@ -259,9 +259,11 @@ struct MyFeature {
                     state.currentPage += 1
                 }
                 
-                let userSummary = result.userSummary
-                state.userSummary = UserSummaryViewStateMapper.map(from: userSummary)
-                
+                if let userSummary = result.userSummary {
+                    state.userSummary = UserSummaryViewStateMapper.map(from: userSummary)
+                } else {
+                    state.userSummary = nil
+                }
                 return .none
 
             // MARK: - 무한 스크롤

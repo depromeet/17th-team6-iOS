@@ -16,12 +16,15 @@ struct MyFeedDetailFeature {
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
     /// 피드 삭제 유즈케이스
     @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
-
+    
     // MARK: - State
     @ObservableState
     struct State: Equatable {
         /// 현재 표시 중인 피드 아이템
         var feed: SelfieFeedItem
+        
+        /// 팝업 상태
+        var popup = PopupFeature.State()
         
         /// 네트워크 에러 팝업 상태
         var networkErrorPopup = NetworkErrorPopupFeature.State()
@@ -43,27 +46,16 @@ struct MyFeedDetailFeature {
         
         /// 상단에 표시할 최대 3개의 리액션 (최근 + 많이 사용된 순)
         var displayedReactions: [ReactionViewState] {
-            let formatter = ISO8601DateFormatter()
-            
-            // 새로운 리액션(=1회 반응)과 누적된 리액션을 구분
-            let newReactions = feed.reactions.filter { $0.totalCount == 1 }
-            let existingReactions = feed.reactions.filter { $0.totalCount > 1 }
-            
-            // 새로운 리액션은 반응 시각을 기준으로 최신순 정렬
-            let sortedNew = newReactions.sorted { lhs, rhs in
-                let lhsDate = lhs.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
-                let rhsDate = rhs.users.compactMap { formatter.date(from: $0.reactedAtText) }.max() ?? .distantPast
-                return lhsDate > rhsDate
-            }
-            // 새로 추가된 리액션을 앞에, 기존 리액션을 뒤에 붙여 최대 3개만 노출
-            return Array((sortedNew + existingReactions).prefix(3))
+            // 유틸리티 함수에서 내가 누른 리액션을 feed.reactions의 0번째 인덱스로 이동시켰기 때문에
+            // 여기서는 상위 3개만 가져오면 됩니다.
+            return Array(feed.reactions.prefix(3))
         }
-
+        
         /// 표시되지 않는 나머지 리액션 개수
         var extraReactionCount: Int {
             max(0, feed.reactions.count - 3)
         }
-
+        
         /// 숨겨진 리액션 목록 (상세 시트에서 표시)
         var hiddenReactions: [ReactionViewState] {
             Array(feed.reactions.dropFirst(3))
@@ -80,9 +72,12 @@ struct MyFeedDetailFeature {
         /// 피드 수정 화면 상태 (Sheet Navigation)
         @Presents var editMyFeedDetail: EditMyFeedDetailFeature.State?
     }
-
+    
     // MARK: - Action
     enum Action: Equatable {
+        /// 팝업 액션
+        case popup(PopupFeature.Action)
+        
         /// 네트워크 에러 팝업 액션
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         
@@ -99,7 +94,7 @@ struct MyFeedDetailFeature {
         case reactionTapped(ReactionViewState)
         
         /// 리액션 탭 서버 응답 성공
-        case reactionSuccess(SelfieFeedReaction)
+        case reactionSuccess(SelfieFeedReactionResult)
         
         /// 리액션 탭 서버 응답 실패
         case reactionFailure(APIError)
@@ -111,7 +106,7 @@ struct MyFeedDetailFeature {
         case addReactionTapped
         
         /// 리액션 추가 서버 응답 성공
-        case addReactionSuccess(SelfieFeedReaction)
+        case addReactionSuccess(SelfieFeedReactionResult)
         
         /// 리액션 추가 서버 응답 실패
         case addReactionFailure(APIError)
@@ -119,20 +114,30 @@ struct MyFeedDetailFeature {
         /// 피드 수정 버튼 탭
         case editButtonTapped
         
-        /// 피드 삭제 버튼 탭
-        case deleteButtonTapped
+        /// 피드 삭제 팝업
+        case showDeletePopup(Int)
+        
+        /// 삭제 액션 처리
+        case confirmDelete(Int)
         
         /// 피드 삭제 응답 성공
-        case deleteFeedSuccess
+        case deleteFeedSuccess(Int)
         
         /// 피드 삭제 응답 실패
         case deleteFeedFailure(APIError)
         
         /// 피드 이미지 저장 버튼 탭
         case saveImageButtonTapped
+        
         /// 피드 이미지 저장 성공
         case saveImageSuccess
-
+        
+        /// 피드 신고 팝업
+        case showReportPopup(Int)
+        
+        /// 신고 액션 처리
+        case confirmReport(Int)
+        
         /// 시트 전체 닫기
         case dismissSheet
         
@@ -144,15 +149,16 @@ struct MyFeedDetailFeature {
         
         /// 상위 피처로 전달되는 delegate 이벤트
         enum Delegate: Equatable {
-            case feedUpdated(imageURL: String)
+            case feedUpdated(feedID: Int, imageURL: String?)
             case feedDeleted(feedID: Int)
         }
         case delegate(Delegate)
     }
-
+    
     // MARK: - Reducer
     var body: some ReducerOf<Self> {
         // MARK: - 하위 피처 연결
+        Scope(state: \.popup, action: \.popup) { PopupFeature() }
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
         Scope(state: \.reactionDetail, action: \.reactionDetail) { ReactionDetailSheetFeature() }
@@ -161,10 +167,10 @@ struct MyFeedDetailFeature {
         Reduce { state, action in
             switch action {
                 
-            // MARK: - 리액션 탭 (기존 리액션 토글)
+                // MARK: - 리액션 탭 (기존 리액션 토글)
             case let .reactionTapped(reaction):
                 let feedId = state.feed.feedID
-
+                
                 // 서버 요청 (성공 시 reactionSuccess로 처리)
                 return .run { send in
                     do {
@@ -182,7 +188,7 @@ struct MyFeedDetailFeature {
                     }
                 }
                 
-            // MARK: - 리액션 토글 성공 (UI 업데이트)
+                // MARK: - 리액션 토글 성공 (UI 업데이트)
             case let .reactionSuccess(result):
                 state.feed.reactions = MyFeedDetailFeature.toggleReaction(
                     in: state.feed.reactions,
@@ -190,13 +196,13 @@ struct MyFeedDetailFeature {
                 )
                 return .none
                 
-            // MARK: - 리액션 토글 실패
+                // MARK: - 리액션 토글 실패
             case let .reactionFailure(apiError):
                 // 마지막 실패 요청 저장 → 재시도 버튼 클릭 시 사용
                 state.lastFailedRequest = .toggleReaction(state.feed.reactions.first(where: { $0.isReactedByMe }) ?? .init(emojiType: .heart, totalCount: 0, isReactedByMe: false, users: []))
                 return handleAPIError(apiError)
-
-            // MARK: - 리액션 롱탭 (상세 시트 표시)
+                
+                // MARK: - 리액션 롱탭 (상세 시트 표시)
             case let .reactionLongPressed(reaction):
                 state.isReactionDetailPresented = true
                 state.reactionDetail = .init(
@@ -206,22 +212,22 @@ struct MyFeedDetailFeature {
                 )
                 return .none
                 
-            // MARK: - 리액션 상세 시트 닫기
+                // MARK: - 리액션 상세 시트 닫기
             case .reactionDetail(.dismissRequested):
                 state.isReactionDetailPresented = false
                 return .none
                 
-            // MARK: - 리액션 추가 버튼 탭 (피커 표시)
+                // MARK: - 리액션 추가 버튼 탭 (피커 표시)
             case .addReactionTapped:
                 state.isReactionPickerPresented = true
                 return .none
                 
-            // MARK: - 피커에서 리액션 선택 시
+                // MARK: - 피커에서 리액션 선택 시
             case let .reactionPicker(.reactionSelected(emoji)):
                 state.isReactionPickerPresented = false
-
+                
                 let feedId = state.feed.feedID
-
+                
                 // 서버 요청 (성공 시 addReactionSuccess로 처리)
                 return .run { send in
                     do {
@@ -239,7 +245,7 @@ struct MyFeedDetailFeature {
                     }
                 }
                 
-            // MARK: - 리액션 추가 성공 (UI 업데이트)
+                // MARK: - 리액션 추가 성공 (UI 업데이트)
             case let .addReactionSuccess(result):
                 state.feed.reactions = MyFeedDetailFeature.addOrToggleReaction(
                     in: state.feed.reactions,
@@ -247,88 +253,104 @@ struct MyFeedDetailFeature {
                 )
                 return .none
                 
-            // MARK: - 리액션 추가 실패
+                // MARK: - 리액션 추가 실패
             case let .addReactionFailure(apiError):
                 if let pickerEmoji = state.reactionPicker.selectedEmoji {
                     state.lastFailedRequest = .addReaction(pickerEmoji)
                 }
                 return handleAPIError(apiError)
                 
-            // MARK: - 수정 버튼 탭
+                // MARK: - 수정 버튼 탭
             case .editButtonTapped:
                 // 피드 수정 화면으로 이동
                 state.editMyFeedDetail = EditMyFeedDetailFeature.State(feed: state.feed)
                 return .none
                 
-            // MARK: - 수정 완료 후 delegate 처리
-            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(imageURL)))):
+                // MARK: - 수정 완료 후 delegate 처리
+            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(_, imageURL)))):
                 state.feed.imageURL = imageURL
                 state.editMyFeedDetail = nil
-                return .send(.delegate(.feedUpdated(imageURL: imageURL)))
+                return .send(.delegate(.feedUpdated(feedID: state.feed.feedID, imageURL: imageURL)))
                 
-            // MARK: - 수정 화면에서 뒤로가기
+                // MARK: - 수정 화면에서 뒤로가기
             case .editMyFeedDetail(.presented(.backButtonTapped)):
                 state.editMyFeedDetail = nil
                 return .none
                 
-            // MARK: - 피드 삭제 버튼 탭
-            case .deleteButtonTapped:
-                let feedId = state.feed.feedID
+            case let .showDeletePopup(feedID):
+                return .send(
+                    .popup(.show(
+                        action: .deleteFeed(feedID),
+                        title: "해당 게시물을 삭제할까요?",
+                        message: "한 번 삭제되면 복구하기 어려워요.",
+                        actionTitle: "삭제하기",
+                        cancelTitle: "취소"
+                    ))
+                )
                 
-                // 삭제 요청 수행
+            case let .confirmDelete(feedID):
                 return .run { send in
                     do {
-                        _ = try await selfieFeedDeleteUseCase.execute(feedId: feedId)
-                        await send(.deleteFeedSuccess)
+                        _ = try await selfieFeedDeleteUseCase.execute(feedId: feedID)
+                        await send(.deleteFeedSuccess(feedID))
                     } catch {
-                        if let apiError = error as? APIError {
-                            await send(.deleteFeedFailure(apiError))
-                        } else {
-                            await send(.deleteFeedFailure(.unknown))
-                        }
+                        await send(.deleteFeedFailure(error as? APIError ?? .unknown))
                     }
                 }
                 
-            // MARK: - 피드 삭제 성공
             case .deleteFeedSuccess:
                 return .merge(
                     .send(.delegate(.feedDeleted(feedID: state.feed.feedID))),
                     .send(.backButtonTapped)
                 )
                 
-            // MARK: - 피드 삭제 실패
-            case let .deleteFeedFailure(apiError):
+            case let .deleteFeedFailure(error):
                 state.lastFailedRequest = .deleteFeed
-                return handleAPIError(apiError)
+                return handleAPIError(error)
                 
-            // MARK: - 피드 이미지 저장 버튼 탭
+            case let .showReportPopup(feedID):
+                return .send(
+                    .popup(.show(
+                        action: .reportFeed(feedID),
+                        title: "해당 게시물을 신고할까요?",
+                        message: "심사를 거쳐 게시물을 삭제해드립니다.",
+                        actionTitle: "신고하기",
+                        cancelTitle: "취소"
+                    ))
+                )
+                
+            case let .confirmReport(feedID):
+                print("신고 완료 (feedID: \(feedID))")
+                return .none
+                
+                // MARK: - 피드 이미지 저장 버튼 탭
             case .saveImageButtonTapped:
                 return .run { [feed = state.feed] send in
                     let image = await MyFeedImageCaptureView(feed: feed).snapshot()
                     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                     await send(.saveImageSuccess)
                 }
-            //MARK: - 피드 이미지 저장 성공
+                //MARK: - 피드 이미지 저장 성공
             case .saveImageSuccess:
                 print("이미지 저장 완료")
                 return .none
-
-            // MARK: - 피커 닫기 요청
+                
+                // MARK: - 피커 닫기 요청
             case .reactionPicker(.dismissRequested):
                 state.isReactionPickerPresented = false
                 return .none
                 
-            // MARK: - 시트 전체 닫기
+                // MARK: - 시트 전체 닫기
             case .dismissSheet:
                 state.isReactionDetailPresented = false
                 state.isReactionPickerPresented = false
                 return .none
                 
-            // MARK: - 재시도 요청 (네트워크/서버 에러 이후)
+                // MARK: - 재시도 요청 (네트워크/서버 에러 이후)
             case .networkErrorPopup(.retryButtonTapped),
-                 .serverError(.retryButtonTapped):
+                    .serverError(.retryButtonTapped):
                 guard let failed = state.lastFailedRequest else { return .none }
-
+                
                 // 실패했던 요청 유형에 따라 재전송
                 switch failed {
                 case let .toggleReaction(reaction):
@@ -336,9 +358,9 @@ struct MyFeedDetailFeature {
                 case let .addReaction(emoji):
                     return .send(.reactionPicker(.reactionSelected(emoji)))
                 case .deleteFeed:
-                    return .send(.deleteButtonTapped)
+                    return .send(.confirmDelete(state.feed.feedID))
                 }
-
+                
             default:
                 return .none
             }
@@ -372,25 +394,35 @@ private extension MyFeedDetailFeature {
     /// 리액션 탭 시 상태를 토글합니다.
     /// - 이미 내가 누른 상태면 취소하고, 아니라면 추가합니다.
     static func toggleReaction(in reactions: [ReactionViewState], for emoji: EmojiType) -> [ReactionViewState] {
-        var updatedReactions = reactions.map { item -> ReactionViewState in
-            var updated = item
-            if item.emojiType == emoji {
-                if item.isReactedByMe {
-                    // 이미 내가 누른 상태 → 취소
-                    updated.isReactedByMe = false
-                    updated.totalCount = max(0, item.totalCount - 1)
-                    updated.users.removeAll(where: { $0.isMe })
-                } else {
-                    // 새로 리액션 추가
-                    updated.isReactedByMe = true
-                    updated.totalCount += 1
-                    updated.users.append(Self.makeMyReactionUser())
-                }
-            }
-            return updated
+        var updatedReactions = reactions
+        
+        // 1. 대상 리액션의 인덱스를 찾습니다.
+        guard let index = updatedReactions.firstIndex(where: { $0.emojiType == emoji }) else {
+            // 이 액션은 이미 있는 리액션을 누를 때 발생해야 하므로, 찾지 못하면 기존 배열을 반환합니다.
+            return reactions
         }
-        // totalCount가 0이 된 리액션은 제거
-        updatedReactions.removeAll(where: { $0.totalCount == 0 })
+        
+        var targetReaction = updatedReactions[index]
+        
+        if targetReaction.isReactedByMe {
+            // 2. 내가 누른 상태 → 취소
+            targetReaction.isReactedByMe = false
+            targetReaction.totalCount = max(0, targetReaction.totalCount - 1)
+            targetReaction.users.removeAll(where: { $0.isMe })
+        } else {
+            // 3. 내가 새로 추가 (토글이므로, 이모지 타입은 이미 존재함)
+            targetReaction.isReactedByMe = true
+            targetReaction.totalCount += 1
+            targetReaction.users.append(Self.makeMyReactionUser())
+        }
+        
+        // 4. 업데이트된 리액션을 기존 위치에 다시 넣거나, 카운트가 0이면 제거합니다.
+        if targetReaction.totalCount > 0 {
+            updatedReactions[index] = targetReaction // 순서 변경 없이 기존 위치에 업데이트
+        } else {
+            updatedReactions.remove(at: index) // 카운트 0이면 제거
+        }
+        
         return updatedReactions
     }
     
@@ -398,31 +430,43 @@ private extension MyFeedDetailFeature {
     /// - 이미 존재하면 토글, 없으면 새로 추가합니다.
     static func addOrToggleReaction(in reactions: [ReactionViewState], emoji: EmojiType) -> [ReactionViewState] {
         var updatedReactions = reactions
+        
         if let index = updatedReactions.firstIndex(where: { $0.emojiType == emoji }) {
-            // 이미 존재하는 리액션 → 토글
-            var updated = updatedReactions[index]
-            if updated.isReactedByMe {
-                updated.isReactedByMe = false
-                updated.totalCount = max(0, updated.totalCount - 1)
-                updated.users.removeAll(where: { $0.isMe })
+            // 1. 이미 존재하는 리액션 → 순서 유지
+            var targetReaction = updatedReactions[index]
+            
+            // 기존 로직과 동일하게 토글 처리
+            if targetReaction.isReactedByMe {
+                // 1-1. 내가 이미 누른 상태 → 취소
+                targetReaction.isReactedByMe = false
+                targetReaction.totalCount = max(0, targetReaction.totalCount - 1)
+                targetReaction.users.removeAll(where: { $0.isMe })
+                
+                if targetReaction.totalCount > 0 {
+                    updatedReactions[index] = targetReaction // 순서 유지하며 업데이트
+                } else {
+                    updatedReactions.remove(at: index) // 카운트 0이면 제거
+                }
+                
             } else {
-                updated.isReactedByMe = true
-                updated.totalCount += 1
-                updated.users.append(Self.makeMyReactionUser())
+                // 1-2. 다른 사람이 누른 상태 → 내가 추가
+                targetReaction.isReactedByMe = true
+                targetReaction.totalCount += 1
+                targetReaction.users.append(Self.makeMyReactionUser())
+                updatedReactions[index] = targetReaction // 순서 유지하며 업데이트
             }
-            updatedReactions[index] = updated
+            
         } else {
-            // 존재하지 않는 리액션 → 새로 추가
+            // 2. 존재하지 않는 리액션 → 새로 생성하여 가장 앞에 추가
             let newReaction = ReactionViewState(
                 emojiType: emoji,
                 totalCount: 1,
                 isReactedByMe: true,
                 users: [Self.makeMyReactionUser()]
             )
-            updatedReactions.append(newReaction)
+            updatedReactions.insert(newReaction, at: 0) // 요청에 따라 가장 앞에 삽입
         }
-        // totalCount가 0이 된 리액션은 제거
-        updatedReactions.removeAll(where: { $0.totalCount == 0 })
+        
         return updatedReactions
     }
     

@@ -42,9 +42,12 @@ struct EditMyFeedDetailFeature {
         case uploadSuccess(SelfieFeedUpdateResult)
         case uploadFailure(APIError)
         
+        case saveImageButtonTapped
+        case saveImageSuccess
+        
         case backButtonTapped
         
-        enum Delegate: Equatable { case updateCompleted(imageURL: String) }
+        enum Delegate: Equatable { case updateCompleted(feedID: Int, imageURL: String) }
         case delegate(Delegate)
     }
 
@@ -96,12 +99,25 @@ struct EditMyFeedDetailFeature {
             // MARK: - 업로드 성공
             case let .uploadSuccess(result):
                 state.isUploading = false
-                return .send(.delegate(.updateCompleted(imageURL: result.updatedImageUrl)))
+                return .send(.delegate(.updateCompleted(feedID: state.feed.feedID, imageURL: result.updatedImageUrl)))
 
             // MARK: - 업로드 실패
             case let .uploadFailure(apiError):
                 state.isUploading = false
                 return handleAPIError(apiError)
+                
+            // MARK: - 피드 이미지 저장 버튼 탭
+            case .saveImageButtonTapped:
+                return .run { [feed = state.feed] send in
+                    let image = await MyFeedImageCaptureView(feed: feed).snapshot()
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                    await send(.saveImageSuccess)
+                }
+                
+            //MARK: - 피드 이미지 저장 성공
+            case .saveImageSuccess:
+                print("이미지 저장 완료")
+                return .none
                 
             // MARK: - 재시도
             case .networkErrorPopup(.retryButtonTapped),

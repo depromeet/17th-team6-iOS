@@ -20,7 +20,7 @@ struct ReactionDataDTO: Decodable {
 }
 
 extension ReactionDataDTO {
-    func toDomain() -> SelfieFeedReaction {
+    func toDomain() -> SelfieFeedReactionResult {
         .init(
             selfieId: selfieId,
             emojiType: EmojiType(rawValue: emojiType) ?? .surprise,

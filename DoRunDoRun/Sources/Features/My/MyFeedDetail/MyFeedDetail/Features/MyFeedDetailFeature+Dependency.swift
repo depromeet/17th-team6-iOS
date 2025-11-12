@@ -15,7 +15,7 @@ extension DependencyValues {
     }
 
     // MARK: - 인증 피드 삭제
-    var selfieFeedDeleteUseCase: SelfieFeedDeleteUseCase {
+    var selfieFeedDeleteUseCase: SelfieFeedDeleteUseCaseProtocol {
         get { self[SelfieFeedDeleteUseCaseKey.self] }
         set { self[SelfieFeedDeleteUseCaseKey.self] = newValue }
     }
@@ -30,8 +30,8 @@ private enum SelfieFeedReactionUseCaseKey: DependencyKey {
 }
 
 private enum SelfieFeedDeleteUseCaseKey: DependencyKey {
-    static let liveValue: SelfieFeedDeleteUseCase =
-        SelfieFeedDeleteUseCaseImpl(repository: SelfieFeedDeleteRepositoryImpl())
-    static let testValue: SelfieFeedDeleteUseCase =
-        SelfieFeedDeleteUseCaseImpl(repository: SelfieFeedDeleteRepositoryMock())
+    static let liveValue: SelfieFeedDeleteUseCaseProtocol =
+        SelfieFeedDeleteUseCase(repository: SelfieFeedDeleteRepositoryImpl())
+    static let testValue: SelfieFeedDeleteUseCaseProtocol =
+        SelfieFeedDeleteUseCase(repository: SelfieFeedDeleteRepositoryMock())
 }

@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol SelfieFeedDeleteUseCase {
+protocol SelfieFeedDeleteUseCaseProtocol {
     func execute(feedId: Int) async throws
 }
 
-final class SelfieFeedDeleteUseCaseImpl: SelfieFeedDeleteUseCase {
+final class SelfieFeedDeleteUseCase: SelfieFeedDeleteUseCaseProtocol {
     private let repository: SelfieFeedDeleteRepository
 
     init(repository: SelfieFeedDeleteRepository = SelfieFeedDeleteRepositoryImpl()) {

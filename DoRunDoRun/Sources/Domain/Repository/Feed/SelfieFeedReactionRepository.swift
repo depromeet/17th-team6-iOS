@@ -6,5 +6,5 @@
 //
 
 protocol SelfieFeedReactionRepository: AnyObject {
-    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReaction
+    func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResult
 }

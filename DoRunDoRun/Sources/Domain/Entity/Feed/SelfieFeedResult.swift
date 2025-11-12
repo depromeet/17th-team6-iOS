@@ -11,7 +11,7 @@ import Foundation
 /// - `userSummary`: 피드 상단에 표시될 유저 요약 정보
 /// - `feeds`: 실제 피드(게시물) 리스트
 struct SelfieFeedResult: Equatable {
-    let userSummary: UserSummary
+    let userSummary: UserSummary?
     let feeds: [SelfieFeed]
 }
 

@@ -32,6 +32,8 @@ struct RunningSessionSummaryDTO: Decodable {
 extension RunningSessionSummaryDTO {
     func toDomain() -> RunningSessionSummary {
         let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        iso8601Formatter.timeZone = TimeZone(secondsFromGMT: 0)
 
         return RunningSessionSummary(
             sessionId: runSessionId,
