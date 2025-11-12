@@ -22,9 +22,7 @@ struct MonthNavigationHeaderView: View {
             }
             
             // 현재 월 텍스트 (예: "2025년 11월")
-            Text(monthTitle)
-                .font(.subheadline.bold())
-                .foregroundColor(.gray900)
+            TypographyText(text: monthTitle, style: .b1_500)
 
             // 다음 달로 이동 버튼
             Button(action: onNextTapped) {
