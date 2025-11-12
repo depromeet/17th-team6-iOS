@@ -95,11 +95,14 @@ struct RunningDetailView: View {
                     .padding(.bottom, 8)
                     
                     paceColorBar
-                    
+
                     Spacer()
-                    
-                    recordVerificationButton {
-                        store.send(.recordVerificationButtonTapped)
+
+                    // completing 모드이면서 당일 시작한 러닝만 버튼 표시
+                    if case .completing = store.viewMode, store.detail.shouldShowRecordButton {
+                        recordVerificationButton {
+                            store.send(.recordVerificationButtonTapped)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)

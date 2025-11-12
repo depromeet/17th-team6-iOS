@@ -67,6 +67,7 @@ struct RunningDetailFeature {
 
         enum Delegate: Equatable {
             case backButtonTapped
+            case navigateToCreateFeed(summary: RunningSessionSummaryViewState)
         }
     }
 
@@ -86,8 +87,18 @@ struct RunningDetailFeature {
                 return .send(.delegate(.backButtonTapped))
 
             case .recordVerificationButtonTapped:
-                // TODO: 화면 전환 로직 추가
-                return .none
+                // completing 모드에서만 동작 & sessionId가 있어야 함
+                guard case .completing = state.viewMode,
+                      let sessionId = state.detail.sessionId else {
+                    return .none
+                }
+
+                // RunningDetailViewState → RunningSessionSummaryViewState 변환
+                let summary = RunningSessionSummaryViewStateMapper.mapFromDetail(
+                    from: state.detail
+                )
+
+                return .send(.delegate(.navigateToCreateFeed(summary: summary)))
 
             // MARK: - 이미지 캡처
             case .startImageCapture:

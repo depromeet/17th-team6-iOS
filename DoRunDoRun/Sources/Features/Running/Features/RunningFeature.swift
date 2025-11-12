@@ -2,7 +2,7 @@ import UIKit
 
 import ComposableArchitecture
 
-enum RunningPhase {
+enum RunningPhase: Equatable {
     case ready
     case countdown
     case active
@@ -13,7 +13,7 @@ struct RunningFeature {
     @Dependency(\.runningUseCase) var runningUseCase
 
     @ObservableState
-    struct State: Equatable {
+    struct State {
         @Presents var runningDetail: RunningDetailFeature.State?
 
         var phase: RunningPhase = .ready
@@ -24,9 +24,19 @@ struct RunningFeature {
         var ready = RunningReadyFeature.State()
         var countdown = RunningCountdownFeature.State()
         var active = RunningActiveFeature.State()
+
+        // Path 기반 네비게이션
+        var path = StackState<Path.State>()
     }
-    
-    enum Action: Equatable {
+
+    @Reducer
+    enum Path {
+        case detail(RunningDetailFeature)
+        case createFeed(CreateFeedFeature)
+    }
+
+    enum Action {
+        case path(StackAction<Path.State, Path.Action>)
         case runningDetail(PresentationAction<RunningDetailFeature.Action>)
 
         case ready(RunningReadyFeature.Action)
@@ -69,6 +79,34 @@ struct RunningFeature {
 
         Reduce { state, action in
             switch action {
+
+            // MARK: - Path Navigation
+            case .path(.element(id: _, action: .detail(.delegate(.navigateToCreateFeed(let summary))))):
+                // Detail에서 CreateFeed로 이동
+                state.path.append(.createFeed(CreateFeedFeature.State(session: summary)))
+                return .none
+
+            case .path(.element(id: _, action: .detail(.delegate(.backButtonTapped)))):
+                // Detail에서 뒤로가기
+                state.path.removeAll()
+                state.runningDetail = nil
+                return .send(.delegate(.navigateToFeed))
+
+            case .path(.element(id: _, action: .createFeed(.delegate(.uploadCompleted)))):
+                // CreateFeed 업로드 완료 → Feed 탭으로 이동
+                state.path.removeAll()
+                state.runningDetail = nil
+                return .send(.delegate(.navigateToFeed))
+
+            case .path(.element(id: _, action: .createFeed(.backButtonTapped))):
+                // CreateFeed에서 뒤로가기 → Detail로 돌아가기
+                if state.path.count > 1 {
+                    state.path.removeLast()
+                }
+                return .none
+
+            case .path:
+                return .none
 
             // Ready → 세션 생성 시작
             case .ready(.startButtonTapped):
@@ -173,10 +211,13 @@ struct RunningFeature {
                     .viewing
                 }
 
-                state.runningDetail = RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: final),
+                let detailState = RunningDetailFeature.State(
+                    detail: RunningDetailViewStateMapper.map(from: final, sessionId: sessionId),
                     viewMode: viewMode
                 )
+
+                // path에 Detail 추가
+                state.path.append(.detail(detailState))
 
                 // 초기 상태로 복귀
                 UIApplication.shared.setTabBarHidden(false)
@@ -209,6 +250,7 @@ struct RunningFeature {
         .ifLet(\.$runningDetail, action: \.runningDetail) {
             RunningDetailFeature()
         }
+        .forEach(\.path, action: \.path)
     }
 
     // MARK: - 에러 처리
