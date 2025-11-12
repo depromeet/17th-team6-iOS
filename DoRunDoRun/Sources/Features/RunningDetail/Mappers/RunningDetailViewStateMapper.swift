@@ -9,8 +9,8 @@
 import Foundation
 
 struct RunningDetailViewStateMapper {
-    /// Domain → ViewState (Forward Mapping with sessionId)
-    static func map(from detail: RunningDetail, sessionId: Int?) -> RunningDetailViewState {
+    /// Domain → ViewState (Forward Mapping)
+    static func map(from detail: RunningDetail) -> RunningDetailViewState {
         // FinishedAt → "2025.10.09 · 오전 10:11" 형식으로
         let finishedAtText = formatDate(detail.finishedAt)
 
@@ -30,7 +30,7 @@ struct RunningDetailViewStateMapper {
 
         return RunningDetailViewState(
             // 세션 정보
-            sessionId: sessionId,
+            sessionId: detail.sessionId,
             // Formatted strings
             finishedAtText: finishedAtText,
             totalDistanceText: distanceText,
@@ -57,8 +57,9 @@ struct RunningDetailViewStateMapper {
         )
     }
 
-    /// Domain → ViewState (Forward Mapping) - 기존 호환성 유지
-    static func map(from detail: RunningDetail) -> RunningDetailViewState {
+    /// Domain → ViewState (기존 호환성 유지를 위한 오버로드) - deprecated
+    @available(*, deprecated, message: "Use map(from:) instead. sessionId is now part of RunningDetail")
+    static func map(from detail: RunningDetail, sessionId: Int?) -> RunningDetailViewState {
         // FinishedAt → "2025.10.09 · 오전 10:11" 형식으로
         let finishedAtText = formatDate(detail.finishedAt)
 
@@ -108,6 +109,7 @@ struct RunningDetailViewStateMapper {
     /// ViewState → Domain (Reverse Mapping)
     static func toDomain(from viewState: RunningDetailViewState) -> RunningDetail {
         return RunningDetail(
+            sessionId: viewState.sessionId,
             startedAt: viewState.startedAt,
             finishedAt: viewState.finishedAt,
             totalDistanceMeters: viewState.totalDistanceMeters,

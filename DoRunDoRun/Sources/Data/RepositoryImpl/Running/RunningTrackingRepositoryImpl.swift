@@ -98,10 +98,10 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
         startTimerTick()
     }
 
-    func stopTracking() async -> RunningDetail {
+    func stopTracking(sessionId: Int?) async -> RunningDetail {
         guard state == .running || state == .paused else {
             // 이미 중지 상태라면, 현재 누적 데이터를 기준으로 요약 반환
-            let runningDetail = makeFinalRunningDetail()
+            let runningDetail = makeFinalRunningDetail(sessionId: sessionId)
 
             await runningService.stop()
             cancelConsumer()
@@ -123,7 +123,7 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
         continuation?.finish()
         continuation = nil
 
-        let runningDetail = makeFinalRunningDetail()
+        let runningDetail = makeFinalRunningDetail(sessionId: sessionId)
         resetAccumulators()
         return runningDetail
     }
@@ -260,7 +260,7 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
         return (minutes > 0) ? (Double(totalSteps) / minutes) : 0
     }
 
-    private func makeFinalRunningDetail() -> RunningDetail {
+    private func makeFinalRunningDetail(sessionId: Int?) -> RunningDetail {
         let finishedAt = pausedAt ?? Date()
         let avgCadence = averageCadenceSpm(totalSteps: totalSteps, elapsedSec: totalSec)
         let avgPace = averagePaceSecPerKm(distanceMeters: totalDistanceMeters, elapsedSec: totalSec)
@@ -269,6 +269,7 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
         ?? RunningPoint(timestamp: .now, coordinate: .init(latitude: 0, longitude: 0), altitude: 0, speedMps: 0)
 
         return RunningDetail(
+            sessionId: sessionId,
             startedAt: startedAt ?? Date(),
             finishedAt: finishedAt,
             totalDistanceMeters: totalDistanceMeters,

@@ -20,5 +20,6 @@ protocol RunningTrackingRepository: AnyObject {
     func resumeTracking() async throws
 
     /// 종료 (최종 RunningDetail 반환, 누적 초기화)
-    func stopTracking() async -> RunningDetail
+    /// - Parameter sessionId: 서버 세션 ID (있는 경우)
+    func stopTracking(sessionId: Int?) async -> RunningDetail
 }

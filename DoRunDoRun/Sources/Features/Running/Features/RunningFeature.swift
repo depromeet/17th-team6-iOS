@@ -198,21 +198,21 @@ struct RunningFeature {
 
             case .stopRunning:
                 return .run { [useCase = self.runningUseCase] send in
-                    let (detail, sessionId) = await useCase.stop()
-                    await send(.active(.delegate(.didFinish(final: detail, sessionId: sessionId))))
+                    let detail = await useCase.stop()
+                    await send(.active(.delegate(.didFinish(final: detail))))
                 }
                 .cancellable(id: CancelID.runningStream)
 
             // Active → Parent delegate: 최종 상세 결과 전달
-            case let .active(.delegate(.didFinish(final, sessionId))):
-                let viewMode: RunningDetailFeature.State.ViewMode = if let sessionId {
+            case let .active(.delegate(.didFinish(final))):
+                let viewMode: RunningDetailFeature.State.ViewMode = if let sessionId = final.sessionId {
                     .completing(sessionId: sessionId)
                 } else {
                     .viewing
                 }
 
                 let detailState = RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: final, sessionId: sessionId),
+                    detail: RunningDetailViewStateMapper.map(from: final),
                     viewMode: viewMode
                 )
 

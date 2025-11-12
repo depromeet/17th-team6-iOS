@@ -14,7 +14,7 @@ protocol RunningUseCaseProtocol {
 
     func pause() async
     func resume() async throws
-    func stop() async -> (detail: RunningDetail, sessionId: Int?)
+    func stop() async -> RunningDetail
 }
 
 final class RunningUseCase: RunningUseCaseProtocol {
@@ -90,23 +90,23 @@ final class RunningUseCase: RunningUseCaseProtocol {
         startPeriodicSegmentSave()
     }
 
-    func stop() async -> (detail: RunningDetail, sessionId: Int?) {
+    func stop() async -> RunningDetail {
         // 1. 세그먼트 저장 중단
         segmentSaveTask?.cancel()
 
-        // 2. 로컬 추적 종료
-        let detail = await trackingRepository.stopTracking()
-
-        // 3. 최종 세그먼트 저장 (isStopped: true)
-        await saveCurrentSegment(isStopped: true)
-
-        // 4. sessionId 저장 (resetSessionState 전에)
+        // 2. sessionId 저장 (resetSessionState 전에)
         let currentSessionId = self.sessionId
+
+        // 3. 로컬 추적 종료 (sessionId 포함)
+        let detail = await trackingRepository.stopTracking(sessionId: currentSessionId)
+
+        // 4. 최종 세그먼트 저장 (isStopped: true)
+        await saveCurrentSegment(isStopped: true)
 
         // 5. 상태 초기화 (서버 완료는 RunningDetailFeature에서 처리)
         resetSessionState()
 
-        return (detail, currentSessionId)
+        return detail
     }
 
     // MARK: - Private Helpers

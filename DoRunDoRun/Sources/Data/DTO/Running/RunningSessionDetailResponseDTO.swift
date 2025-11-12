@@ -88,6 +88,7 @@ extension RunningSessionDetailDataDTO {
         }
 
         return RunningDetail(
+            sessionId: id,
             startedAt: iso8601Formatter.date(from: createdAt) ?? Date(),
             finishedAt: iso8601Formatter.date(from: finishedAt) ?? Date(),
             totalDistanceMeters: Double(distanceTotal),

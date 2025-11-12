@@ -13,7 +13,7 @@ struct RunningActiveFeature {
         case pauseRequested
         case resumeRequested
         case stopConfirmed
-        case didFinish(final: RunningDetail, sessionId: Int?)
+        case didFinish(final: RunningDetail)
     }
     
     @ObservableState

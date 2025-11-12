@@ -88,14 +88,56 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
         startTicker()
     }
 
-    func stopTracking() async -> RunningDetail {
-        guard state == .running || state == .paused else { return RunningDetail.mock }
+    func stopTracking(sessionId: Int?) async -> RunningDetail {
+        guard state == .running || state == .paused else {
+            return RunningDetail(
+                sessionId: sessionId,
+                startedAt: Date(),
+                finishedAt: Date().addingTimeInterval(3600),
+                totalDistanceMeters: 3210.5,
+                elapsed: .seconds(900),
+                avgPaceSecPerKm: 280.0,
+                avgCadenceSpm: 175.0,
+                maxCadenceSpm: 186.0,
+                fastestPaceSecPerKm: 265.0,
+                coordinateAtmaxPace: RunningPoint(
+                    timestamp: Date(),
+                    coordinate: RunningCoordinate(latitude: 37.5465, longitude: 127.0652),
+                    altitude: 25.0,
+                    speedMps: 3.8
+                ),
+                coordinates: [],
+                mapImageData: nil,
+                mapImageURL: nil,
+                feed: nil
+            )
+        }
         state = .stopped
         stopTicker()
         finishStream()
         reset()
 
-        return RunningDetail.mock
+        return RunningDetail(
+            sessionId: sessionId,
+            startedAt: Date(),
+            finishedAt: Date().addingTimeInterval(3600),
+            totalDistanceMeters: 3210.5,
+            elapsed: .seconds(900),
+            avgPaceSecPerKm: 280.0,
+            avgCadenceSpm: 175.0,
+            maxCadenceSpm: 186.0,
+            fastestPaceSecPerKm: 265.0,
+            coordinateAtmaxPace: RunningPoint(
+                timestamp: Date(),
+                coordinate: RunningCoordinate(latitude: 37.5465, longitude: 127.0652),
+                altitude: 25.0,
+                speedMps: 3.8
+            ),
+            coordinates: [],
+            mapImageData: nil,
+            mapImageURL: nil,
+            feed: nil
+        )
     }
 
     // MARK: - Ticker
