@@ -107,12 +107,14 @@ struct RunningDetailView: View {
                 }
                 .padding(.horizontal, 20)
                 
-                // MARK: - Image Capture Dim Overlay (completing 모드에서만)
-                if case .completing = store.viewMode, store.isCapturingImage {
+                // MARK: - Image Capture Dim Overlay (completing 모드이고 mapImageURL이 없을 때만)
+                if case .completing = store.viewMode,
+                   store.detail.mapImageURL == nil,
+                   store.isCapturingImage {
                     ZStack {
                         Color.dimLight
                             .ignoresSafeArea()
-                        
+
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .scaleEffect(1.5)
