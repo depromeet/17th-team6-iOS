@@ -23,9 +23,19 @@ struct RunningSessionSummaryViewStateMapper {
         
         // MARK: 인증 상태 계산
         let tagStatus: CertificationStatus = {
+            // 이미 인증한 경우
             if entity.isSelfied { return .completed }
-            let elapsed = Date().timeIntervalSince(entity.finishedAt)
-            return elapsed <= 48 * 3600 ? .possible : .none
+            
+            // 오늘 날짜의 00:00 시각 계산
+            let calendar = Calendar.current
+            let startOfToday = calendar.startOfDay(for: Date())
+            
+            // createdAt이 오늘 이후면 인증 가능
+            if entity.createdAt >= startOfToday {
+                return .possible
+            } else {
+                return .none
+            }
         }()
         
         // MARK: ViewState 생성
