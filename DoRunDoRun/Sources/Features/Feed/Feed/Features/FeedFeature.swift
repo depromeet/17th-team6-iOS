@@ -156,6 +156,12 @@ struct FeedFeature {
         case friendList(PresentationAction<FriendListFeature.Action>)
         case notificationList(PresentationAction<NotificationFeature.Action>)
         case myFeedDetail(PresentationAction<MyFeedDetailFeature.Action>)
+        
+        enum Delegate: Equatable {
+            case feedUpdateCompleted(feedID: Int, newImageURL: String?)
+            case feedDeleteCompleted(feedID: Int)
+        }
+        case delegate(Delegate)
     }
 
     // MARK: - Reducer
@@ -320,17 +326,17 @@ struct FeedFeature {
             case let .showFeedDetail(feed):
                 state.myFeedDetail = .init(feedId: feed.feedID, feed: feed)
                 return .none
-
-            case .myFeedDetail(.presented(.delegate(.feedDeleted(let feedID)))):
-                state.feeds.removeAll(where: { $0.feedID == feedID })
-                return .none
-
+                
             case .myFeedDetail(.presented(.delegate(.feedUpdated(let feedID, let imageURL)))):
                 if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
                     state.feeds[index].imageURL = imageURL
                 }
-                return .none
-                
+                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
+
+            case .myFeedDetail(.presented(.delegate(.feedDeleted(let feedID)))):
+                state.feeds.removeAll(where: { $0.feedID == feedID })
+                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
+
             case .myFeedDetail(.presented(.delegate(.reactionUpdated(let feedID, let reactions)))):
                 if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
                     state.feeds[index].reactions = reactions
@@ -425,8 +431,8 @@ struct FeedFeature {
                     state.feeds[index].imageURL = imageURL
                 }
                 state.editMyFeedDetail = nil
-                return .none
-                
+                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
+
             case .editMyFeedDetail(.presented(.backButtonTapped)):
                 state.editMyFeedDetail = nil
                 return .none
@@ -458,7 +464,7 @@ struct FeedFeature {
                 if let myIndex = state.selfieUsers.firstIndex(where: { $0.isMe }) {
                     state.selfieUsers.remove(at: myIndex)
                 }
-                return .none
+                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
 
             case let .deleteFeedFailure(error):
                 return handleAPIError(error)

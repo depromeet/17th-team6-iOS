@@ -48,7 +48,7 @@ private enum FriendDeleteUseCaseKey: DependencyKey {
 
 private enum FriendCodeUseCaseKey: DependencyKey {
     static let liveValue: MyFriendCodeUseCase = MyFriendCodeUseCase(
-        repository: MyFriendCodeRepositoryMock()
+        repository: MyFriendCodeRepositoryImpl()
     )
     static let testValue: MyFriendCodeUseCase = MyFriendCodeUseCase(
         repository: MyFriendCodeRepositoryMock()

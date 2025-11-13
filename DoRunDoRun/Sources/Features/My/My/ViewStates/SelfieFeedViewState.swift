@@ -22,7 +22,7 @@ struct SelfieFeedViewState: Identifiable, Equatable {
     /// 고유 ID (Kind에 따라 다르게 구성)
     let id: String
     /// 셀 종류 (월 헤더 or 피드)
-    let kind: Kind
+    var kind: Kind
 }
 
 // MARK: - SelfieFeedItem

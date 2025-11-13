@@ -54,7 +54,7 @@ struct SelfieFeed: Equatable, Identifiable {
     /// 평균 케이던스 (spm)
     let cadence: Int
     /// 게시물 이미지 URL (지도 이미지 또는 셀피)
-    let imageUrl: String
+    var imageUrl: String
     /// 리액션(이모지 반응) 리스트
     let reactions: [Reaction]
 }
