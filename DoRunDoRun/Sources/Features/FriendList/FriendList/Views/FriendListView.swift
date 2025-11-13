@@ -20,6 +20,26 @@ struct FriendListView: View {
                 popupSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
+            .navigationTitle("친구")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
+            ) { store in
+                FriendCodeInputView(store: store)
+            }
         }
     }
 }
@@ -47,26 +67,6 @@ private extension FriendListView {
             friendListSection
                 .padding(.bottom, 129)
             Spacer()
-        }
-        .onAppear { store.send(.onAppear) }
-        .navigationTitle("친구")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.arrowLeft, size: .medium)
-                        .renderingMode(.template)
-                        .foregroundColor(.gray800)
-                }
-            }
-        }
-        .navigationDestination(
-            item: $store.scope(state: \.friendCodeInput, action: \.friendCodeInput)
-        ) { store in
-            FriendCodeInputView(store: store)
         }
     }
     // 헤더 섹션

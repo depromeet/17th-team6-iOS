@@ -19,6 +19,21 @@ struct FriendCodeInputView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .onAppear { isFocused = true }
+            .navigationTitle("친구 코드 입력")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
         }
     }
 }
@@ -47,21 +62,6 @@ private extension FriendCodeInputView {
             toastAndButtonSection
         }
         .padding(.horizontal, 20)
-        .onAppear { isFocused = true }
-        .navigationTitle("친구 코드 입력")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.arrowLeft, size: .medium)
-                        .renderingMode(.template)
-                        .foregroundColor(.gray800)
-                }
-            }
-        }
     }
     /// 타이틀 섹션
     var titleSection: some View {

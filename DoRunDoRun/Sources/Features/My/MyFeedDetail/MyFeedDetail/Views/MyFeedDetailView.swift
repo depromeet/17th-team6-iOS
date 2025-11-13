@@ -24,6 +24,24 @@ struct MyFeedDetailView: View {
                 sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
+            .onAppear { store.send(.onAppear) }
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray0)
+                    }
+                }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
+            ) { store in
+                EditMyFeedDetailView(store: store)
+            }
         }
     }
 }
@@ -71,24 +89,6 @@ private extension MyFeedDetailView {
                 } else {
                     Color.gray900.ignoresSafeArea() // 이미지가 없을 경우 기본 배경
                 }
-            }
-            .onAppear { store.send(.onAppear) }
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray0)
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
-            ) { store in
-                EditMyFeedDetailView(store: store)
             }
         }
     }

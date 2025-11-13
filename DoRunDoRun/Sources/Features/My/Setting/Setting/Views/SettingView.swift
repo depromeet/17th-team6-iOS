@@ -19,6 +19,36 @@ struct SettingView: View {
                 popupSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
+            .scrollContentBackground(.hidden)
+            .navigationTitle("설정")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.editProfile, action: \.editProfile)
+            ) { store in
+                EditProfileView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.accountInfo, action: \.accountInfo)
+            ) { store in
+                AccountInfoView(store: store)
+            }.navigationDestination(
+                item: $store.scope(state: \.pushNotificationSetting, action: \.pushNotificationSetting)
+            ) { store in
+                PushNotificationSettingView(store: store)
+            }
         }
     }
 }
@@ -50,36 +80,6 @@ private extension SettingView {
                 divider
                 etcSection
                 Spacer()
-            }
-            .onAppear { store.send(.onAppear) }
-            .scrollContentBackground(.hidden)
-            .navigationTitle("설정")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.editProfile, action: \.editProfile)
-            ) { store in
-                EditProfileView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.accountInfo, action: \.accountInfo)
-            ) { store in
-                AccountInfoView(store: store)
-            }.navigationDestination(
-                item: $store.scope(state: \.pushNotificationSetting, action: \.pushNotificationSetting)
-            ) { store in
-                PushNotificationSettingView(store: store)
             }
         }
     }

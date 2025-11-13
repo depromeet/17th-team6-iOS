@@ -22,6 +22,22 @@ struct EditProfileView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .task { focusedField = .nickname }
+            .navigationTitle("프로필 수정")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+
         }
     }
 }
@@ -52,21 +68,6 @@ private extension EditProfileView {
                 toastAndButtonSection
             }
             .padding(.horizontal, 20)
-            .task { focusedField = .nickname }
-            .navigationTitle("프로필 수정")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
         }
     }
     
