@@ -16,6 +16,7 @@ enum FeedAPI {
     case deleteFeed(feedId: Int)
     case getWeeklySelfieCount(startDate: String, endDate: String)
     case getSelfieUsersByDate(date: String)
+    case checkUploadable(runSessionId: Int)
 }
 
 extension FeedAPI: TargetType {
@@ -34,7 +35,8 @@ extension FeedAPI: TargetType {
             return "/api/selfie/week"
         case .getSelfieUsersByDate:
             return "/api/selfie/users"
-
+        case .checkUploadable:
+            return "/api/selfie/uploadable"
         }
     }
 
@@ -47,6 +49,7 @@ extension FeedAPI: TargetType {
         case .deleteFeed: return .delete
         case .getWeeklySelfieCount: return .get
         case .getSelfieUsersByDate: return .get
+        case .checkUploadable: return .get
         }
     }
 
@@ -117,6 +120,12 @@ extension FeedAPI: TargetType {
         case let .getSelfieUsersByDate(date):
             return .requestParameters(
                 parameters: ["date": date],
+                encoding: URLEncoding.queryString
+            )
+            
+        case let .checkUploadable(runSessionId):
+            return .requestParameters(
+                parameters: ["runSessionId": runSessionId],
                 encoding: URLEncoding.queryString
             )
         }

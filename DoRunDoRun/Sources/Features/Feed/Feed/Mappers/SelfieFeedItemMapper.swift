@@ -42,6 +42,8 @@ struct SelfieFeedItemMapper {
                 users: users
             )
         }
+        
+        let selfieDate = DateFormatterManager.shared.isoDate(from: feed.selfieTime) ?? Date()
 
         return SelfieFeedItem(
             isMyFeed: feed.isMyFeed,
@@ -58,7 +60,8 @@ struct SelfieFeedItemMapper {
             reactions: reactions,
             dateText: dateText,
             timeText: timeText,
-            relativeTimeText: relativeTimeText
+            relativeTimeText: relativeTimeText,
+            selfieDate: selfieDate
         )
     }
 

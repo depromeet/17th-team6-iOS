@@ -12,30 +12,25 @@ import ComposableArchitecture
 @Reducer
 struct RunningDetailFeature {
     @Dependency(\.runningSessionCompleter) var sessionCompleter
+    @Dependency(\.selfieUploadableUseCase) var selfieUploadableUseCase
 
     @ObservableState
     struct State: Equatable {
         var detail: RunningDetailViewState
-
-        /// 뷰 모드
-        enum ViewMode: Equatable {
-            case viewing     // 과거 기록 보기 (읽기 전용)
-            case completing  // 방금 끝난 러닝 (이미지 캡처 + 서버 업로드)
+        var selfieUploadable: SelfieUploadableViewState?
+        var isUploadable: Bool {
+            selfieUploadable?.isUploadable == true
         }
-        var viewMode: ViewMode
-
-        var isCompletingSession: Bool = false
-
-        // 이미지 캡처 상태
-        var isCapturingImage: Bool = false
+        
         var captureRetryCount: Int = 0
-
-        // 에러 처리
+        var isCapturingImage = false
+        
+        var isCompletingSession = false
+        
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
-
-        /// API 요청 실패 시, 어떤 요청이 실패했는지 저장하여 재시도 시 사용
+    
         enum FailedRequestType: Equatable {
             case uploadToServer
         }
@@ -48,7 +43,6 @@ struct RunningDetailFeature {
         case backButtonTapped
         case recordVerificationButtonTapped
 
-        // 이미지 캡처
         case startImageCapture
         case imageCaptureTimeout
         case imageCaptureMaxRetriesReached
@@ -57,18 +51,21 @@ struct RunningDetailFeature {
         case sendRunningData
         case sessionCompletedSuccessfully(mapImageURL: String?)
         case sessionCompletedWithError(APIError)
+        
+        case checkUploadable
+        case checkUploadableSuccess(SelfieUploadableResult)
+        case checkUploadableFailure(APIError)
 
-        // 에러 처리
-        case networkErrorPopup(NetworkErrorPopupFeature.Action)
-        case serverError(ServerErrorFeature.Action)
         case toast(ToastFeature.Action)
-
-        case delegate(Delegate)
+        case serverError(ServerErrorFeature.Action)
+        case networkErrorPopup(NetworkErrorPopupFeature.Action)
 
         enum Delegate: Equatable {
             case backButtonTapped
+            case navigateToFeed
             case navigateToCreateFeed(summary: RunningSessionSummaryViewState)
         }
+        case delegate(Delegate)
     }
 
     private enum CancelID {
@@ -77,8 +74,8 @@ struct RunningDetailFeature {
 
     var body: some ReducerOf<Self> {
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
-        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
+        Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
 
         BindingReducer()
         Reduce { state, action in
@@ -87,27 +84,40 @@ struct RunningDetailFeature {
                 return .send(.delegate(.backButtonTapped))
 
             case .recordVerificationButtonTapped:
-                // completing 모드에서만 동작 & sessionId가 있어야 함
-                guard case .completing = state.viewMode,
-                      let sessionId = state.detail.sessionId else {
+                guard let uploadable = state.selfieUploadable else {
                     return .none
                 }
 
-                // RunningDetailViewState → RunningSessionSummaryViewState 변환
-                let summary = RunningSessionSummaryViewStateMapper.mapFromDetail(
-                    from: state.detail
-                )
+                if uploadable.isUploadable {
+                    // 피드 생성 화면으로 이동
+                }
+                return .none
+                
+            case .checkUploadable:
+                guard let sessionId = state.detail.sessionId else { return .none }
+                
+                return .run { send in
+                    do {
+                        let result = try await selfieUploadableUseCase.execute(runSessionId: sessionId)
+                        await send(.checkUploadableSuccess(result))
+                    } catch {
+                        await send(.checkUploadableFailure(error as? APIError ?? .unknown))
+                    }
+                }
+                
+            case let .checkUploadableSuccess(result):
+                let mapped = SelfieUploadableViewStateMapper.map(from: result)
+                state.selfieUploadable = mapped
+                return .none
 
-                return .send(.delegate(.navigateToCreateFeed(summary: summary)))
+                
+            case let .checkUploadableFailure(error):
+                return handleAPIError(error)
 
-            // MARK: - 이미지 캡처
             case .startImageCapture:
-                // completing 모드가 아니거나 이미 캡처 중이면 무시
-                guard case .completing = state.viewMode,
-                      !state.isCapturingImage else {
-                    return .none
-                }
-
+                // 이미 캡처 중이면 무시
+                guard !state.isCapturingImage else { return .none }
+                
                 state.isCapturingImage = true
                 state.captureRetryCount = 0
 
@@ -120,16 +130,13 @@ struct RunningDetailFeature {
 
             case .imageCaptureTimeout:
                 // 이미 이미지가 들어왔으면 무시
-                guard state.detail.mapImageData == nil else {
-                    return .none
-                }
-
+                guard state.detail.mapImageData == nil else { return .none }
+                
                 state.captureRetryCount += 1
 
-                // 최대 3회 재시도
+                // 최대 3회 캡쳐 재시도
                 if state.captureRetryCount < 3 {
                     print("⚠️ Image capture timeout, retry \(state.captureRetryCount)/3")
-                    // 재시도: 다시 3초 타임아웃 설정
                     return .run { send in
                         try await Task.sleep(for: .seconds(3))
                         await send(.imageCaptureTimeout)
@@ -146,7 +153,6 @@ struct RunningDetailFeature {
                 return .send(.toast(.show("이미지 캡처에 실패했습니다")))
 
             case .getRouteImageData:
-                // 이미지 들어온 거 확인
                 state.isCapturingImage = false
                 state.captureRetryCount = 0
                 return .merge(
@@ -154,13 +160,12 @@ struct RunningDetailFeature {
                     .send(.sendRunningData)
                 )
 
+            // 세션 업로드
             case .sendRunningData:
-                // completing 모드에서만 서버 업로드 실행
-                guard case .completing = state.viewMode,
-                      let sessionId = state.detail.sessionId,
+                guard let sessionId = state.detail.sessionId,
                       let mapImageData = state.detail.mapImageData,
                       !state.isCompletingSession else {
-                    print("⚠️ Session completion skipped: viewMode=\(state.viewMode), hasMapImage=\(state.detail.mapImageData != nil), isCompleting=\(state.isCompletingSession)")
+                    print("⚠️ Session completion skipped: hasMapImage=\(state.detail.mapImageData != nil), isCompleting=\(state.isCompletingSession)")
                     return .none
                 }
 
@@ -183,6 +188,7 @@ struct RunningDetailFeature {
                     }
                 }
 
+            // 세션 업로드 성공
             case .sessionCompletedSuccessfully(let mapImageURL):
                 state.isCompletingSession = false
                 if let urlString = mapImageURL, let url = URL(string: urlString) {
@@ -191,33 +197,23 @@ struct RunningDetailFeature {
                 print("✅ Session completed successfully, mapImageURL: \(mapImageURL ?? "nil")")
                 return .none
 
+            // 세션 업로드 실패
             case .sessionCompletedWithError(let error):
+                print("서버에 세션 업로드 실패!!!! \(error)")
                 state.isCompletingSession = false
                 state.lastFailedRequest = .uploadToServer
                 return handleAPIError(error)
 
-            case .binding(_):
-                return .none
-
+            // 재시도
             case .networkErrorPopup(.retryButtonTapped),
                  .serverError(.retryButtonTapped):
                 guard let failed = state.lastFailedRequest else { return .none }
-
                 switch failed {
                 case .uploadToServer:
                     return .send(.sendRunningData)
                 }
-
-            case .networkErrorPopup:
-                return .none
-
-            case .serverError:
-                return .none
-
-            case .toast:
-                return .none
-
-            case .delegate:
+                
+            default:
                 return .none
             }
         }

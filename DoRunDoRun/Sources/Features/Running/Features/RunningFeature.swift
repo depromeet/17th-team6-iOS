@@ -152,9 +152,7 @@ struct RunningFeature {
             // Active → Parent delegate: 최종 상세 결과 전달
             case let .active(.delegate(.didFinish(final))):
                 let detail = RunningDetailViewStateMapper.map(from: final)
-                // mapImageURL이 없으면 completing (방금 끝난 러닝), 있으면 viewing (과거 기록)
-                let viewMode: RunningDetailFeature.State.ViewMode = final.mapImageURL == nil ? .completing : .viewing
-                state.runningDetail = RunningDetailFeature.State(detail: detail, viewMode: viewMode)
+                state.runningDetail = RunningDetailFeature.State(detail: detail)
 
                 // 초기 상태로 복귀
                 state.phase = .ready

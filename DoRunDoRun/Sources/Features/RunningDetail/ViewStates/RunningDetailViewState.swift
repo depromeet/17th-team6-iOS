@@ -12,7 +12,7 @@ struct RunningDetailViewState: Equatable {
     let sessionId: Int?
 
     // MARK: - 화면 표시용 Formatted String
-    let finishedAtText: String
+    let startedAtText: String
     let totalDistanceText: String
     let avgPaceText: String
     let durationText: String
@@ -37,10 +37,4 @@ struct RunningDetailViewState: Equatable {
 
     // MARK: - 기타
     let feed: FeedSummary?
-
-    /// 기록 인증 버튼 표시 여부 (당일 시작한 러닝만)
-    var shouldShowRecordButton: Bool {
-        let calendar = Calendar.current
-        return calendar.isDateInToday(startedAt) && feed == nil
-    }
 }

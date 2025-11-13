@@ -161,12 +161,12 @@ struct MyFeature {
                 state.path.removeLast()
                 return .none
 
-            // MARK: - Navigation: Running Detail
+            // MARK: - Navigation: Session Detail
             case let .sessionCardTapped(session):
-                state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session), viewMode: .viewing)))
+                state.path.append(.mySessionDetail(MySessionDetailFeature.State(sessionId: session.id)))
                 return .none
 
-            case .path(.element(id: _, action: .runningDetail(.delegate(.backButtonTapped)))):
+            case .path(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
 
@@ -275,7 +275,10 @@ struct MyFeature {
                 }
 
             case let .fetchSessionsSuccess(sessions):
-                state.sessions = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
+                state.sessions = RunningSessionSummaryViewStateMapper.map(
+                    from: sessions,
+                    currentDate: Date() 
+                )
                 return .none
 
             case let .fetchSessionsFailure(apiError):
@@ -316,7 +319,7 @@ struct MyFeature {
     @Reducer
     enum Path {
         case myFeedDetail(MyFeedDetailFeature)
-        case runningDetail(RunningDetailFeature)
+        case mySessionDetail(MySessionDetailFeature)
         case setting(SettingFeature)
     }
 }

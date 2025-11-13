@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 러닝 세션 조회 전담 UseCase
+/// 러닝 세션 조회 UseCase
 /// 완료된 세션 목록 및 상세 조회 기능 제공
 protocol RunningSessionFetcherProtocol {
     /// 러닝 세션 목록 조회

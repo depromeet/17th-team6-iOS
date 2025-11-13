@@ -15,6 +15,7 @@ protocol SelfieFeedService {
     func deleteFeed(feedId: Int) async throws -> SelfieFeedDeleteResponseDTO
     func fetchWeeklySelfieCount(startDate: String, endDate: String) async throws -> SelfieWeekResponseDTO
     func fetchUsersByDate(date: String) async throws -> SelfieUsersByDateResponseDTO
+    func checkUploadable(runSessionId: Int) async throws -> SelfieUploadableResponseDTO
 }
 
 final class SelfieFeedServiceImpl: SelfieFeedService {
@@ -70,6 +71,13 @@ final class SelfieFeedServiceImpl: SelfieFeedService {
         try await apiClient.request(
             FeedAPI.getSelfieUsersByDate(date: date),
             responseType: SelfieUsersByDateResponseDTO.self
+        )
+    }
+    
+    func checkUploadable(runSessionId: Int) async throws -> SelfieUploadableResponseDTO {
+        try await apiClient.request(
+            FeedAPI.checkUploadable(runSessionId: runSessionId),
+            responseType: SelfieUploadableResponseDTO.self
         )
     }
 }

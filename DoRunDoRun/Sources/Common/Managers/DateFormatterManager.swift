@@ -40,6 +40,9 @@ final class DateFormatterManager {
 
     /// "a h:mm" → 오전 10:15
     private lazy var formattedTime: DateFormatter = makeFormatter("a h:mm")
+    
+    /// "yyyy.MM.dd · a h:mm" → 2025.11.07 · 오전 10:15
+    private lazy var formattedDateTime: DateFormatter = makeFormatter("yyyy.MM.dd · a h:mm")
 
     /// "yyyy-MM-dd" (ISO)
     private lazy var formattedISODate: DateFormatter = makeFormatter("yyyy-MM-dd")
@@ -93,7 +96,7 @@ final class DateFormatterManager {
     func formatDay(from date: Date) -> String { formattedDay.string(from: date) }
     
     /// "d일" → 7일
-    func formatDayLabel(from date: Date) -> String { formattedDay.string(from: date) }
+    func formatDayLabel(from date: Date) -> String { formattedDayLabel.string(from: date) }
 
     /// "yyyy.MM.dd" → 2025.11.07
     func formatDateText(from date: Date) -> String { formattedDateText.string(from: date) }
@@ -103,6 +106,9 @@ final class DateFormatterManager {
 
     /// "a h:mm" → 오전 10:15
     func formatTime(from date: Date) -> String { formattedTime.string(from: date) }
+    
+    /// "yyyy.MM.dd · a h:mm" → 2025.11.07 · 오전 10:15
+    func formatDateTime(from date: Date) -> String { formattedDateTime.string(from: date) }
 
     // MARK: - Relative Time (예: "3분 전", "5일 전")
     func formatRelativeTime(from isoString: String) -> String {

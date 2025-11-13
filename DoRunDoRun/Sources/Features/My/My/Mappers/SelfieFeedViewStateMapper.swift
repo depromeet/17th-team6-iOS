@@ -90,6 +90,8 @@ private extension SelfieFeedViewStateMapper {
         // 기타 정보
         let isMap = feed.imageUrl.lowercased().contains("map")
         let reactions = mapReactions(from: feed.reactions, using: formatter)
+        
+        let selfieDate = DateFormatterManager.shared.isoDate(from: feed.selfieTime) ?? Date()
 
         return .init(
             isMyFeed: feed.isMyFeed,
@@ -106,7 +108,8 @@ private extension SelfieFeedViewStateMapper {
             reactions: reactions,
             dateText: dateText,
             timeText: timeText,
-            relativeTimeText: relativeTimeText
+            relativeTimeText: relativeTimeText,
+            selfieDate: selfieDate
         )
     }
 }
