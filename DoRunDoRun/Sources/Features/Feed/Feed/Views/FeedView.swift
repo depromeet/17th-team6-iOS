@@ -14,6 +14,7 @@ struct FeedView: View {
                 popupSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
             // 시트 표시 상태 변화 감지
             .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { isSheetVisible in
                 if isSheetVisible {
@@ -48,46 +49,6 @@ struct FeedView: View {
                     UIApplication.dismissOverlay()
                 }
             }
-        }
-    }
-}
-
-// MARK: - Server Error Section
-private extension FeedView {
-    /// Server Error Section
-    @ViewBuilder
-    var serverErrorSection: some View {
-        if let serverErrorType = store.serverError.serverErrorType {
-            ServerErrorView(serverErrorType: serverErrorType) {
-                store.send(.serverError(.retryButtonTapped))
-            }
-        }
-    }
-}
-
-// MARK: - Main Section
-private extension FeedView {
-    /// Main Section
-    @ViewBuilder
-    var mainSection: some View {
-        if store.serverError.serverErrorType == nil {
-            VStack(spacing: 0) {
-                headerSection
-                if store.feeds.isEmpty {
-                    VStack(spacing: 0) {
-                        scrollHeaderSection
-                        FeedEmptyView()
-                    }
-                } else {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            scrollHeaderSection
-                            feedListSection
-                        }
-                    }
-                }
-            }
-            .onAppear { store.send(.onAppear) }
             // Navigation destinations
             .navigationDestination(
                 item: $store.scope(state: \.selectSession, action: \.selectSession)
@@ -119,6 +80,46 @@ private extension FeedView {
             ) { store in
                 MyFeedDetailView(store: store)
             }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension FeedView {
+    /// Server Error Section
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension FeedView {
+    /// Main Section
+    var mainSection: some View {
+        Group {
+            if store.serverError.serverErrorType == nil {
+                VStack(spacing: 0) {
+                    headerSection
+                    if store.feeds.isEmpty {
+                        VStack(spacing: 0) {
+                            scrollHeaderSection
+                            FeedEmptyView()
+                        }
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                scrollHeaderSection
+                                feedListSection
+                            }
+                        }
+                    }
+                }
+            }
 
         }
     }
@@ -134,7 +135,8 @@ private extension FeedView {
                 }
                 Button { store.send(.notificationButtonTapped) } label: {
                     Image(.alarmActive, size: .medium)
-                }            }
+                }
+            }
         }
         .frame(height: 44)
         .padding(.horizontal, 20)

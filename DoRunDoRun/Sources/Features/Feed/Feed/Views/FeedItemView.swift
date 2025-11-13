@@ -28,7 +28,6 @@ struct FeedItemView: View {
         ZStack(alignment: .bottom) {
             mainSection
         }
-        .ignoresSafeArea(edges: .bottom)
     }
 }
 
