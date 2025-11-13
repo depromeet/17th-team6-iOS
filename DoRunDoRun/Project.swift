@@ -15,7 +15,7 @@ let project = Project(
             name: "DoRunDoRun",
             destinations: [.iPhone],
             product: .app,
-            bundleId: "depromeet.seventeen.six",
+            bundleId: "com.dorundorun",
             deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
