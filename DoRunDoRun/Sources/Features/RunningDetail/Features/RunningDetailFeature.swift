@@ -64,8 +64,7 @@ struct RunningDetailFeature {
 
         enum Delegate: Equatable {
             case backButtonTapped
-            case navigateToFeed
-            case navigateToCreateFeed(summary: RunningSessionSummaryViewState)
+            case feedUploadCompleted
         }
         case delegate(Delegate)
         
@@ -118,6 +117,11 @@ struct RunningDetailFeature {
                     state.createFeed = CreateFeedFeature.State(session: summary)
                 }
                 return .none
+                
+            case .createFeed(.presented(.delegate(.uploadCompleted))):
+                // 업로드 완료 시 CreateFeed 화면 닫고 피드로 이동
+                state.createFeed = nil
+                return .send(.delegate(.feedUploadCompleted))
                 
             case .createFeed(.presented(.backButtonTapped)):
                 state.createFeed = nil

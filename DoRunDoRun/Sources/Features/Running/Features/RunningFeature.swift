@@ -171,6 +171,10 @@ struct RunningFeature {
             case .runningDetail(.presented(.delegate(.backButtonTapped))):
                 state.runningDetail = nil
                 return .send(.delegate(.navigateToFeed))
+                
+            case .runningDetail(.presented(.delegate(.feedUploadCompleted))):
+                state.runningDetail = nil
+                return .send(.delegate(.navigateToFeed))
 
             default:
                 return .none

@@ -9,4 +9,7 @@ struct SelfieFeedCreateResponseDTO: Decodable {
     let status: String
     let message: String
     let timestamp: String
+    let data: EmptyData?
+
+    struct EmptyData: Decodable {}
 }

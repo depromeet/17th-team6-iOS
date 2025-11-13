@@ -75,44 +75,59 @@ extension FeedAPI: TargetType {
             return .requestJSONEncodable(body)
             
         case let .createFeed(data, selfieImage):
-            var formData: [MultipartFormData] = []
+            var multipartData: [MultipartFormData] = []
 
-            // JSON 데이터 인코딩
             if let jsonData = try? JSONEncoder().encode(data) {
-                formData.append(.init(provider: .data(jsonData),
-                                      name: "data",
-                                      mimeType: "application/json"))
+                print("📤 [Multipart JSON Body] \n", String(data: jsonData, encoding: .utf8) ?? "nil")
+                multipartData.append(
+                    MultipartFormData(
+                        provider: .data(jsonData),
+                        name: "data",
+                        fileName: "data.json",
+                        mimeType: "application/json"
+                    )
+                )
             }
 
-            // 이미지 파일 추가 (선택)
             if let selfieImage = selfieImage {
-                formData.append(.init(provider: .data(selfieImage),
-                                      name: "selfieImage",
-                                      fileName: "image.jpg",
-                                      mimeType: "image/jpeg"))
+                multipartData.append(
+                    MultipartFormData(
+                        provider: .data(selfieImage),
+                        name: "selfieImage",
+                        fileName: "image.jpg",
+                        mimeType: "image/jpeg"
+                    )
+                )
             }
 
-            return .uploadMultipart(formData)
+            return .uploadMultipart(multipartData)
 
         case let .updateFeed(_, data, selfieImage):
-            var formData: [MultipartFormData] = []
+            var multipart: [MultipartFormData] = []
 
-            // JSON 데이터 인코딩
             if let jsonData = try? JSONEncoder().encode(data) {
-                formData.append(.init(provider: .data(jsonData),
-                                      name: "data",
-                                      mimeType: "application/json"))
+                multipart.append(
+                    MultipartFormData(
+                        provider: .data(jsonData),
+                        name: "data",
+                        fileName: "data.json",
+                        mimeType: "application/json"
+                    )
+                )
             }
 
-            // 이미지 파일 추가 (선택)
             if let selfieImage = selfieImage {
-                formData.append(.init(provider: .data(selfieImage),
-                                      name: "selfieImage",
-                                      fileName: "image.jpg",
-                                      mimeType: "image/jpeg"))
+                multipart.append(
+                    MultipartFormData(
+                        provider: .data(selfieImage),
+                        name: "selfieImage",
+                        fileName: "image.jpg",
+                        mimeType: "image/jpeg"
+                    )
+                )
             }
 
-            return .uploadMultipart(formData)
+            return .uploadMultipart(multipart)
             
         case .deleteFeed:
             return .requestPlain
@@ -139,8 +154,8 @@ extension FeedAPI: TargetType {
 
     var headers: [String: String]? {
         switch self {
-        case .updateFeed:
-            return HTTPHeader.multipart.value
+        case .createFeed, .updateFeed:
+            return HTTPHeader.multipart.value  
         default:
             return HTTPHeader.json.value
         }
