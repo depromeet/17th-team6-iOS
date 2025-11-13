@@ -88,7 +88,7 @@ private extension FriendListView {
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(store.friends) { friend in
+                    ForEach(store.friends, id: \.renderId) { friend in
                         FriendListRowView(friend: friend) {
                             store.send(.showDeletePopup(friend.id))
                         }

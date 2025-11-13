@@ -7,7 +7,10 @@
 
 import Foundation
 
-struct FriendRunningStatusViewState: Identifiable, Equatable {
+struct FriendRunningStatusViewState: Equatable {
+    /// SwiftUI ForEach 렌더링용 ID
+    let renderId: String
+    
     /// 친구를 구분하기 위한 고유 식별자
     let id: Int
 

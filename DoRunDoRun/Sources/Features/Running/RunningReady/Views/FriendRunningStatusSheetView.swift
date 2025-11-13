@@ -87,7 +87,7 @@ private extension FriendRunningStatusSheetView {
                         .padding(.top, 80)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
-                    ForEach(friends) { status in
+                    ForEach(friends, id: \.renderId) { status in
                         FriendRunningStatusRowView(
                             status: status,
                             isFocused: status.id == focusedFriendID,
@@ -133,85 +133,4 @@ private extension FriendRunningStatusSheetView {
                 }
             }
     }
-}
-
-// MARK: - Preview
-#Preview {
-    FriendRunningStatusSheetView(
-        statuses: [
-            .init(
-                id: 1,
-                name: "민희",
-                isMe: true,
-                profileImageURL: nil,
-                latestRanText: "1시간 전",
-                latestCheeredAt: nil,
-                isRunning: true,
-                isCheerable: false,
-                distanceText: "5.01km",
-                latitude: 37.4784,
-                longitude: 126.8641,
-                address: "경기"
-            ),
-            .init(
-                id: 2,
-                name: "해준",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanText: "30분 전",
-                latestCheeredAt: nil,
-                isRunning: true,
-                isCheerable: false,
-                distanceText: "5.01km",
-                latitude: 37.5665,
-                longitude: 126.9780,
-                address: "서울"
-            ),
-            .init(
-                id: 3,
-                name: "수연",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanText: "10시간 전",
-                latestCheeredAt: nil,
-                isRunning: true,
-                isCheerable: false,
-                distanceText: "5.01km",
-                latitude: 37.5700,
-                longitude: 126.9820,
-                address: "서울"
-            ),
-            .init(
-                id: 4,
-                name: "달리는하니",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanText: "3일 전",
-                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
-                isRunning: false,
-                isCheerable: true, // 응원한지 이틀 경과했기에 깨우기 가능
-                distanceText: nil,
-                latitude: nil,
-                longitude: nil,
-                address: nil
-            ),
-            .init(
-                id: 5,
-                name: "땡땡",
-                isMe: false,
-                profileImageURL: nil,
-                latestRanText: "12일 전",
-                latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
-                isRunning: false,
-                isCheerable: true,  // 응원한지 이틀 경과했기에 깨우기 가능
-                distanceText: nil,
-                latitude: nil,
-                longitude: nil,
-                address: nil
-            ),
-        ],
-        focusedFriendID: 1,
-        sheetOffset: .constant(0),
-        currentOffset: .constant(0)
-    )
 }

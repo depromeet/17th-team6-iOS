@@ -49,13 +49,15 @@ struct FriendRunningStatusMetaDTO: Decodable {
 // MARK: - Mapping to Domain
 extension FriendRunningStatusContentDTO {
     func toDomain() -> FriendRunningStatus {
-        FriendRunningStatus(
+        let formatter = DateFormatterManager.shared
+        
+        return FriendRunningStatus(
             id: userId,
             nickname: nickname,
             isMe: isMe,
             profileImageURL: profileImage,
-            latestRanAt: ISO8601DateFormatter().date(from: latestRanAt ?? ""),
-            latestCheeredAt: ISO8601DateFormatter().date(from: latestCheeredAt ?? ""),
+            latestRanAt: latestRanAt.flatMap { formatter.isoDate(from: $0) },
+            latestCheeredAt: latestCheeredAt.flatMap { formatter.isoDate(from: $0) },
             distance: distance,
             latitude: latitude,
             longitude: longitude,

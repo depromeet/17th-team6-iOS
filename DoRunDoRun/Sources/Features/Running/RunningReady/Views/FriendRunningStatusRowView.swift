@@ -94,24 +94,3 @@ private extension FriendRunningStatusRowView {
         }
     }
 }
-
-// MARK: - Preview
-#Preview {
-    FriendRunningStatusRowView(
-        status: FriendRunningStatusViewState(
-            id: 1,
-            name: "민희",
-            isMe: true,
-            profileImageURL: nil,
-            latestRanText: "1시간 전",
-            latestCheeredAt: Calendar.current.date(byAdding: .day, value: -2, to: .now), // 응원한지 이틀 경과
-            isRunning: true,
-            isCheerable: true, // 응원한지 이틀 경과했기에 깨우기 가능
-            distanceText: "5.01km",
-            latitude: 37.4784,
-            longitude: 126.8641,
-            address: "서울 마포구"
-        ),
-        isFocused: true,
-    )
-}
