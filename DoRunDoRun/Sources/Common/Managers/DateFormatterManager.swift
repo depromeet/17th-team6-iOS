@@ -70,7 +70,7 @@ final class DateFormatterManager {
     func isoDate(from isoString: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter.date(from: isoString)
     }
 

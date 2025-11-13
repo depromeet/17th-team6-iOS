@@ -55,6 +55,9 @@ private extension RunningCountdownView {
 
             ZStack {
                 Circle()
+                    .stroke(Color(hex: 0xD9D9D9).opacity(0.25), style: StrokeStyle(lineWidth: 10, lineCap: .square))
+                
+                Circle()
                     .trim(from: 0, to: progress)
                     .stroke(Color.gray0, style: StrokeStyle(lineWidth: 10, lineCap: .square))
                     .rotationEffect(.degrees(-90))
