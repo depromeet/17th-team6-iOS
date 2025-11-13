@@ -18,6 +18,21 @@ struct NotificationView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .task { store.send(.onAppear) }
+            .navigationTitle("알림")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
         }
     }
 }
@@ -38,45 +53,33 @@ private extension NotificationView {
 // MARK: - Main Section
 private extension NotificationView {
     /// Main Section
+    @ViewBuilder
     var mainSection: some View {
-        VStack(spacing: 0) {
-            if store.notifications.isEmpty {
-                EmptyNotificationView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(store.notifications) { notification in
-                            NotificationRowView(notification: notification) {
-                                store.send(.markAsRead(notification.id))
-                            }
-                            .onAppear {
-                                if notification.id == store.notifications.last?.id {
-                                    store.send(.loadNextPageIfNeeded(currentItem: notification))
+        if store.serverError.serverErrorType == nil {
+            VStack(spacing: 0) {
+                if store.notifications.isEmpty {
+                    EmptyNotificationView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(store.notifications) { notification in
+                                NotificationRowView(notification: notification) {
+                                    store.send(.markAsRead(notification.id))
+                                }
+                                .onAppear {
+                                    if notification.id == store.notifications.last?.id {
+                                        store.send(.loadNextPageIfNeeded(currentItem: notification))
+                                    }
                                 }
                             }
-                        }
-                        if store.isLoading && store.currentPage > 0 {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                            if store.isLoading && store.currentPage > 0 {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                            }
                         }
                     }
-                }
-            }
-        }
-        .task { store.send(.onAppear) }
-        .navigationTitle("알림")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.arrowLeft, size: .medium)
-                        .renderingMode(.template)
-                        .foregroundColor(.gray800)
                 }
             }
         }
