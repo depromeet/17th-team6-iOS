@@ -15,6 +15,7 @@ struct AgreeTermsRowFeature {
         let id: Int
         let title: String
         let isEssential: Bool
+        let url: String
         var isOn: Bool = false
     }
 
@@ -22,6 +23,11 @@ struct AgreeTermsRowFeature {
         // 내부 동작
         case toggle(Bool)
         case chevronTapped
+        
+        enum Delegate: Equatable {
+            case openWebView(String)
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
@@ -33,6 +39,9 @@ struct AgreeTermsRowFeature {
                 return .none
 
             case .chevronTapped:
+                return .send(.delegate(.openWebView(state.url)))
+                
+            default:
                 return .none
             }
         }

@@ -43,9 +43,7 @@ struct VerifyPhoneFeature {
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
         case timer(TimerFeature.Action)
-        
-        case onDisappear
-        
+                
         // 입력/버튼 액션
         case phoneNumberChanged(String)
         case verificationCodeChanged(String)
@@ -67,9 +65,6 @@ struct VerifyPhoneFeature {
         
         Reduce { state, action in
             switch action {
-            case .onDisappear:
-                return .send(.timer(.ended))
-
             // MARK: 전화번호 입력
             case .phoneNumberChanged(let newValue):
                 if state.isPhoneNumberEntered {

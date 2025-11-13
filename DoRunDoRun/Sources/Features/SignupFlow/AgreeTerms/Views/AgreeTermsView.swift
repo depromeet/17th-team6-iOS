@@ -10,7 +10,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct AgreeTermsView: View {
-    let store: StoreOf<AgreeTermsFeature>
+    @Perception.Bindable var store: StoreOf<AgreeTermsFeature>
 
     var body: some View {
         WithPerceptionTracking {
@@ -33,6 +33,12 @@ struct AgreeTermsView: View {
                     }
                 }
             }
+            .navigationDestination(
+                item: $store.scope(state: \.web, action: \.web)
+            ) { store in
+                AgreeTermsWebView(store: store)
+            }
+
         }
     }
 }
