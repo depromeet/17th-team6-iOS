@@ -54,87 +54,29 @@ private extension FeedItemView {
                 style: .plain,
                 size: .small
             )
+            
             TypographyText(text: feed.userName, style: .t2_500, color: .gray900)
             TypographyText(text: feed.relativeTimeText, style: .b2_400, color: .gray500)
+            
             Spacer()
-            Button {
-                withAnimation(.easeInOut) { showMenu.toggle() }
+            
+            Menu {
+                if feed.isMyFeed {
+                    Button("수정하기")   { onEditTapped() }
+                    Button("삭제하기")   { onDeleteTapped() }
+                    Button("이미지 저장") { onSaveImageTapped() }
+                } else {
+                    Button("게시물 신고") { onReportTapped() }
+                }
             } label: {
                 Image(.more, size: .medium)
                     .renderingMode(.template)
                     .foregroundColor(.gray800)
             }
+            .menuStyle(.button)
+            .menuIndicator(.hidden)
+            .fixedSize()
         }
-        .zIndex(5)
-        .contentShape(Rectangle())
-        .overlay(alignment: .topTrailing) {
-            if showMenu {
-                if feed.isMyFeed {
-                    myFeedMenu
-                } else {
-                    otherFeedMenu
-                }
-            }
-        }
-    }
-    
-    /// 유저 피드 메뉴
-    var myFeedMenu: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation { showMenu = false }
-                onEditTapped()
-            } label: {
-                menuRow("수정하기")
-            }
-            
-            divider
-            
-            Button {
-                withAnimation { showMenu = false }
-                onDeleteTapped()
-            } label: {
-                menuRow("삭제하기")
-            }
-            
-            divider
-            
-            Button {
-                withAnimation { showMenu = false }
-                onSaveImageTapped()
-            } label: {
-                menuRow("이미지 저장")
-            }
-        }
-        .menuContainerStyle()
-    }
-    
-    /// 다른 유저 피드 메뉴
-    var otherFeedMenu: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation { showMenu = false }
-                onReportTapped()
-            } label: {
-                menuRow("게시물 신고")
-            }
-        }
-        .menuContainerStyle()
-    }
-    
-    /// 공통 메뉴 행
-    func menuRow(_ text: String) -> some View {
-        TypographyText(text: text, style: .b2_400, color: .gray700)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-    }
-    
-    /// 구분선
-    var divider: some View {
-        Rectangle()
-            .frame(height: 1)
-            .foregroundStyle(Color.gray50)
     }
     
     /// 피드 이미지 섹션
@@ -235,18 +177,5 @@ private extension FeedItemView {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-}
-
-private extension View {
-    func menuContainerStyle() -> some View {
-        self
-            .frame(width: 144)
-            .background(Color.gray0)
-            .cornerRadius(12)
-            .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
-            .offset(x: 0, y: 28)
-            .transition(.opacity)
-            .zIndex(10)
     }
 }

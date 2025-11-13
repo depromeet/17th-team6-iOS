@@ -189,20 +189,22 @@ private extension FeedView {
     var feedListSection: some View {
         LazyVStack(spacing: 40) {
             ForEach(store.feeds, id: \.feedID) { feed in
-                FeedItemView(
-                    feed: feed,
-                    displayedReactions: store.state.displayedReactions(for: feed),
-                    hiddenReactions: store.state.hiddenReactions(for: feed),
-                    extraReactionCount: store.state.extraReactionCount(for: feed),
-                    onTapReaction: { store.send(.reactionTapped(feedID: feed.feedID, reaction: $0)) },
-                    onLongPressReaction: { store.send(.reactionLongPressed(feedID: feed.feedID, reaction: $0)) },
-                    onTapAddReaction: { store.send(.addReactionTapped(feedID: feed.feedID)) },
-                    onEditTapped: { store.send(.editButtonTapped(feedID: feed.feedID)) },
-                    onDeleteTapped: { store.send(.showDeletePopup(feed.feedID)) },
-                    onSaveImageTapped: { store.send(.saveImageButtonTapped(feed: feed)) },
-                    onReportTapped: { store.send(.showReportPopup(feed.feedID)) },
-                    onImageTapped: { store.send(.showFeedDetail(feed)) }
-                )
+                WithPerceptionTracking {
+                    FeedItemView(
+                        feed: feed,
+                        displayedReactions: store.state.displayedReactions(for: feed),
+                        hiddenReactions: store.state.hiddenReactions(for: feed),
+                        extraReactionCount: store.state.extraReactionCount(for: feed),
+                        onTapReaction: { store.send(.reactionTapped(feedID: feed.feedID, reaction: $0)) },
+                        onLongPressReaction: { store.send(.reactionLongPressed(feedID: feed.feedID, reaction: $0)) },
+                        onTapAddReaction: { store.send(.addReactionTapped(feedID: feed.feedID)) },
+                        onEditTapped: { store.send(.editButtonTapped(feedID: feed.feedID)) },
+                        onDeleteTapped: { store.send(.showDeletePopup(feed.feedID)) },
+                        onSaveImageTapped: { store.send(.saveImageButtonTapped(feed: feed)) },
+                        onReportTapped: { store.send(.showReportPopup(feed.feedID)) },
+                        onImageTapped: { store.send(.showFeedDetail(feed)) }
+                    )
+                }
             }
         }
         .padding(.top, 32)
