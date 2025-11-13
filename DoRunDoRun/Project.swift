@@ -27,9 +27,11 @@ let project = Project(
                         "UIInterfaceOrientationPortrait"
                     ],
                     "UIUserInterfaceStyle": "Light",
-                    "NSLocationWhenInUseUsageDescription": "러닝 중 현재 위치와 이동 경로를 지도에 표시하고, 달린 거리를 계산하기 위해 위치 정보를 사용합니다.",
-                    "NSMotionUsageDescription": "런닝 중 관련 데이터를 표시하기 위해 움직임 정보를 사용합니다.",
-                    "NSPhotoLibraryAddUsageDescription": "인증 피드 이미지를 앨범에 저장하기 위해 사진 보관함 접근이 필요합니다.",
+                    "NSLocationWhenInUseUsageDescription": "러닝 중 현재 위치와 이동 경로를 기록하고, 달린 거리를 계산하기 위해 위치 정보가 필요합니다.",
+                    "NSMotionUsageDescription": "걸음 수 및 움직임 데이터를 활용해 운동 정보를 정확하게 표시하기 위해 모션 데이터를 사용합니다.",
+                    "NSPhotoLibraryAddUsageDescription": "러닝 인증 사진을 앨범에 저장하기 위해 사진 보관함 접근 권한이 필요합니다.",
+                    "NSUserNotificationUsageDescription": "친구의 반응, 인증 알림 등 중요한 정보를 빠르게 받아보기 위해 알림 권한이 필요합니다.",
+
                     "UIBackgroundModes": .array([
                         .string("location"),
                         .string("remote-notification")
