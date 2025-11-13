@@ -51,7 +51,10 @@ struct FriendCodeInputFeature {
                 return .none
                 
             case .submitButtonTapped:
-                guard state.isButtonEnabled else { return .none }
+                guard state.isButtonEnabled else {
+                    return .send(.toast(.show("코드가 올바르지 않아요. 다시 입력해주세요.")))
+                }
+
                 return .run { [code = state.code] send in
                     do {
                         let result = try await friendCodeUseCase.execute(code)
@@ -70,11 +73,12 @@ struct FriendCodeInputFeature {
                 return .none
                 
             case let .submitFailure(apiError):
+                print("🔥 API ERROR:", apiError)
                 switch apiError {
                 case .networkError:
                     return .send(.networkErrorPopup(.show))
                 case .notFound:
-                    return .send(.serverError(.show(.notFound)))
+                    return .send(.toast(.show("존재하지 않는 코드예요. 다시 입력해주세요.")))
                 case .internalServer:
                     return .send(.serverError(.show(.internalServer)))
                 case .badGateway:

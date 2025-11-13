@@ -65,34 +65,39 @@ final class APIClient: APIClientProtocol {
                     }
                     
                 case let .failure(error):
-                    // 1. MoyaError 내부의 AFError 추출
+
+                    // 1) MoyaError에서 Response 추출
+                    if let response = error.response {
+                        let status = response.statusCode
+                        
+                        // statusCode 기반으로 APIError 매핑 (가장 중요)
+                        continuation.resume(throwing: APIError.from(statusCode: status))
+                        return
+                    }
+
+                    // 2) 네트워크 오류 판단
                     if case let .underlying(afError, _) = error,
-                       let afError = afError as? AFError {
+                       let afError = afError as? AFError,
+                       case let .sessionTaskFailed(innerError) = afError,
+                       let nsError = innerError as NSError? {
 
-                        // 2. AFError 내부의 NSError 추출
-                        if case let .sessionTaskFailed(innerError) = afError,
-                           let nsError = innerError as NSError? {
-
-                            // 3 NSURLErrorDomain && -1009 (인터넷 연결 끊김) 확인
-                            if nsError.domain == NSURLErrorDomain {
-                                switch nsError.code {
-                                case NSURLErrorNotConnectedToInternet,
-                                     NSURLErrorNetworkConnectionLost,
-                                     NSURLErrorCannotFindHost,
-                                     NSURLErrorCannotConnectToHost,
-                                     NSURLErrorTimedOut:
-                                    continuation.resume(throwing: APIError.networkError)
-                                    return
-                                default:
-                                    break
-                                }
+                        if nsError.domain == NSURLErrorDomain {
+                            switch nsError.code {
+                            case NSURLErrorNotConnectedToInternet,
+                                 NSURLErrorNetworkConnectionLost,
+                                 NSURLErrorCannotFindHost,
+                                 NSURLErrorCannotConnectToHost,
+                                 NSURLErrorTimedOut:
+                                continuation.resume(throwing: APIError.networkError)
+                                return
+                            default:
+                                break
                             }
                         }
                     }
 
-                    // 4. 위 조건에 안 걸리면 unknown 처리
+                    // 3) 그 외의 경우 unknown
                     continuation.resume(throwing: APIError.unknown)
-
                 }
             }
         }
