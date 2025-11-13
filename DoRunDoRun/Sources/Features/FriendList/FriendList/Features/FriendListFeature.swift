@@ -64,6 +64,11 @@ struct FriendListFeature {
         
         case friendCodeInputButtonTapped
         case backButtonTapped
+        
+        enum Delegate: Equatable {
+            case friendAdded
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
@@ -182,7 +187,10 @@ struct FriendListFeature {
             case let .friendCodeInput(.presented(.submitSuccess(friendCode))):
                 state.friendCodeInput = nil
                 state.needsReloadAfterFriendAdd = true
-                return .send(.toast(.show("'\(friendCode.nickname)' 친구가 추가되었어요!")))
+                return .merge(
+                    .send(.delegate(.friendAdded)),
+                    .send(.toast(.show("'\(friendCode.nickname)' 친구가 추가되었어요!")))
+                )
                 
             case .friendCodeInput(.presented(.backButtonTapped)):
                 state.friendCodeInput = nil

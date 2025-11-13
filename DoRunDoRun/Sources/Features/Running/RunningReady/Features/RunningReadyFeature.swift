@@ -21,6 +21,8 @@ struct RunningReadyFeature {
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
+        
+        var shouldRefresh: Bool = true
 
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
@@ -87,21 +89,39 @@ struct RunningReadyFeature {
 
             // MARK: 화면 진입 시 - 친구 현황 불러오기 + 위치 추적 시작
             case .onAppear:
-                guard !state.isLoading else { return .none }
-                state.isLoading = true
-                return .merge(
-                    .send(.loadStatuses(page: 0)),
-                    .run { [userLocationUseCase] send in
-                        do {
-                            let locationStream = try await userLocationUseCase.startTracking()
-                            for try await coordinate in locationStream {
-                                await send(.userLocationUpdated(coordinate))
+                // 최초 진입 또는 친구 추가로 인한 refresh 필요 시
+                if state.statuses.isEmpty || state.shouldRefresh {
+
+                    state.shouldRefresh = false
+
+                    // 상태 초기화
+                    state.statuses = []
+                    state.currentPage = 0
+                    state.hasNextPage = true
+                    state.focusedFriendID = nil
+                    state.isFollowingUserLocation = true
+
+                    guard !state.isLoading else { return .none }
+                    state.isLoading = true
+
+                    return .merge(
+                        .send(.loadStatuses(page: 0)),
+                        .run { [userLocationUseCase] send in
+                            do {
+                                let locationStream = try await userLocationUseCase.startTracking()
+                                for try await coordinate in locationStream {
+                                    await send(.userLocationUpdated(coordinate))
+                                }
+                            } catch {
+                                print("[GPS] 위치 추적 실패: \(error)")
                             }
-                        } catch {
-                            print("[GPS] 위치 추적 실패: \(error)")
                         }
-                    }
-                )
+                    )
+                }
+
+                // refresh가 필요 없는 경우 아무것도 안 함
+                return .none
+
 
             // MARK: 화면 종료 시 - 위치 추적 중단 및 상태 초기화
             case .onDisappear:
@@ -131,26 +151,41 @@ struct RunningReadyFeature {
             // MARK: 러닝 상태 조회 성공
             case let .statusSuccess(results):
                 state.isLoading = false
+
                 if results.isEmpty {
                     state.hasNextPage = false
-                } else {
-                    let mapped = results.map { FriendRunningStatusViewStateMapper.map(from: $0) }
-                    if state.currentPage == 0 {
-                        // 내 프로필 이미지 URL 저장 (서버가 내려줄 경우)
-                        if let me = results.first(where: { $0.isMe }),
-                           let imageURL = me.profileImageURL {
-                            UserManager.shared.profileImageURL = imageURL
-                        }
-                        // 첫 페이지
-                        state.statuses = mapped
-                        // focusedFriendID는 사용자가 직접 탭할 때만 설정 (초기에는 nil로 GPS Following 모드)
-                    } else {
-                        // 다음 페이지 append
-                        state.statuses.append(contentsOf: mapped)
-                    }
-                    state.currentPage += 1
+                    return .none
                 }
+
+                let mapped = results.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+
+                // MARK: 1) 첫 페이지 처리
+                if state.currentPage == 0 {
+
+                    // 🔥 내 프로필 이미지 저장 로직 유지
+                    if let me = results.first(where: { $0.isMe }),
+                       let imageURL = me.profileImageURL {
+                        UserManager.shared.profileImageURL = imageURL
+                    }
+
+                    // 첫 페이지는 무조건 새로 세팅
+                    state.statuses = mapped
+
+                } else {
+
+                    // MARK: 2) 중복 append 방지 (userId 기준)
+                    let newItems = mapped.filter { new in
+                        !state.statuses.contains(where: { $0.id == new.id })
+                    }
+
+                    // 🔥 중복되지 않는 애들만 append
+                    state.statuses.append(contentsOf: newItems)
+                }
+
+                // MARK: 3) 페이지 증가
+                state.currentPage += 1
                 return .none
+
                 
             // MARK: 러닝 상태 조회 (페이지네이션)
             case let .loadNextPageIfNeeded(currentItem):
@@ -247,6 +282,10 @@ struct RunningReadyFeature {
             // MARK: 친구 목록 버튼
             case .friendListButtonTapped:
                 state.friendList = FriendListFeature.State()
+                return .none
+                
+            case .friendList(.presented(.delegate(.friendAdded))):
+                state.shouldRefresh = true
                 return .none
 
             // 친구 목록 닫을 때

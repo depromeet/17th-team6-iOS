@@ -70,6 +70,7 @@ struct FriendRunningStatusViewStateMapper {
         
         // MARK: - 최종 ViewState 생성
         return FriendRunningStatusViewState(
+            renderId: UUID().uuidString,
             id: entity.id,
             name: entity.nickname,
             isMe: entity.isMe,
