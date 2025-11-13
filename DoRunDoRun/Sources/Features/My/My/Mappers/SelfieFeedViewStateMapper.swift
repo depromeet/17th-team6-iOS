@@ -13,7 +13,7 @@ struct SelfieFeedViewStateMapper {
         
         // MARK: 그룹핑
         let grouped = Dictionary(grouping: feeds) { feed -> YearMonthKey in
-            let date = formatter.date(from: feed.date) ?? Date()
+            let date = formatter.isoDate(from: feed.selfieTime) ?? Date()
             return YearMonthKey(
                 year: formatter.formatYear(from: date),
                 month: formatter.formatMonthLabel(from: date)
@@ -67,7 +67,7 @@ private extension SelfieFeedViewStateMapper {
     }
 
     static func makeFeedCell(from feed: SelfieFeed, using formatter: DateFormatterManager) -> SelfieFeedViewState {
-        let date = formatter.date(from: feed.date) ?? Date()
+        let date = formatter.isoDate(from: feed.selfieTime) ?? Date()
         let item = makeFeedItem(from: feed, date: date, using: formatter)
         return .init(id: "feed-\(feed.id)-\(feed.date)", kind: .feed(item))
     }
