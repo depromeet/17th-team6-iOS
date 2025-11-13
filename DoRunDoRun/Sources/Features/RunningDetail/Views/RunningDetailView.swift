@@ -19,13 +19,10 @@ struct RunningDetailView: View {
                 // MARK: - Main Content
                 VStack(spacing: .zero) {
                     HStack(spacing: 4) {
-                        Image("Fill_S")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                        TypographyText(
-                            text: store.detail.finishedAtText,
-                            style: .b2_500, color: .gray700
-                        )
+                        Image(.distance, fill: .fill, size: .small)
+                            .renderingMode(.template)
+                            .foregroundStyle(Color.blue600)
+                        TypographyText(text: store.detail.startedAtText, style: .b2_500, color: .gray700)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 16)
@@ -36,7 +33,6 @@ struct RunningDetailView: View {
                                 TypographyText(text: "달린 거리", style: .c1_400, color: .gray500)
                                 TypographyText(text: store.detail.totalDistanceText, style: .h1_700, color: .gray900)
                             }
-                            
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "평균 페이스", style: .c1_400, color: .gray500)
                                 TypographyText(text: store.detail.avgPaceText, style: .t1_700, color: .gray900)
@@ -49,7 +45,6 @@ struct RunningDetailView: View {
                                 TypographyText(text: "달린 시간", style: .c1_400, color: .gray500)
                                 TypographyText(text: store.detail.durationText, style: .h1_700, color: .gray900)
                             }
-                            
                             VStack(alignment: .leading, spacing: .zero) {
                                 TypographyText(text: "평균 케이던스", style: .c1_400, color: .gray500)
                                 TypographyText(text: store.detail.cadenceText, style: .t1_700, color: .gray900)
@@ -59,64 +54,48 @@ struct RunningDetailView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
-                    .background {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.gray50)
-                    }
+                    .background(Color.gray50)
+                    .cornerRadius(16)
                     .padding(.bottom, 16)
                     
-                    // ViewMode에 따라 이미지 or 지도
-                    Group {
-                        switch store.viewMode {
-                        case .viewing:
-                            // 과거 기록 보기: URL에서 이미지 로드
-                            if let imageUrl = store.detail.mapImageURL {
-                                squareRouteImage(url: imageUrl)
-                            } else {
-                                // URL이 없으면 빈 placeholder
-                                placeholderMapView
-                            }
-                            
-                        case .completing:
-                            // 방금 끝난 러닝: 지도에서 이미지 캡처
-                            SquareRouteMap(
-                                points: store.detail.points,
-                                outerPadding: 20,
-                                data: $store.detail.mapImageData)
-                            .onAppear {
-                                store.send(.startImageCapture)
-                            }
-                            .onChange(of: store.detail.mapImageData) { _ in
-                                store.send(.getRouteImageData)
-                            }
-                        }
+                    SquareRouteMap(
+                        points: store.detail.points,
+                        outerPadding: 20,
+                        data: $store.detail.mapImageData
+                    )
+                    .onAppear {
+                        store.send(.startImageCapture)
+                    }
+                    .onChange(of: store.detail.mapImageData) { _ in
+                        store.send(.getRouteImageData)
                     }
                     .cornerRadius(16)
                     .padding(.bottom, 8)
                     
                     paceColorBar
+                        .padding(.bottom, 32)
 
-                    Spacer()
-
-                    // completing 모드이면서 당일 시작한 러닝만 버튼 표시
-                    if case .completing = store.viewMode, store.detail.shouldShowRecordButton {
+                    if store.isUploadable {
                         recordVerificationButton {
                             store.send(.recordVerificationButtonTapped)
                         }
                     }
+                    
+                    Spacer()
                 }
                 .padding(.horizontal, 20)
+                .onAppear {
+                    store.send(.checkUploadable)
+                }
                 
-                // MARK: - Image Capture Dim Overlay (completing 모드이고 mapImageURL이 없을 때만)
-                if case .completing = store.viewMode,
-                   store.detail.mapImageURL == nil,
+                // MARK: - Image Capture Dim Overlay
+                if store.detail.mapImageURL == nil,
                    store.isCapturingImage {
                     ZStack {
                         Color.dimLight
                             .ignoresSafeArea()
-
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color.gray0))
                             .scaleEffect(1.5)
                     }
                     .transition(.opacity)
@@ -124,16 +103,24 @@ struct RunningDetailView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         store.send(.backButtonTapped)
                     } label: {
-                        Image("Left_M")
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
                     }
                 }
             }
-            .navigationBarBackButtonHidden(true)
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
+            }
+
             // MARK: - Error Handling
             .errorHandling(
                 networkErrorPopupStore: store.scope(
@@ -156,9 +143,7 @@ struct RunningDetailView: View {
 }
 
 // MARK: - UI Components
-
 private extension RunningDetailView {
-    
     var placeholderMapView: some View {
         ZStack {
             Color.gray50
@@ -203,26 +188,21 @@ private extension RunningDetailView {
             action()
         } label: {
             HStack(spacing: 12) {
-                Rectangle()
-                    .foregroundColor(.gray100)
+                Image(.runningRecordBanner)
+                    .resizable()
                     .frame(width: 50, height: 50)
-                
                 VStack(alignment: .leading, spacing: 2) {
                     TypographyText(text: "아직 인증하지 않았어요!", style: .b2_400, color: .gray500)
                     TypographyText(text: "이 기록 인증하러 가기", style: .t1_700, color: .blue600)
                 }
-                
                 Spacer()
-                
-                Image("Arrow")
+                Image(.arrowRight, size: .medium)
                     .padding(10)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray50)
-            }
+            .background(Color.gray50)
+            .cornerRadius(16)
         }
     }
     
@@ -243,27 +223,13 @@ private extension RunningDetailView {
     }
 }
 
-#Preview("Viewing Mode") {
+// MARK: - Preview
+#Preview {
     NavigationStack {
         RunningDetailView(
             store: Store(
                 initialState: RunningDetailFeature.State(
                     detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
-                    viewMode: .viewing
-                ),
-                reducer: { RunningDetailFeature() }
-            )
-        )
-    }
-}
-
-#Preview("Completing Mode") {
-    NavigationStack {
-        RunningDetailView(
-            store: Store(
-                initialState: RunningDetailFeature.State(
-                    detail: RunningDetailViewStateMapper.map(from: RunningDetail.mock),
-                    viewMode: .completing
                 ),
                 reducer: { RunningDetailFeature() }
             )

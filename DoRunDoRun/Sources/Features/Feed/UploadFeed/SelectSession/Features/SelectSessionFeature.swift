@@ -70,34 +70,32 @@ struct SelectSessionFeature {
             case .fetchSessions:
                 state.isLoading = true
 
-                // 오늘 날짜 00:00 ~ 현재 시각
                 let calendar = Calendar.current
                 let startOfDay = calendar.startOfDay(for: Date())
                 let now = Date()
-
+                
                 return .run { send in
                     do {
                         let entities = try await runSessionsUseCase.fetchSessions(
-                            isSelfied: nil, // 모든 세션 포함
+                            isSelfied: nil,
                             startDateTime: startOfDay,
                             endDateTime: now
                         )
-
-                        // ViewState 변환
-                        let mapped = entities.map(RunningSessionSummaryViewStateMapper.map)
-
-                        // 업로드 가능한 세션 (아직 인증 안 한 세션)
+                        
+                        // 전체 컨텍스트 기반으로 ViewState 생성
+                        let mapped = RunningSessionSummaryViewStateMapper.map(from: entities)
+                        
+                        // 인증 가능한 세션만 필터링
                         let available = mapped.filter { $0.tagStatus == .possible }
-
-                        // 오늘 중 하나라도 이미 인증 완료된 세션이 있는지
+                        
+                        // 오늘 이미 인증한 세션이 있는지
                         let anyCompleted = mapped.contains { $0.tagStatus == .completed }
-
+                        
                         await send(.fetchSessionsSuccess(available, anyCompleted))
                     } catch {
                         await send(.fetchSessionsFailure(error as? APIError ?? .unknown))
                     }
                 }
-
 
             // MARK: - 조회 성공
             case let .fetchSessionsSuccess(available, anyCompleted):

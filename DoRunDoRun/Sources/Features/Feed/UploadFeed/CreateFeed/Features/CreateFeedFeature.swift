@@ -69,7 +69,7 @@ struct CreateFeedFeature {
 
                 // DTO에는 텍스트 데이터만 포함
                 let dto = SelfieFeedCreateRequestDTO(
-                    runningSessionId: state.session.id,
+                    runSessionId: state.session.id,
                     content: "오늘도 완주!"
                 )
                 

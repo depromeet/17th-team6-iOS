@@ -55,8 +55,8 @@ struct SegmentPointDTO: Decodable {
 // MARK: - Mapping to Domain
 extension RunningSessionDetailDataDTO {
     func toDomain() -> RunningDetail {
-        let iso8601Formatter = ISO8601DateFormatter()
-
+        let parser = DateFormatterManager.shared
+        
         // 모든 세그먼트를 평탄화하여 좌표 배열로 변환
         let allCoordinates = segments.flatMap { $0 }.map { point in
             RunningCoordinate(
@@ -67,7 +67,7 @@ extension RunningSessionDetailDataDTO {
 
         // 최대 페이스 지점
         let maxPacePoint = RunningPoint(
-            timestamp: Date(),  // 실제로는 segments에서 찾아야 하지만 간단히 처리
+            timestamp: Date(),
             coordinate: RunningCoordinate(
                 latitude: paceMaxLatitude,
                 longitude: paceMaxLongitude
@@ -83,14 +83,14 @@ extension RunningSessionDetailDataDTO {
                 mapImageURL: feedDTO.mapImage.flatMap { URL(string: $0) },
                 selfieImageURL: feedDTO.selfieImage.flatMap { URL(string: $0) },
                 content: feedDTO.content,
-                createdAt: iso8601Formatter.date(from: feedDTO.createdAt) ?? Date()
+                createdAt: parser.isoDate(from: feedDTO.createdAt) ?? Date()
             )
         }
 
         return RunningDetail(
             sessionId: id,
-            startedAt: iso8601Formatter.date(from: createdAt) ?? Date(),
-            finishedAt: iso8601Formatter.date(from: finishedAt) ?? Date(),
+            startedAt: parser.isoDate(from: createdAt) ?? Date(),
+            finishedAt: parser.isoDate(from: finishedAt) ?? Date(),
             totalDistanceMeters: Double(distanceTotal),
             elapsed: .seconds(durationTotal),
             avgPaceSecPerKm: Double(paceAvg),

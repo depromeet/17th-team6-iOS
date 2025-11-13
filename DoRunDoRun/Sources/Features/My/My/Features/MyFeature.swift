@@ -103,6 +103,8 @@ struct MyFeature {
         enum Delegate: Equatable {
             case logoutCompleted
             case withdrawCompleted
+            case feedUpdateCompleted(feedID: Int, newImageURL: String?)
+            case feedDeleteCompleted(feedID: Int)
         }
         case delegate(Delegate)
     }
@@ -130,10 +132,10 @@ struct MyFeature {
 
             // MARK: - Navigation: Feed Detail
             case let .feedItemTapped(feed):
-                state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feed: feed)))
+                state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feed.feedID, feed: feed)))
                 return .none
 
-            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(_, imageURL))))):
+            case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(feedID, imageURL))))):
                 if let index = state.feeds.firstIndex(where: {
                     if case let .feed(item) = $0.kind {
                         return item.feedID == state.path.last?.myFeedDetail?.feed.feedID
@@ -146,27 +148,23 @@ struct MyFeature {
                         state.feeds[index] = .init(id: state.feeds[index].id, kind: .feed(updatedFeed))
                     }
                 }
-                return .none
+                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
+
 
             case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedDeleted(feedID))))):
-                state.feeds.removeAll { viewState in
-                    if case let .feed(item) = viewState.kind {
-                        return item.feedID == feedID
-                    }
-                    return false
-                }
-                return .none
+                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.feeds)
+                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
 
             case .path(.element(id: _, action: .myFeedDetail(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
 
-            // MARK: - Navigation: Running Detail
+            // MARK: - Navigation: Session Detail
             case let .sessionCardTapped(session):
-                state.path.append(.runningDetail(RunningDetailFeature.State(detail: RunningDetailViewStateMapper.map(from: session), viewMode: .viewing)))
+                state.path.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: session.id)))
                 return .none
 
-            case .path(.element(id: _, action: .runningDetail(.delegate(.backButtonTapped)))):
+            case .path(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.path.removeLast()
                 return .none
 
@@ -275,7 +273,10 @@ struct MyFeature {
                 }
 
             case let .fetchSessionsSuccess(sessions):
-                state.sessions = sessions.map { RunningSessionSummaryViewStateMapper.map(from: $0) }
+                state.sessions = RunningSessionSummaryViewStateMapper.map(
+                    from: sessions,
+                    currentDate: Date() 
+                )
                 return .none
 
             case let .fetchSessionsFailure(apiError):
@@ -316,7 +317,7 @@ struct MyFeature {
     @Reducer
     enum Path {
         case myFeedDetail(MyFeedDetailFeature)
-        case runningDetail(RunningDetailFeature)
+        case mySessionDetail(MySessionDetailFeature)
         case setting(SettingFeature)
     }
 }
@@ -336,6 +337,29 @@ private extension MyFeature {
         default:
             print("[API ERROR]", apiError.userMessage)
             return .none
+        }
+    }
+}
+
+extension MyFeature {
+    /// 피드 삭제 후, 해당 피드가 없으면 monthHeader까지 깔끔하게 청소
+    static func removeFeedAndCleanupIfEmpty(
+        feedID: Int,
+        from feeds: inout [SelfieFeedViewState]
+    ) {
+        feeds.removeAll { viewState in
+            guard case let .feed(item) = viewState.kind else { return false }
+            return item.feedID == feedID
+        }
+
+        // 남은 피드가 하나도 없으면 → monthHeader도 함께 제거
+        let hasAnyFeed = feeds.contains { viewState in
+            if case .feed = viewState.kind { return true }
+            return false
+        }
+
+        if !hasAnyFeed {
+            feeds = []
         }
     }
 }

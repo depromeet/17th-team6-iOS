@@ -91,12 +91,47 @@ struct AppFeature {
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 return .none
-
-            // Running delegate: RunningDetail 뒤로가기 → Feed 탭 전환
+                
+                // Running delegate: RunningDetail 뒤로가기 → Feed 탭 전환
             case .running(.delegate(.navigateToFeed)):
                 state.selectedTab = .feed
                 return .none
                 
+            // MARK: - Feed ↔ My 동기화
+            case .feed(.delegate(.feedUpdateCompleted(let feedID, let newImageURL))):
+                print("Feed에서 업데이트 발생 → My에서도 즉시 반영")
+                if let index = state.my.feeds.firstIndex(where: { viewState in
+                    if case let .feed(item) = viewState.kind {
+                        return item.feedID == feedID
+                    }
+                    return false
+                }) {
+                    if case var .feed(item) = state.my.feeds[index].kind {
+                        item.imageURL = newImageURL
+                        state.my.feeds[index].kind = .feed(item)
+                    }
+                }
+                return .none
+                
+            case let .feed(.delegate(.feedDeleteCompleted(feedID))):
+                print("전체 피드에서도 내 피드 삭제 반영")
+                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
+                return .none
+                
+            // My에서 수정됨 → Feed에서도 반영
+            case .my(.delegate(.feedUpdateCompleted(let feedID, let newImageURL))):
+                print("My에서 수정 발생 → Feed에서도 반영")
+                if let index = state.feed.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feed.feeds[index].imageURL = newImageURL
+                }
+                return .none
+                
+            // My에서 삭제됨 → Feed에서도 삭제
+            case .my(.delegate(.feedDeleteCompleted(let feedID))):
+                print("My에서 삭제 발생 → Feed에서도 반영")
+                state.feed.feeds.removeAll { $0.feedID == feedID }
+                return .none
+                                
             case .my(.delegate(.logoutCompleted)),
                  .my(.delegate(.withdrawCompleted)):
                 print("로그아웃 완료 → 온보딩 전환")

@@ -40,5 +40,5 @@ struct RunningSessionSummaryViewState: Identifiable, Equatable {
     /// 인증 상태 (예: 인증 가능, 완료, 또는 없음)
     let tagStatus: CertificationStatus
     /// 지도 이미지 URL (러닝 경로 미리보기용)
-    let mapImageURL: String?
+    let mapImageURL: URL?
 }

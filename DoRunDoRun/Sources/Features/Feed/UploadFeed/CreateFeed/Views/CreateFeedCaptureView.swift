@@ -22,8 +22,7 @@ struct CreateFeedCaptureView: View {
                     .frame(width: UIScreen.main.bounds.width - 40,
                            height: UIScreen.main.bounds.width - 40)
                     .clipped()
-            } else if let urlString = session.mapImageURL,
-                      let url = URL(string: urlString) {
+            } else if let url = session.mapImageURL {
                 KFImage(url)
                     .resizable()
                     .scaledToFill()

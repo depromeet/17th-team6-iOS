@@ -72,6 +72,7 @@ private extension MyFeedDetailView {
                     Color.gray900.ignoresSafeArea() // 이미지가 없을 경우 기본 배경
                 }
             }
+            .onAppear { store.send(.onAppear) }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

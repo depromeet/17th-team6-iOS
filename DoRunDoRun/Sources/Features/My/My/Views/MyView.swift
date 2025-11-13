@@ -15,7 +15,7 @@ struct MyView: View {
             } destination: { store in
                 switch store.case {
                 case .myFeedDetail(let store): MyFeedDetailView(store: store)
-                case .runningDetail(let store): RunningDetailView(store: store)
+                case .mySessionDetail(let store): MySessionDetailView(store: store)
                 case .setting(let store): SettingView(store: store)
                 }
             }

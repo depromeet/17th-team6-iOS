@@ -17,9 +17,14 @@ struct MyFeedDetailFeature {
     /// 피드 삭제 유즈케이스
     @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
     
+    @Dependency(\.selfieFeedDetailUseCase) var selfieFeedDetailUseCase
+
     // MARK: - State
     @ObservableState
     struct State: Equatable {
+        /// 전달받은 feedId
+        var feedId: Int
+        
         /// 현재 표시 중인 피드 아이템
         var feed: SelfieFeedItem
         
@@ -89,6 +94,10 @@ struct MyFeedDetailFeature {
         
         /// 서버 에러 액션
         case serverError(ServerErrorFeature.Action)
+        
+        case onAppear
+        case loadDetailSuccess(SelfieFeedDetailResult)
+        case loadDetailFailure(APIError)
         
         /// 리액션 상세 시트 액션
         case reactionDetail(ReactionDetailSheetFeature.Action)
@@ -174,6 +183,30 @@ struct MyFeedDetailFeature {
         
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                // empty면 상세 호출
+                if state.feed.totalDistanceText.isEmpty {
+                    return .run { [feedId = state.feedId] send in
+                        do {
+                            let detail = try await selfieFeedDetailUseCase.execute(feedId: feedId)
+                            await send(.loadDetailSuccess(detail))
+                        } catch {
+                            if let apiError = error as? APIError {
+                                await send(.loadDetailFailure(apiError))
+                            } else {
+                                await send(.loadDetailFailure(.unknown))
+                            }
+                        }
+                    }
+                }
+                return .none
+
+            case let .loadDetailSuccess(detail):
+                state.feed = SelfieFeedDetailItemMapper.map(from: detail)
+                return .none
+                
+            case let .loadDetailFailure(apiError):
+                return handleAPIError(apiError)
                 
                 // MARK: - 리액션 탭 (기존 리액션 토글)
             case let .reactionTapped(reaction):

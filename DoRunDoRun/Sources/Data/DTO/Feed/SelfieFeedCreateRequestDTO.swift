@@ -6,6 +6,6 @@
 //
 
 struct SelfieFeedCreateRequestDTO: Encodable {
-    let runningSessionId: Int
+    let runSessionId: Int
     let content: String
 }

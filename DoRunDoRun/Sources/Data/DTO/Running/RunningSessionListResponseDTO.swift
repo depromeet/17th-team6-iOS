@@ -31,14 +31,12 @@ struct RunningSessionSummaryDTO: Decodable {
 // MARK: - Mapping to Domain
 extension RunningSessionSummaryDTO {
     func toDomain() -> RunningSessionSummary {
-        let iso8601Formatter = ISO8601DateFormatter()
-        iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        iso8601Formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        let parser = DateFormatterManager.shared
 
         return RunningSessionSummary(
             sessionId: runSessionId,
-            createdAt: iso8601Formatter.date(from: createdAt) ?? Date(),
-            finishedAt: iso8601Formatter.date(from: finishedAt) ?? Date(),
+            createdAt: parser.isoDate(from: createdAt) ?? Date(),
+            finishedAt: parser.isoDate(from: finishedAt) ?? Date(),
             totalDistanceMeters: Double(distanceTotal),
             totalDurationSeconds: durationTotal,
             avgPaceSecPerKm: Double(paceAvg),
@@ -48,3 +46,4 @@ extension RunningSessionSummaryDTO {
         )
     }
 }
+

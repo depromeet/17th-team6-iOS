@@ -10,12 +10,14 @@ import Moya
 
 enum FeedAPI {
     case getFeedsByDate(currentDate: String?, userId: Int?, page: Int, size: Int)
+    case getFeedById(feedId: Int)
     case postReaction(feedId: Int, emojiType: String)
     case createFeed(data: SelfieFeedCreateRequestDTO, selfieImage: Data?)
     case updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?)
     case deleteFeed(feedId: Int)
     case getWeeklySelfieCount(startDate: String, endDate: String)
     case getSelfieUsersByDate(date: String)
+    case checkUploadable(runSessionId: Int)
 }
 
 extension FeedAPI: TargetType {
@@ -25,6 +27,8 @@ extension FeedAPI: TargetType {
         switch self {
         case .getFeedsByDate, .createFeed:
             return "/api/selfie/feeds"
+        case let .getFeedById(feedId):
+            return "/api/selfie/feeds/\(feedId)"
         case .postReaction:
             return "/api/selfie/feeds/reaction"
         case let .updateFeed(feedId, _, _),
@@ -34,19 +38,22 @@ extension FeedAPI: TargetType {
             return "/api/selfie/week"
         case .getSelfieUsersByDate:
             return "/api/selfie/users"
-
+        case .checkUploadable:
+            return "/api/selfie/uploadable"
         }
     }
 
     var method: Moya.Method {
         switch self {
         case .getFeedsByDate: return .get
+        case .getFeedById: return .get
         case .postReaction: return .post
         case .createFeed: return .post
         case .updateFeed: return .put
         case .deleteFeed: return .delete
         case .getWeeklySelfieCount: return .get
         case .getSelfieUsersByDate: return .get
+        case .checkUploadable: return .get
         }
     }
 
@@ -60,50 +67,67 @@ extension FeedAPI: TargetType {
             if let currentDate = currentDate { params["currentDate"] = currentDate }
             if let userId = userId { params["userId"] = userId }
             return .requestParameters(parameters: params, encoding: URLEncoding.queryString)
+            
+        case .getFeedById: return .requestPlain
 
         case let .postReaction(feedId, emojiType):
             let body = SelfieFeedReactionRequestDTO(feedId: feedId, emojiType: emojiType)
             return .requestJSONEncodable(body)
             
         case let .createFeed(data, selfieImage):
-            var formData: [MultipartFormData] = []
+            var multipartData: [MultipartFormData] = []
 
-            // JSON 데이터 인코딩
             if let jsonData = try? JSONEncoder().encode(data) {
-                formData.append(.init(provider: .data(jsonData),
-                                      name: "data",
-                                      mimeType: "application/json"))
+                print("📤 [Multipart JSON Body] \n", String(data: jsonData, encoding: .utf8) ?? "nil")
+                multipartData.append(
+                    MultipartFormData(
+                        provider: .data(jsonData),
+                        name: "data",
+                        fileName: "data.json",
+                        mimeType: "application/json"
+                    )
+                )
             }
 
-            // 이미지 파일 추가 (선택)
             if let selfieImage = selfieImage {
-                formData.append(.init(provider: .data(selfieImage),
-                                      name: "selfieImage",
-                                      fileName: "image.jpg",
-                                      mimeType: "image/jpeg"))
+                multipartData.append(
+                    MultipartFormData(
+                        provider: .data(selfieImage),
+                        name: "selfieImage",
+                        fileName: "image.jpg",
+                        mimeType: "image/jpeg"
+                    )
+                )
             }
 
-            return .uploadMultipart(formData)
+            return .uploadMultipart(multipartData)
 
         case let .updateFeed(_, data, selfieImage):
-            var formData: [MultipartFormData] = []
+            var multipart: [MultipartFormData] = []
 
-            // JSON 데이터 인코딩
             if let jsonData = try? JSONEncoder().encode(data) {
-                formData.append(.init(provider: .data(jsonData),
-                                      name: "data",
-                                      mimeType: "application/json"))
+                multipart.append(
+                    MultipartFormData(
+                        provider: .data(jsonData),
+                        name: "data",
+                        fileName: "data.json",
+                        mimeType: "application/json"
+                    )
+                )
             }
 
-            // 이미지 파일 추가 (선택)
             if let selfieImage = selfieImage {
-                formData.append(.init(provider: .data(selfieImage),
-                                      name: "selfieImage",
-                                      fileName: "image.jpg",
-                                      mimeType: "image/jpeg"))
+                multipart.append(
+                    MultipartFormData(
+                        provider: .data(selfieImage),
+                        name: "selfieImage",
+                        fileName: "image.jpg",
+                        mimeType: "image/jpeg"
+                    )
+                )
             }
 
-            return .uploadMultipart(formData)
+            return .uploadMultipart(multipart)
             
         case .deleteFeed:
             return .requestPlain
@@ -119,13 +143,19 @@ extension FeedAPI: TargetType {
                 parameters: ["date": date],
                 encoding: URLEncoding.queryString
             )
+            
+        case let .checkUploadable(runSessionId):
+            return .requestParameters(
+                parameters: ["runSessionId": runSessionId],
+                encoding: URLEncoding.queryString
+            )
         }
     }
 
     var headers: [String: String]? {
         switch self {
-        case .updateFeed:
-            return HTTPHeader.multipart.value
+        case .createFeed, .updateFeed:
+            return HTTPHeader.multipart.value  
         default:
             return HTTPHeader.json.value
         }

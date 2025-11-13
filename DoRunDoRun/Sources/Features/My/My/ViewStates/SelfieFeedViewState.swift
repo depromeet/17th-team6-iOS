@@ -22,7 +22,7 @@ struct SelfieFeedViewState: Identifiable, Equatable {
     /// 고유 ID (Kind에 따라 다르게 구성)
     let id: String
     /// 셀 종류 (월 헤더 or 피드)
-    let kind: Kind
+    var kind: Kind
 }
 
 // MARK: - SelfieFeedItem
@@ -60,6 +60,8 @@ struct SelfieFeedItem: Equatable {
     let timeText: String
     /// 피드가 작성된 시각을 상대적으로 표시 ("3분 전", "2시간 전" 등)
     let relativeTimeText: String
+    
+    let selfieDate: Date
 }
 
 // MARK: - ReactionViewState
@@ -90,4 +92,28 @@ struct ReactionUserViewState: Identifiable, Equatable {
     let isMe: Bool
     /// 리액션한 시각 텍스트 (포맷팅 완료 상태, 예: "3분 전")
     let reactedAtText: String
+}
+
+extension SelfieFeedItem {
+    /// feedID만 알고 있을 때 사용할 empty 객체
+    static func empty(feedID: Int) -> SelfieFeedItem {
+        SelfieFeedItem(
+            isMyFeed: false,
+            feedID: feedID,
+            dayText: "",
+            imageURL: nil,
+            isMap: false,
+            userName: "",
+            profileImageURL: "",
+            totalDistanceText: "",
+            totalRunTimeText: "",
+            averagePaceText: "",
+            cadence: 0,
+            reactions: [],
+            dateText: "",
+            timeText: "",
+            relativeTimeText: "",
+            selfieDate: .init(timeIntervalSince1970: 0)
+        )
+    }
 }

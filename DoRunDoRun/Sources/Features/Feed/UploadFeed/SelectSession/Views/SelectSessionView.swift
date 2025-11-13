@@ -115,15 +115,17 @@ private extension SelectSessionView {
         ScrollView {
             VStack(spacing: 16) {
                 ForEach(store.sessions) { session in
-                    Button {
-                        store.send(.sessionTapped(session))
-                    } label: {
-                        SelectSessionRowView(
-                            session: session,
-                            isSelected: store.selectedSessionID == session.id
-                        )
+                    WithPerceptionTracking {
+                        Button {
+                            store.send(.sessionTapped(session))
+                        } label: {
+                            SelectSessionRowView(
+                                session: session,
+                                isSelected: store.selectedSessionID == session.id
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
