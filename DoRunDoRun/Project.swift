@@ -3,8 +3,8 @@ import ProjectDescription
 let project = Project(
     name: "DoRunDoRun",
     packages: [
-        .remote(url: "https://github.com/pointfreeco/swift-composable-architecture.git", requirement: .branch("main")),
-        .remote(url: "https://github.com/navermaps/SPM-NMapsMap", requirement: .branch("main")),
+        .remote(url: "https://github.com/pointfreeco/swift-composable-architecture.git", requirement: .upToNextMajor(from: "1.23.0")),
+        .remote(url: "https://github.com/navermaps/SPM-NMapsMap", requirement: .upToNextMajor(from: "3.23.0")),
         .remote(url: "https://github.com/Alamofire/Alamofire", requirement: .upToNextMajor(from: "5.8.0")),
         .remote(url: "https://github.com/Moya/Moya.git", requirement: .upToNextMajor(from: "15.0.0")),
         .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .upToNextMajor(from: "8.6.0")),
