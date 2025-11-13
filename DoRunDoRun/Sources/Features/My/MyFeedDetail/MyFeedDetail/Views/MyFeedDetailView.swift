@@ -102,6 +102,7 @@ private extension MyFeedDetailView {
                 style: .plain,
                 size: .small
             )
+            
             HStack(spacing: 4) {
                 TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
                 if store.feed.isMyFeed {
@@ -111,91 +112,37 @@ private extension MyFeedDetailView {
                         .overlay(Text("나").typography(.c1_700, color: .gray0))
                 }
             }
+            
             TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
+            
             Spacer()
-            Button {
-                withAnimation(.easeInOut) { showMenu.toggle() }
+            
+            Menu {
+                if store.feed.isMyFeed {
+                    Button("수정하기") {
+                        store.send(.editButtonTapped)
+                    }
+                    Button("삭제하기") {
+                        store.send(.showDeletePopup(store.feed.feedID))
+                    }
+                    Button("이미지 저장") {
+                        store.send(.saveImageButtonTapped)
+                    }
+                } else {
+                    Button("게시물 신고") {
+                        store.send(.showReportPopup(store.feed.feedID))
+                    }
+                }
             } label: {
                 Image(.more, size: .medium)
                     .renderingMode(.template)
                     .foregroundColor(.gray0)
             }
+            .menuStyle(.button)
+            .menuIndicator(.hidden)
+            .fixedSize()
         }
         .padding(.top, 16)
-        .zIndex(5)
-        .contentShape(Rectangle())
-        .overlay(alignment: .topTrailing) {
-            if showMenu { menuSection }
-        }
-    }
-    
-    /// 메뉴 섹션
-    @ViewBuilder
-    var menuSection: some View {
-        if store.feed.isMyFeed {
-            myFeedMenu
-        } else {
-            otherFeedMenu
-        }
-    }
-    
-    /// 유저 피드 메뉴
-    var myFeedMenu: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation { showMenu = false }
-                store.send(.editButtonTapped)
-            } label: {
-                menuRow("수정하기")
-            }
-            
-            divider
-            
-            Button {
-                withAnimation { showMenu = false }
-                store.send(.showDeletePopup(store.feed.feedID))
-            } label: {
-                menuRow("삭제하기")
-            }
-            
-            divider
-            
-            Button {
-                withAnimation { showMenu = false }
-                store.send(.saveImageButtonTapped)
-            } label: {
-                menuRow("이미지 저장")
-            }
-        }
-        .menuContainerStyle()
-    }
-    
-    /// 다른 유저 피드 메뉴
-    var otherFeedMenu: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation { showMenu = false }
-                store.send(.showReportPopup(store.feed.feedID))
-            } label: {
-                menuRow("게시물 신고")
-            }
-        }
-        .menuContainerStyle()
-    }
-    
-    /// 공통 메뉴 행
-    func menuRow(_ text: String) -> some View {
-        TypographyText(text: text, style: .b2_400, color: .gray700)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-    }
-    
-    /// 구분선
-    var divider: some View {
-        Rectangle()
-            .frame(height: 1)
-            .foregroundStyle(Color.gray50)
     }
     
     /// 피드 이미지 섹션
@@ -397,18 +344,5 @@ private extension MyFeedDetailView {
         .edgesIgnoringSafeArea(.all)
         .animation(.easeInOut(duration: 0.3),
                    value: store.isReactionDetailPresented || store.isReactionPickerPresented)
-    }
-}
-
-private extension View {
-    func menuContainerStyle() -> some View {
-        self
-            .frame(width: 144)
-            .background(Color.gray0)
-            .cornerRadius(12)
-            .shadow(color: Color.gray900.opacity(0.15), radius: 12, x: 0, y: 2)
-            .offset(x: 0, y: 48)
-            .transition(.opacity)
-            .zIndex(10)
     }
 }
