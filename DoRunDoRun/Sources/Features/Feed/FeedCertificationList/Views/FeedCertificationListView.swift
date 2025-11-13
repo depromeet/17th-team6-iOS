@@ -16,6 +16,18 @@ struct FeedCertificationListView: View {
             ZStack(alignment: .bottom) {
                 mainSection
             }
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
         }
     }
 }
@@ -29,18 +41,6 @@ private extension FeedCertificationListView {
             headerSection
             certificationUserListSection
             Spacer()
-        }
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.arrowLeft, size: .medium)
-                        .renderingMode(.template)
-                        .foregroundColor(.gray800)
-                }
-            }
         }
     }
 

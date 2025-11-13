@@ -18,6 +18,22 @@ struct AccountInfoView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
+            .navigationTitle("가입 정보")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+
         }
     }
 }
@@ -52,21 +68,6 @@ private extension AccountInfoView {
             }
             .padding(.top, 16)
             .padding(.horizontal, 20)
-            .onAppear { store.send(.onAppear) }
-            .navigationTitle("가입 정보")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
         }
     }
     

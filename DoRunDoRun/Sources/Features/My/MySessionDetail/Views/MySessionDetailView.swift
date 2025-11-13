@@ -19,6 +19,27 @@ struct MySessionDetailView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { store.send(.backButtonTapped) } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundStyle(Color.gray800)
+                    }
+                }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.myFeedDetail, action: \.myFeedDetail)
+            ) { store in
+                MyFeedDetailView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
+            }
         }
     }
 }
@@ -74,27 +95,6 @@ private extension MySessionDetailView {
                         Spacer()
                     }
                 }
-            }
-            .onAppear { store.send(.onAppear) }
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button { store.send(.backButtonTapped) } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundStyle(Color.gray800)
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.myFeedDetail, action: \.myFeedDetail)
-            ) { store in
-                MyFeedDetailView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.createFeed, action: \.createFeed)
-            ) { store in
-                CreateFeedView(store: store)
             }
         }
     }

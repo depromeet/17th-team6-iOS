@@ -18,6 +18,24 @@ struct SelectSessionView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
+            }
         }
     }
 }
@@ -54,24 +72,6 @@ private extension SelectSessionView {
                 buttonSection
             }
             .padding(.horizontal, 20)
-            .onAppear { store.send(.onAppear) }
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.createFeed, action: \.createFeed)
-            ) { store in
-                CreateFeedView(store: store)
-            }
         }
     }
     

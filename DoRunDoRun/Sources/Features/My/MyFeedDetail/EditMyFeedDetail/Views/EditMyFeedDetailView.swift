@@ -21,6 +21,27 @@ struct EditMyFeedDetailView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        store.send(.saveImageButtonTapped)
+                    } label: {
+                        Image(.download, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
         }
     }
 }
@@ -51,28 +72,6 @@ private extension EditMyFeedDetailView {
                 uploadButton
             }
             .padding(.horizontal, 20)
-            .scrollDisabled(true)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        store.send(.saveImageButtonTapped)
-                    } label: {
-                        Image(.download, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
         }
     }
     
