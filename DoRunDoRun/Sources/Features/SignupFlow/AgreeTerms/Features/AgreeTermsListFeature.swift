@@ -30,6 +30,11 @@ struct AgreeTermsListFeature {
         
         // 내부 동작
         case toggleAllAgreements(Bool)
+        
+        enum Delegate: Equatable {
+            case openWebView(String)
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
@@ -46,6 +51,9 @@ struct AgreeTermsListFeature {
             case .agreeTermsRows(.element(id: _, action: .toggle)):
                 state.isAllAgreed = state.agreeTermsRows.allSatisfy(\.isOn)
                 return .none
+                
+            case let .agreeTermsRows(.element(id: _, action: .delegate(.openWebView(url)))):
+                return .send(.delegate(.openWebView(url)))
 
             default:
                 return .none

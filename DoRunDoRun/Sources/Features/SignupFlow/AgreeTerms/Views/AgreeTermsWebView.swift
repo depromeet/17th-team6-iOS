@@ -1,8 +1,8 @@
 //
-//  FindAccountView.swift
+//  AgreeTermsWebView.swift
 //  DoRunDoRun
 //
-//  Created by Jaehui Yu on 10/22/25.
+//  Created by Jaehui Yu on 11/14/25.
 //
 
 import SwiftUI
@@ -10,9 +10,9 @@ import WebKit
 
 import ComposableArchitecture
 
-struct FindAccountView: View {
-    let store: StoreOf<FindAccountFeature>
-
+struct AgreeTermsWebView: View {
+    let store: StoreOf<AgreeTermsWebFeature>
+    
     var body: some View {
         WithPerceptionTracking {
             WebView(url: store.url)
@@ -32,28 +32,3 @@ struct FindAccountView: View {
     }
 }
 
-// 간단한 WebView Wrapper
-struct WebView: UIViewRepresentable {
-    let url: URL?
-
-    func makeUIView(context: Context) -> WKWebView {
-        WKWebView()
-    }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        guard let url else { return }
-        if uiView.url != url {
-            uiView.load(URLRequest(url: url))
-        }
-    }
-}
-
-
-// MARK: - Preview
-#Preview {
-    FindAccountView(
-        store: Store(initialState: FindAccountFeature.State()) {
-            FindAccountFeature()
-        }
-    )
-}

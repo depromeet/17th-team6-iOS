@@ -13,7 +13,7 @@ import ComposableArchitecture
 struct FindAccountFeature {
     @ObservableState
     struct State: Equatable {
-        var url: URL? = URL(string: "https://www.depromeet.com/") // 웹뷰 URL
+        var url: URL? = URL(string: "https://depromeet.notion.site/2aa45b4338b380b8afbdf45843c011bf") // 웹뷰 URL
     }
 
     enum Action: Equatable {
