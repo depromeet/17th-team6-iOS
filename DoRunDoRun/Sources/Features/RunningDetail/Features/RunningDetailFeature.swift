@@ -35,6 +35,8 @@ struct RunningDetailFeature {
             case uploadToServer
         }
         var lastFailedRequest: FailedRequestType? = nil
+        
+        @Presents var createFeed: CreateFeedFeature.State?
     }
 
     enum Action: BindableAction, Equatable {
@@ -66,6 +68,8 @@ struct RunningDetailFeature {
             case navigateToCreateFeed(summary: RunningSessionSummaryViewState)
         }
         case delegate(Delegate)
+        
+        case createFeed(PresentationAction<CreateFeedFeature.Action>)
     }
 
     private enum CancelID {
@@ -82,16 +86,6 @@ struct RunningDetailFeature {
             switch action {
             case .backButtonTapped:
                 return .send(.delegate(.backButtonTapped))
-
-            case .recordVerificationButtonTapped:
-                guard let uploadable = state.selfieUploadable else {
-                    return .none
-                }
-
-                if uploadable.isUploadable {
-                    // 피드 생성 화면으로 이동
-                }
-                return .none
                 
             case .checkUploadable:
                 guard let sessionId = state.detail.sessionId else { return .none }
@@ -113,6 +107,21 @@ struct RunningDetailFeature {
                 
             case let .checkUploadableFailure(error):
                 return handleAPIError(error)
+                
+            case .recordVerificationButtonTapped:
+                guard let uploadable = state.selfieUploadable else {
+                    return .none
+                }
+
+                if uploadable.isUploadable {
+                    let summary = RunningDetailViewStateMapper.map(from: state.detail)
+                    state.createFeed = CreateFeedFeature.State(session: summary)
+                }
+                return .none
+                
+            case .createFeed(.presented(.backButtonTapped)):
+                state.createFeed = nil
+                return .none
 
             case .startImageCapture:
                 // 이미 캡처 중이면 무시
@@ -162,6 +171,7 @@ struct RunningDetailFeature {
 
             // 세션 업로드
             case .sendRunningData:
+                print("세선 업로드 시작")
                 guard let sessionId = state.detail.sessionId,
                       let mapImageData = state.detail.mapImageData,
                       !state.isCompletingSession else {
@@ -184,7 +194,7 @@ struct RunningDetailFeature {
                     } catch let error as APIError {
                         await send(.sessionCompletedWithError(error))
                     } catch {
-                        await send(.sessionCompletedWithError(.internalServer))
+                        await send(.sessionCompletedWithError(.unknown))
                     }
                 }
 
@@ -217,6 +227,7 @@ struct RunningDetailFeature {
                 return .none
             }
         }
+        .ifLet(\.$createFeed, action: \.createFeed) { CreateFeedFeature() }
     }
 
     // MARK: - 에러 처리

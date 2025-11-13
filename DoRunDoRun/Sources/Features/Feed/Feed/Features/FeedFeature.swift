@@ -318,7 +318,7 @@ struct FeedFeature {
                 
             // MARK: - 피드 디테일
             case let .showFeedDetail(feed):
-                state.myFeedDetail = .init(feed: feed)
+                state.myFeedDetail = .init(feedId: feed.feedID, feed: feed)
                 return .none
 
             case .myFeedDetail(.presented(.delegate(.feedDeleted(let feedID)))):

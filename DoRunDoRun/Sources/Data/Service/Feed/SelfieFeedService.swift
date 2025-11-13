@@ -9,6 +9,7 @@ import Foundation
 
 protocol SelfieFeedService {
     func fetchFeeds(currentDate: String?, userId: Int?, page: Int, size: Int) async throws -> SelfieFeedResponseDTO
+    func fetchFeedDetail(feedId: Int) async throws -> SelfieFeedDetailResponseDTO
     func sendReaction(feedId: Int, emojiType: String) async throws -> SelfieFeedReactionResponseDTO
     func createFeed(data: SelfieFeedCreateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedCreateResponseDTO
     func updateFeed(feedId: Int, data: SelfieFeedUpdateRequestDTO, selfieImage: Data?) async throws -> SelfieFeedUpdateResponseDTO
@@ -29,6 +30,13 @@ final class SelfieFeedServiceImpl: SelfieFeedService {
         try await apiClient.request(
             FeedAPI.getFeedsByDate(currentDate: currentDate, userId: userId, page: page, size: size),
             responseType: SelfieFeedResponseDTO.self
+        )
+    }
+    
+    func fetchFeedDetail(feedId: Int) async throws -> SelfieFeedDetailResponseDTO {
+        try await apiClient.request(
+            FeedAPI.getFeedById(feedId: feedId),
+            responseType: SelfieFeedDetailResponseDTO.self
         )
     }
     

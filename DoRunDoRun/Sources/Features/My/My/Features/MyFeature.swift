@@ -130,7 +130,7 @@ struct MyFeature {
 
             // MARK: - Navigation: Feed Detail
             case let .feedItemTapped(feed):
-                state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feed: feed)))
+                state.path.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feed.feedID, feed: feed)))
                 return .none
 
             case let .path(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(_, imageURL))))):
@@ -163,7 +163,7 @@ struct MyFeature {
 
             // MARK: - Navigation: Session Detail
             case let .sessionCardTapped(session):
-                state.path.append(.mySessionDetail(MySessionDetailFeature.State(sessionId: session.id)))
+                state.path.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: session.id)))
                 return .none
 
             case .path(.element(id: _, action: .mySessionDetail(.backButtonTapped))):

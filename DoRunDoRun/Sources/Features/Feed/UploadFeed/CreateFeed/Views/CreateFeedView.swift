@@ -91,8 +91,7 @@ private extension CreateFeedView {
                     .clipped()
 
             // 러닝 세션의 지도 이미지(mapImageURL)
-            } else if let urlString = store.session.mapImageURL,
-                      let url = URL(string: urlString) {
+            } else if let url = store.session.mapImageURL {
                 KFImage(url)
                     .placeholder {
                         Rectangle()

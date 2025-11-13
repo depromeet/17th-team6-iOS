@@ -115,6 +115,12 @@ struct RunningDetailView: View {
                     }
                 }
             }
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
+            }
+
             // MARK: - Error Handling
             .errorHandling(
                 networkErrorPopupStore: store.scope(

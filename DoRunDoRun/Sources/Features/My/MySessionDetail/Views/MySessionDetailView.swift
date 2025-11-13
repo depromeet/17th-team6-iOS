@@ -53,7 +53,7 @@ private extension MySessionDetailView {
                         // MARK: CTA 조건
                         if detail.feed != nil {
                             verificationCompletedCTA(
-                                mapImageURL: detail.mapImageURL
+                                selfieImageURL: detail.feed?.selfieImageURL
                             ) {
                                 store.send(.verificationCompletedButtonTapped)
                             }
@@ -85,6 +85,16 @@ private extension MySessionDetailView {
                             .foregroundStyle(Color.gray800)
                     }
                 }
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.myFeedDetail, action: \.myFeedDetail)
+            ) { store in
+                MyFeedDetailView(store: store)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
             }
         }
     }
@@ -217,7 +227,7 @@ private extension MySessionDetailView {
     
     /// 인증 완료 CTA
     func verificationCompletedCTA(
-        mapImageURL: URL?,
+        selfieImageURL: URL?,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -228,7 +238,7 @@ private extension MySessionDetailView {
                 }
                 Spacer()
                 
-                if let url = mapImageURL {
+                if let url = selfieImageURL {
                     KFImage(url)
                         .resizable()
                         .scaledToFill()

@@ -75,4 +75,22 @@ struct RunningDetailViewStateMapper {
             feed: viewState.feed
         )
     }
+    
+    /// ViewState → ViewState
+    static func map(from detail: RunningDetailViewState) -> RunningSessionSummaryViewState {
+        let formatter = DateFormatterManager.shared
+        
+        return RunningSessionSummaryViewState(
+            id: detail.sessionId ?? 0,
+            date: detail.startedAt,
+            dateText: formatter.formatDateWithWeekdayText(from: detail.startedAt),
+            timeText: formatter.formatTime(from: detail.startedAt),
+            distanceText: RunningFormatterManager.shared.formatDistance(from: detail.totalDistanceMeters),
+            durationText: RunningFormatterManager.shared.formatDuration(from: Int(detail.elapsed.components.seconds)),
+            paceText: RunningFormatterManager.shared.formatPace(from: detail.avgPaceSecPerKm),
+            spmText: RunningFormatterManager.shared.formatCadence(from: detail.avgCadenceSpm),
+            tagStatus: .possible, // 인증 피드 생성 화면임으로 항상 인증 가능 상태일 것
+            mapImageURL: detail.mapImageURL
+        )
+    }
 }

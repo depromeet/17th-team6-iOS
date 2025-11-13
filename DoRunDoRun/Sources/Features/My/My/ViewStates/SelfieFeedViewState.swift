@@ -93,3 +93,27 @@ struct ReactionUserViewState: Identifiable, Equatable {
     /// 리액션한 시각 텍스트 (포맷팅 완료 상태, 예: "3분 전")
     let reactedAtText: String
 }
+
+extension SelfieFeedItem {
+    /// feedID만 알고 있을 때 사용할 empty 객체
+    static func empty(feedID: Int) -> SelfieFeedItem {
+        SelfieFeedItem(
+            isMyFeed: false,
+            feedID: feedID,
+            dayText: "",
+            imageURL: nil,
+            isMap: false,
+            userName: "",
+            profileImageURL: "",
+            totalDistanceText: "",
+            totalRunTimeText: "",
+            averagePaceText: "",
+            cadence: 0,
+            reactions: [],
+            dateText: "",
+            timeText: "",
+            relativeTimeText: "",
+            selfieDate: .init(timeIntervalSince1970: 0)
+        )
+    }
+}

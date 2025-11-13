@@ -60,7 +60,7 @@ struct RunningSessionSummaryViewStateMapper {
                 paceText: paceText,
                 spmText: spmText,
                 tagStatus: tagStatus,
-                mapImageURL: String(describing: entity.mapImageURL)
+                mapImageURL: entity.mapImageURL
             )
         }
     }

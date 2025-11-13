@@ -15,6 +15,7 @@ struct MySessionDetailFeature {
 
     @ObservableState
     struct State: Equatable {
+        var session: RunningSessionSummaryViewState
         var sessionId: Int
         var detail: RunningDetailViewState?
         var uploadable: SelfieUploadableViewState?
@@ -103,16 +104,22 @@ struct MySessionDetailFeature {
             // MARK: CTA
             case .verificationCompletedButtonTapped:
                 if let feed = state.detail?.feed {
-                    // 피드 디테일 화면으로 이동
+                    state.myFeedDetail = MyFeedDetailFeature.State(feedId: feed.id, feed: .empty(feedID: feed.id))
                 }
                 return .none
 
             case .verificationPossibleButtonTapped:
-                if let detail = state.detail {
-                    // 피드 생성 화면으로 이동
-                }
+                state.createFeed = CreateFeedFeature.State(session: state.session)
                 return .none
-
+                
+            case .myFeedDetail(.presented(.backButtonTapped)):
+                state.myFeedDetail = nil
+                return .none
+                
+            case .createFeed(.presented(.backButtonTapped)):
+                state.createFeed = nil
+                return .none
+                
             default:
                 return .none
             }
