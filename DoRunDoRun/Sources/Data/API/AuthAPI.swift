@@ -39,8 +39,10 @@ extension AuthAPI: TargetType {
 
     var method: Moya.Method {
         switch self {
-        case .logout, .withdraw, .sendSMS, .verifySMS, .signup, .refreshToken:
+        case .logout, .sendSMS, .verifySMS, .signup, .refreshToken:
             return .post
+        case .withdraw:
+            return .delete
         }
     }
 

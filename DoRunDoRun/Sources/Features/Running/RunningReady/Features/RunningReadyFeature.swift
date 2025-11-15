@@ -89,39 +89,29 @@ struct RunningReadyFeature {
 
             // MARK: 화면 진입 시 - 친구 현황 불러오기 + 위치 추적 시작
             case .onAppear:
-                // 최초 진입 또는 친구 추가로 인한 refresh 필요 시
-                if state.statuses.isEmpty || state.shouldRefresh {
+                // 상태 초기화
+                state.statuses = []
+                state.currentPage = 0
+                state.hasNextPage = true
+                state.focusedFriendID = nil
+                state.isFollowingUserLocation = true
 
-                    state.shouldRefresh = false
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
 
-                    // 상태 초기화
-                    state.statuses = []
-                    state.currentPage = 0
-                    state.hasNextPage = true
-                    state.focusedFriendID = nil
-                    state.isFollowingUserLocation = true
-
-                    guard !state.isLoading else { return .none }
-                    state.isLoading = true
-
-                    return .merge(
-                        .send(.loadStatuses(page: 0)),
-                        .run { [userLocationUseCase] send in
-                            do {
-                                let locationStream = try await userLocationUseCase.startTracking()
-                                for try await coordinate in locationStream {
-                                    await send(.userLocationUpdated(coordinate))
-                                }
-                            } catch {
-                                print("[GPS] 위치 추적 실패: \(error)")
+                return .merge(
+                    .send(.loadStatuses(page: 0)),
+                    .run { [userLocationUseCase] send in
+                        do {
+                            let locationStream = try await userLocationUseCase.startTracking()
+                            for try await coordinate in locationStream {
+                                await send(.userLocationUpdated(coordinate))
                             }
+                        } catch {
+                            print("[GPS] 위치 추적 실패: \(error)")
                         }
-                    )
-                }
-
-                // refresh가 필요 없는 경우 아무것도 안 함
-                return .none
-
+                    }
+                )
 
             // MARK: 화면 종료 시 - 위치 추적 중단 및 상태 초기화
             case .onDisappear:
@@ -178,7 +168,7 @@ struct RunningReadyFeature {
                         !state.statuses.contains(where: { $0.id == new.id })
                     }
 
-                    // 🔥 중복되지 않는 애들만 append
+                    // 중복되지 않는 애들만 append
                     state.statuses.append(contentsOf: newItems)
                 }
 

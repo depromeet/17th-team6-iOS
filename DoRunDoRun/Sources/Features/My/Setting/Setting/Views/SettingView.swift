@@ -49,6 +49,12 @@ struct SettingView: View {
             ) { store in
                 PushNotificationSettingView(store: store)
             }
+            .navigationDestination(
+                item: $store.scope(state: \.web, action: \.web)
+            ) { store in
+                SettingWebView(store: store)
+            }
+
         }
     }
 }

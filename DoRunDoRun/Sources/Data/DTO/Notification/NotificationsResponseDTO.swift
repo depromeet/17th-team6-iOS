@@ -45,7 +45,7 @@ extension NotificationItemDTO {
             isRead: isRead,
             relatedId: relatedId,
             selfieImageURL: selfieImage,
-            createdAt: ISO8601DateFormatter().date(from: createdAt) ?? Date()
+            createdAt: createdAt
         )
     }
 }

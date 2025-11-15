@@ -16,9 +16,9 @@ struct PushNotificationSettingFeature {
         var popup = PopupFeature.State()
 
         // 푸시 설정 상태
-        var isMarketingPushOn: Bool = true
+        var isMarketingPushOn: Bool = UserManager.shared.isMarketingPushOn
+        var marketingAgreementDate: String? = UserManager.shared.marketingAgreementDate
         var isGlobalPushOn: Bool = false
-        var marketingAgreementDate: String? = "2025.10.27"
 
         var detailToggles: [PushDetailItem] = [
             .init(title: "깨우기", description: "친구가 나를 깨울 때 알림을 받습니다.", isOn: false),
@@ -52,13 +52,20 @@ struct PushNotificationSettingFeature {
             switch action {
 
             case .onAppear:
+                state.isMarketingPushOn = UserManager.shared.isMarketingPushOn
+                state.marketingAgreementDate = UserManager.shared.marketingAgreementDate
                 return .none
 
             // MARK: - 마케팅 푸시 토글
             case let .toggleMarketingPush(isOn):
                 if isOn {
                     state.isMarketingPushOn = true
-                    state.marketingAgreementDate = "2025.10.27"
+                    let today = DateFormatterManager.shared.formatDateText(from: Date())
+                    state.marketingAgreementDate = today
+                    
+                    UserManager.shared.isMarketingPushOn = true
+                    UserManager.shared.marketingAgreementDate = today
+                    
                     return .send(.toast(.show("마케팅 정보 수신 동의")))
                 } else {
                     return .send(.popup(.show(
@@ -85,10 +92,15 @@ struct PushNotificationSettingFeature {
             case .popupConfirmTapped:
                 state.isMarketingPushOn = false
                 state.marketingAgreementDate = nil
+                
+                UserManager.shared.isMarketingPushOn = false
+                UserManager.shared.marketingAgreementDate = nil
+                
                 return .merge(
                     .send(.popup(.hide)),
                     .send(.toast(.show("마케팅 정보 수신 해제")))
                 )
+
 
             // MARK: - 팝업 취소 버튼 (알림 유지)
             case .popupCancelTapped:

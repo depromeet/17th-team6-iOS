@@ -82,20 +82,14 @@ struct FriendListFeature {
 
             // MARK: - Lifecycle
             case .onAppear:
-                // 처음 들어올 때
-                if !state.hasAppearedOnce {
-                    state.hasAppearedOnce = true
-                    return .send(.loadFriends(page: 0))
-                }
+                state.friends = []
+                state.currentPage = 0
+                state.hasNextPage = true
                 
-                // 친구 추가 후 돌아왔을 때
-                if state.needsReloadAfterFriendAdd {
-                    state.needsReloadAfterFriendAdd = false
-                    return .send(.loadFriends(page: 0))
-                }
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
                 
-                // 그 외의 경우 (단순 복귀)
-                return .none
+                return .send(.loadFriends(page: 0))
 
             // MARK: - Load Friends
             case let .loadFriends(page):
@@ -105,20 +99,33 @@ struct FriendListFeature {
 
             case let .loadFriendsSuccess(friends):
                 state.isLoading = false
+                
                 if friends.isEmpty {
                     state.hasNextPage = false
-                } else {
-                    let filtered = friends.filter { !$0.isMe }
-                    let mapped = filtered.map { FriendRunningStatusViewStateMapper.map(from: $0) }
-                    if state.currentPage == 0 {
-                        // 첫 페이지
-                        state.friends = mapped
-                    } else {
-                        // 다음 페이지 append
-                        state.friends.append(contentsOf: mapped)
-                    }
-                    state.currentPage += 1
+                    return .none
                 }
+
+                let filtered = friends.filter { !$0.isMe }
+                let mapped = filtered.map { FriendRunningStatusViewStateMapper.map(from: $0) }
+
+                let lastIDBefore = state.friends.last?.id
+                let lastIDAfter = mapped.last?.id
+
+                if lastIDBefore == lastIDAfter {
+                    state.hasNextPage = false
+                    return .none
+                }
+
+                if state.currentPage == 0 {
+                    state.friends = mapped
+                } else {
+                    let newItems = mapped.filter { newItem in
+                        !state.friends.contains(where: { $0.id == newItem.id })
+                    }
+                    state.friends.append(contentsOf: newItems)
+                }
+
+                state.currentPage += 1
                 return .none
                 
             case let .loadNextPageIfNeeded(currentItem):
@@ -161,6 +168,13 @@ struct FriendListFeature {
 
             case let .deleteSuccess(result):
                 let names = result.deletedFriends.map(\.nickname).joined(separator: ", ")
+
+                // ★ 삭제 후 리스트 관련 상태 초기화
+                state.friends = []
+                state.currentPage = 0
+                state.hasNextPage = true
+                state.isLoading = false
+
                 return .merge(
                     .send(.loadFriends(page: 0)),
                     .send(.toast(.show("'\(names)' 친구가 삭제되었어요.")))

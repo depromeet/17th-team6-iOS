@@ -27,7 +27,7 @@ final class NotificationsRepositoryMock: NotificationsRepository {
                 isRead: false,
                 relatedId: nil,
                 selfieImageURL: nil,
-                createdAt: Date().addingTimeInterval(Double(-index * 600))
+                createdAt: ""
             )
         }
     }

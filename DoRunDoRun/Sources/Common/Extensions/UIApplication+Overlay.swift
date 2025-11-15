@@ -16,21 +16,40 @@ extension UIApplication {
     }
 
     /// SwiftUI 뷰를 UIKit 윈도우 최상단에 표시
-    static func presentOverlay<Content: View>(
-        @ViewBuilder content: () -> Content
-    ) {
-        guard let window = keyWindow else { return }
+    static func presentOverlay<Dim: View, Sheet: View>(
+         @ViewBuilder dim: @escaping () -> Dim,
+         @ViewBuilder sheet: @escaping () -> Sheet
+     ) {
+         guard let window = keyWindow else { return }
 
-        // HostingController 생성
-        let hosting = UIHostingController(rootView: content().ignoresSafeArea())
-        hosting.view.backgroundColor = .clear
-        hosting.view.frame = window.bounds
-        hosting.view.tag = 9999 // 중복 방지 태그
+         dismissOverlay()
 
-        // 기존 오버레이 제거 후 새로 추가
-        dismissOverlay()
-        window.addSubview(hosting.view)
-    }
+         let container = UIView(frame: window.bounds)
+         container.backgroundColor = .clear
+         container.tag = 9999
+
+         // ✔ dim만 담는 hosting
+         let dimHosting = UIHostingController(rootView: dim().ignoresSafeArea())
+         dimHosting.view.backgroundColor = .clear
+         dimHosting.view.frame = container.bounds
+         dimHosting.view.alpha = 0 // fade
+
+         // ✔ sheet만 담는 hosting
+         let sheetHosting = UIHostingController(rootView: sheet().ignoresSafeArea())
+         sheetHosting.view.backgroundColor = .clear
+         sheetHosting.view.frame = container.bounds
+         sheetHosting.view.transform = CGAffineTransform(translationX: 0, y: 200) // 아래에서 시작
+
+         container.addSubview(dimHosting.view)
+         container.addSubview(sheetHosting.view)
+
+         window.addSubview(container)
+
+         UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut]) {
+             dimHosting.view.alpha = 1
+             sheetHosting.view.transform = .identity
+         }
+     }
 
     /// 기존 오버레이 제거
     static func dismissOverlay() {

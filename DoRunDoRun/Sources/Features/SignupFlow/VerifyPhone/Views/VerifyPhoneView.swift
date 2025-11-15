@@ -28,8 +28,21 @@ struct VerifyPhoneView: View {
                 popupSection
             }
             .task {
-                focusedField = store.isPhoneNumberEntered ? .verificationCode : .phoneNumber
+                if store.phoneNumber.filter(\.isNumber) == "00011112222" {
+                    focusedField = .phoneNumber   // 인증번호로 포커스 이동 금지
+                } else {
+                    focusedField = store.isPhoneNumberEntered ? .verificationCode : .phoneNumber
+                }
             }
+
+            .onChange(of: store.isPhoneNumberEntered) { newValue in
+                if store.phoneNumber.filter(\.isNumber) == "00011112222" {
+                    focusedField = .phoneNumber
+                } else {
+                    focusedField = newValue ? .verificationCode : .phoneNumber
+                }
+            }
+
             .onChange(of: store.isPhoneNumberEntered) { newValue in
                 focusedField = newValue ? .verificationCode : .phoneNumber
             }
@@ -53,17 +66,32 @@ struct VerifyPhoneView: View {
 private extension VerifyPhoneView {
     var titleSection: some View {
         TypographyText(
-            text: store.isPhoneNumberEntered
-                ? "인증번호 6자리를 입력해주세요."
-                : (store.mode == .signup
-                   ? "환영합니다!\n휴대폰 번호로 가입해주세요."
-                   : "휴대폰 번호를 입력해주세요."),
+            text: {
+                // 테스트 번호면 무조건 휴대폰 번호 입력 문구 유지
+                if store.phoneNumber.filter(\.isNumber) == "00011112222" {
+                    return store.mode == .signup
+                        ? "환영합니다!\n휴대폰 번호로 가입해주세요."
+                        : "휴대폰 번호를 입력해주세요."
+                }
+
+                // 일반 유저
+                return store.isPhoneNumberEntered
+                    ? "인증번호 6자리를 입력해주세요."
+                    : (store.mode == .signup
+                       ? "환영합니다!\n휴대폰 번호로 가입해주세요."
+                       : "휴대폰 번호를 입력해주세요.")
+            }(),
             style: .h2_700,
             alignment: .left
         )
+
         .padding(.top, 16)
         .transition(.opacity.combined(with: .slide))
-        .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
+        .animation(
+            .easeInOut(duration: 0.3),
+            value: store.isPhoneNumberEntered
+                && store.phoneNumber.filter(\.isNumber) != "00011112222"
+        )
     }
 }
 
@@ -73,7 +101,8 @@ private extension VerifyPhoneView {
     var inputSection: some View {
         VStack(spacing: 0) {
             // 인증번호 입력 (전송 후 표시)
-            if store.isPhoneNumberEntered {
+            if store.isPhoneNumberEntered &&
+                store.phoneNumber.filter(\.isNumber) != "00011112222" {
                 InputVerificationCodeField(
                     code: $store.verificationCode,
                     timerText: store.timer.timerText,
@@ -83,21 +112,38 @@ private extension VerifyPhoneView {
                 .padding(.top, 32)
                 .focused($focusedField, equals: .verificationCode)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.9), value: store.isPhoneNumberEntered)
+                .animation(
+                    .easeInOut(duration: 0.3),
+                    value: store.isPhoneNumberEntered
+                        && store.phoneNumber.filter(\.isNumber) != "00011112222"
+                )
             }
 
             // 휴대폰 번호 입력
             InputField(
                 keyboardType: .numberPad,
-                label: store.isPhoneNumberEntered ? "휴대폰 번호" : nil,
+                label: (
+                    store.isPhoneNumberEntered &&
+                    store.phoneNumber.filter(\.isNumber) != "00011112222"
+                ) ? "휴대폰 번호" : nil,
                 placeholder: "휴대폰 번호를 입력하세요",
                 text: $store.phoneNumber
             )
-            .padding(.top, store.isPhoneNumberEntered ? 24 : 32)
+            .padding(
+                .top,
+                store.isPhoneNumberEntered
+                && store.phoneNumber.filter(\.isNumber) != "00011112222"
+                    ? 24
+                    : 32
+            )
             .focused($focusedField, equals: .phoneNumber)
             .onChange(of: store.phoneNumber) { store.send(.phoneNumberChanged($0)) }
             .transition(.move(edge: .bottom).combined(with: .opacity))
-            .animation(.easeInOut(duration: 0.3), value: store.isPhoneNumberEntered)
+            .animation(
+                .easeInOut(duration: 0.3),
+                value: store.isPhoneNumberEntered
+                    && store.phoneNumber.filter(\.isNumber) != "00011112222"
+            )
         }
     }
 }
@@ -127,7 +173,10 @@ private extension VerifyPhoneView {
         }
         
         AppButton(
-            title: store.isPhoneNumberEntered ? "확인" : "인증문자 받기",
+            title:
+                store.phoneNumber.filter(\.isNumber) == "00011112222"
+                    ? "다음"
+                    : (store.isPhoneNumberEntered ? "확인" : "인증문자 받기"),
             style: store.isBottomButtonEnabled ? .primary : .disabled
         ) {
             if store.state.isVerificationCodeEntered {

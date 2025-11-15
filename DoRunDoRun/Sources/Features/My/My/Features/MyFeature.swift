@@ -179,8 +179,13 @@ struct MyFeature {
 
             // MARK: - Lifecycle
             case .onAppear:
+                state.feeds = []
+                state.currentPage = 0
+                state.hasNextPage = true
+                
                 guard !state.isLoading else { return .none }
                 state.isLoading = true
+                
                 return .merge(
                     .send(.fetchSelfieFeeds(page: 0)),
                     .send(.fetchSessions)

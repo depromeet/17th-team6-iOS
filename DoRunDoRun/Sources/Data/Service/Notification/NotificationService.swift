@@ -8,6 +8,7 @@
 protocol NotificationService {
     func getNotifications(page: Int, size: Int) async throws -> NotificationsResponseDTO
     func patchNotificationRead(notificationId: Int) async throws
+    func getUnreadCount() async throws -> NotificationUnreadCountResponseDTO
 }
 
 final class NotificationServiceImpl: NotificationService {
@@ -29,6 +30,13 @@ final class NotificationServiceImpl: NotificationService {
         _ = try await apiClient.request(
             NotificationAPI.notificationRead(notificationId: notificationId),
             responseType: EmptyResponse.self
+        )
+    }
+    
+    func getUnreadCount() async throws -> NotificationUnreadCountResponseDTO {
+        try await apiClient.request(
+            NotificationAPI.unreadCount,
+            responseType: NotificationUnreadCountResponseDTO.self
         )
     }
 }

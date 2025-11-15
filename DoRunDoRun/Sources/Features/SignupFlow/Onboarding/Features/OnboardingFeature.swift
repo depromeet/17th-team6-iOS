@@ -116,6 +116,9 @@ struct OnboardingFeature {
                 state.path.removeAll()
                 return .none
                 
+            case .path(.element(id: _, action: .phoneAuth(.testCompleted))):
+                return .send(.finished)
+                
             case let .path(.element(id: id, action: .phoneAuth(.completed(phoneNumber)))):
                 // 휴대폰 인증 완료 → 회원가입 or 로그인 흐름 분기
                 if let element = state.path[id: id],

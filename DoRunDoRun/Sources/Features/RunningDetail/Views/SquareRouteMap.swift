@@ -28,7 +28,6 @@ struct SquareRouteMap: View {
     StatefulPreview()
 }
 
-#if DEBUG
 /// 지도 캡처 확인용 프리뷰
 private struct StatefulPreview: View {
     @State private var snapshot: Data? = nil
@@ -92,4 +91,3 @@ enum RouteMocks {
         .init(latitude: 37.5408000, longitude: 127.0700000, paceSecPerKm: 540)
     ]
 }
-#endif

@@ -20,7 +20,7 @@ struct SettingFeature {
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
 
-        var appVersion: String = "3.13.0"
+        var appVersion: String = "1.0.1"
         
         @Presents var editProfile: EditProfileFeature.State?
         @Presents var accountInfo: AccountInfoFeature.State?
@@ -31,6 +31,8 @@ struct SettingFeature {
             case withdraw
         }
         var lastFailedRequest: FailedRequestType? = nil
+        
+        @Presents var web: SettingWebFeature.State?
     }
 
     enum Action: Equatable {
@@ -63,6 +65,8 @@ struct SettingFeature {
             case withdrawCompleted
         }
         case delegate(Delegate)
+        
+        case web(PresentationAction<SettingWebFeature.Action>)
     }
 
     var body: some ReducerOf<Self> {
@@ -112,11 +116,21 @@ struct SettingFeature {
                 return .none
 
             case .privacyPolicyTapped:
-                print("개인정보처리방침 탭")
+                state.web = .init(
+                    urlString: "https://depromeet.notion.site/29645b4338b380658ea4d47294188129",
+                    title: "개인정보처리방침"
+                )
                 return .none
 
             case .termsTapped:
-                print("약관 및 정책 탭")
+                state.web = .init(
+                    urlString: "https://depromeet.notion.site/2ab45b4338b380728db8de7e6b152490",
+                    title: "약관 및 정책"
+                )
+                return .none
+                
+            case .web(.presented(.backButtonTapped)):
+                state.web = nil
                 return .none
 
             case .logoutTapped:
@@ -182,6 +196,9 @@ struct SettingFeature {
         }
         .ifLet(\.$pushNotificationSetting, action: \.pushNotificationSetting) {
             PushNotificationSettingFeature()
+        }
+        .ifLet(\.$web, action: \.web) {
+            SettingWebFeature()
         }
     }
     

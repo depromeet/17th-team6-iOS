@@ -59,8 +59,13 @@ struct NotificationFeature {
             
             // MARK: - 알림 목록 요청
             case .onAppear:
+                state.notifications = []
+                state.currentPage = 0
+                state.hasNextPage = true
+                
                 guard !state.isLoading else { return .none }
                 state.isLoading = true
+                
                 return .send(.loadNotifications(page: 0))
 
             case let .loadNotifications(page):
@@ -70,19 +75,24 @@ struct NotificationFeature {
 
             case let .notificationsSuccess(results):
                 state.isLoading = false
+
                 if results.isEmpty {
                     state.hasNextPage = false
-                } else {
-                    let mapped = results.map { NotificationViewStateMapper.map(from: $0) }
-                    if state.currentPage == 0 {
-                        // 첫 페이지
-                        state.notifications = mapped
-                    } else {
-                        // 다음 페이지 append
-                        state.notifications.append(contentsOf: mapped)
-                    }
-                    state.currentPage += 1
+                    return .none
                 }
+
+                let mapped = results.map { NotificationViewStateMapper.map(from: $0) }
+
+                if state.currentPage == 0 {
+                    state.notifications = mapped
+                } else {
+                    let newItems = mapped.filter { newItem in
+                        !state.notifications.contains(where: { $0.id == newItem.id })
+                    }
+                    state.notifications.append(contentsOf: newItems)
+                }
+
+                state.currentPage += 1
                 return .none
                 
             case let .loadNextPageIfNeeded(currentItem):

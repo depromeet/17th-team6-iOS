@@ -19,6 +19,12 @@ extension DependencyValues {
         get { self[SelfieUserUseCaseKey.self] }
         set { self[SelfieUserUseCaseKey.self] = newValue }
     }
+    
+    // MARK: - 읽지 않은 알림 개수 조회
+    var notificationUnreadCountUseCase: NotificationUnreadCountUseCaseProtocol {
+        get { self[NotificationUnreadCountUseCaseKey.self] }
+        set { self[NotificationUnreadCountUseCaseKey.self] = newValue }
+    }
 }
 
 // MARK: - Keys
@@ -36,4 +42,12 @@ private enum SelfieUserUseCaseKey: DependencyKey {
     
     static let testValue: SelfieUserUseCaseProtocol =
         SelfieUserUseCase(repository: SelfieUserRepositoryMock())
+}
+
+private enum NotificationUnreadCountUseCaseKey: DependencyKey {
+    static let liveValue: NotificationUnreadCountUseCaseProtocol =
+        NotificationUnreadCountUseCase(repository: NotificationUnreadCountRepositoryImpl())
+    
+    static let testValue: NotificationUnreadCountUseCaseProtocol =
+        NotificationUnreadCountUseCase(repository: NotificationUnreadCountRepositoryMock())
 }

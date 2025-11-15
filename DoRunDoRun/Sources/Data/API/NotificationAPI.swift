@@ -11,6 +11,7 @@ import Moya
 enum NotificationAPI {
     case notifications(page: Int, size: Int)
     case notificationRead(notificationId: Int)
+    case unreadCount
 }
 
 extension NotificationAPI: TargetType {
@@ -18,8 +19,12 @@ extension NotificationAPI: TargetType {
 
     var path: String {
         switch self {
-        case .notifications: return "/api/notifications"
-        case let .notificationRead(notificationId): return "/api/notifications/\(notificationId)/read"
+        case .notifications: 
+            return "/api/notifications"
+        case let .notificationRead(notificationId):
+            return "/api/notifications/\(notificationId)/read"
+        case .unreadCount:
+             return "/api/notifications/unread-count"
         }
     }
 
@@ -27,6 +32,7 @@ extension NotificationAPI: TargetType {
         switch self {
         case .notifications: return .get
         case .notificationRead: return .patch
+        case .unreadCount: return .get
         }
     }
 
@@ -40,7 +46,7 @@ extension NotificationAPI: TargetType {
                 ],
                 encoding: URLEncoding.default
             )
-        case .notificationRead:
+        case .notificationRead, .unreadCount:
             return .requestPlain
         }
     }

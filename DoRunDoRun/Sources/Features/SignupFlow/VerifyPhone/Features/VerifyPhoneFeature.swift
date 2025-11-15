@@ -51,6 +51,7 @@ struct VerifyPhoneFeature {
         case resendTapped
         
         // 상위로 전달
+        case testCompleted
         case completed(phoneNumber: String)
         case signupButtonTapped
         case findAccountButtonTapped
@@ -92,6 +93,18 @@ struct VerifyPhoneFeature {
                         do {
                             try await sendSMSUseCase.execute(phoneNumber: phoneNumber)
                             await send(.timer(.start(seconds: 180)))
+                            
+                            // 테스트 번호면 “바로 이어서 verify까지 자동 실행”
+                            if phoneNumber == "000-1111-2222" {
+                                let response = try await verifySMSUseCase.execute(phoneNumber: phoneNumber, verificationCode: "000000")
+                                guard let token = response.token else { return }
+                                TokenManager.shared.accessToken = token.accessToken
+                                TokenManager.shared.refreshToken = token.refreshToken
+                                guard let user = response.user else { return }
+                                UserManager.shared.userId = user.id
+                                UserManager.shared.nickname = user.nickname
+                                await send(.testCompleted)
+                            }
                         } catch {
                             if let apiError = error as? APIError {
                                 switch apiError {
@@ -199,6 +212,9 @@ struct VerifyPhoneFeature {
                         await send(.binding(.set(\.isResendButtonDisabled, false)))
                     }
                 )
+                
+            case .testCompleted, .completed, .backButtonTapped:
+                return .cancel(id: TimerFeature.CancelID.timer)
                 
             default:
                 return .none

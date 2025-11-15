@@ -88,6 +88,17 @@ struct AgreeTermsFeature {
 
             case .bottomButtonTapped:
                 guard state.isEssentialAgreed else { return .none }
+
+                let isMarketing = state.agreeTermsList.isMarketingAgreed
+                UserManager.shared.isMarketingPushOn = isMarketing
+                
+                if isMarketing {
+                    UserManager.shared.marketingAgreementDate =
+                        DateFormatterManager.shared.formatDateText(from: Date())
+                } else {
+                    UserManager.shared.marketingAgreementDate = nil
+                }
+
                 return .send(.completed)
 
             default:
@@ -97,6 +108,5 @@ struct AgreeTermsFeature {
         .ifLet(\.$web, action: \.web) {
             AgreeTermsWebFeature()
         }
-
     }
 }

@@ -18,7 +18,7 @@ struct NotificationsResult: Equatable, Identifiable {
     let isRead: Bool
     let relatedId: Int?
     let selfieImageURL: String?
-    let createdAt: Date
+    let createdAt: String
 }
 
 enum NotificationType: String, Decodable {

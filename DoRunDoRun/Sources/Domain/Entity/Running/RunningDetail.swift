@@ -47,7 +47,6 @@ struct FeedSummary: Equatable, Sendable {
     let createdAt: Date
 }
 
-#if DEBUG
 extension RunningDetail {
     static let mock = RunningDetail(
         sessionId: 123,
@@ -70,4 +69,3 @@ extension RunningDetail {
         feed: nil
     )
 }
-#endif

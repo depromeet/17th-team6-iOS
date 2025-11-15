@@ -16,35 +16,32 @@ struct FeedView: View {
             }
             .onAppear { store.send(.onAppear) }
             // 시트 표시 상태 변화 감지
-            .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { isSheetVisible in
-                if isSheetVisible {
-                    // UIKit overlay를 윈도우 최상단에 표시
-                    UIApplication.presentOverlay {
-                        ZStack(alignment: .bottom) {
-                            // DIM 배경
+            .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { visible in
+                if visible {
+                    UIApplication.presentOverlay(
+                        dim: {
                             Color.dimLight
                                 .ignoresSafeArea()
                                 .onTapGesture { store.send(.dismissSheet) }
-                                .transition(.opacity)
-                            
-                            // 리액션 상세 시트
-                            if store.isReactionDetailPresented {
-                                ReactionDetailSheetView(
-                                    store: store.scope(state: \.reactionDetail, action: \.reactionDetail)
-                                )
-                                .transition(.move(edge: .bottom))
-                            }
-                            
-                            // 리액션 추가 시트
-                            if store.isReactionPickerPresented {
-                                ReactionPickerSheetView(
-                                    store: store.scope(state: \.reactionPicker, action: \.reactionPicker)
-                                )
-                                .transition(.move(edge: .bottom))
+                        },
+                        sheet: {
+                            ZStack(alignment: .bottom) {
+                                Color.clear
+                                    .ignoresSafeArea()
+                                
+                                if store.isReactionDetailPresented {
+                                    ReactionDetailSheetView(
+                                        store: store.scope(state: \.reactionDetail, action: \.reactionDetail)
+                                    )
+                                }
+                                if store.isReactionPickerPresented {
+                                    ReactionPickerSheetView(
+                                        store: store.scope(state: \.reactionPicker, action: \.reactionPicker)
+                                    )
+                                }
                             }
                         }
-                        .animation(.easeInOut(duration: 0.25), value: isSheetVisible)
-                    }
+                    )
                 } else {
                     UIApplication.dismissOverlay()
                 }
@@ -120,7 +117,6 @@ private extension FeedView {
                     }
                 }
             }
-
         }
     }
 
@@ -134,7 +130,10 @@ private extension FeedView {
                     Image(.friends, fill: .fill, size: .medium)
                 }
                 Button { store.send(.notificationButtonTapped) } label: {
-                    Image(.alarmActive, size: .medium)
+                    Image(
+                        store.unreadCount > 0 ? .alarmActive : .alarm,
+                        size: .medium
+                    )
                 }
             }
         }

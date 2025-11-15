@@ -20,7 +20,6 @@ struct RunningSessionSummary: Equatable {
     let mapImageURL: URL?
 }
 
-#if DEBUG
 extension RunningSessionSummary {
     static let mock = RunningSessionSummary(
         sessionId: 1,
@@ -34,4 +33,3 @@ extension RunningSessionSummary {
         mapImageURL: URL(string: "https://example.com/map.jpg")
     )
 }
-#endif

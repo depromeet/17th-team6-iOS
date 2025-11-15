@@ -20,20 +20,55 @@ struct FriendRunningStatusViewStateMapper {
         
         // MARK: - 깨우기 가능 여부
         let isCheerable: Bool = {
-            guard let lastRan = entity.latestRanAt else { return false }
             let now = Date()
-            let hoursSinceRun = now.timeIntervalSince(lastRan) / 3600
+
+            // 러닝 기록 여부
+            let hasRun = entity.latestRanAt != nil
             
-            // 48시간 이상 러닝 안했는지 확인
-            guard hoursSinceRun >= 48 else { return false }
+            // 마지막 러닝 이후 경과한 시간(시간 단위)
+            let hoursSinceRun = entity.latestRanAt.map { now.timeIntervalSince($0) / 3600 } ?? .infinity
             
-            // 마지막 응원 후 24시간 이상 지났는지 확인
-            if let lastCheer = entity.latestCheeredAt {
-                let hoursSinceCheer = now.timeIntervalSince(lastCheer) / 3600
-                return hoursSinceCheer >= 24
-            } else {
-                // 응원 이력이 없다면 즉시 가능
+            // 마지막 응원 이후 경과한 시간(시간 단위)
+            let hoursSinceCheer = entity.latestCheeredAt.map { now.timeIntervalSince($0) / 3600 } ?? .infinity
+
+            /*
+             switch 패턴 설명
+             ----------------------
+             입력 튜플: (hasRun, hoursSinceRun, hoursSinceCheer)
+
+             Truth Table 정리:
+             1) 러닝 기록 없음 + 응원 24시간 지남 → 가능
+             2) 러닝 기록 없음 + 응원 24시간 미만 → 불가능
+             3) 러닝 기록 있음 + 마지막 러닝 48시간 미만 → 불가능
+             4) 러닝 기록 있음 + 마지막 러닝 48시간 지남 + 응원 24시간 미만 → 불가능
+             5) 러닝 기록 있음 + 마지막 러닝 48시간 지남 + 응원 24시간 지남 → 가능
+             */
+
+            switch (hasRun, hoursSinceRun, hoursSinceCheer) {
+
+            // 1) 러닝 기록 없음 + (응원 이력이 없거나) 마지막 응원으로부터 24시간 지남 → 응원 가능
+            case (false, _, let cheer) where cheer >= 24:
                 return true
+
+            // 2) 러닝 기록 없음 + 마지막 응원 24시간 미만 → 응원 불가능
+            case (false, _, let cheer) where cheer < 24:
+                return false
+
+            // 3) 러닝 기록 있음 + 마지막 러닝 48시간 미만 → 응원 불가능
+            case (true, let run, _) where run < 48:
+                return false
+                
+            // 4) 러닝 기록 있음 + 마지막 러닝 48시간 지남 + 마지막 응원 24시간 미만 → 응원 불가능
+            case (true, let run, let cheer) where run >= 48 && cheer < 24:
+                return false
+
+            // 5) 러닝 기록 있음 + 마지막 러닝 48시간 지남 + 마지막 응원 24시간 이상 → 응원 가능
+            case (true, let run, let cheer) where run >= 48 && cheer >= 24:
+                return true
+
+            // 안전 장치 (실제로는 도달하지 않음)
+            default:
+                return false
             }
         }()
         

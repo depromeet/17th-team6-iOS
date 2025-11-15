@@ -20,6 +20,12 @@ final class UserManager {
     
     @UserDefault(key: "profileImageURL", defaultValue: nil)
     var profileImageURL: String?
+    
+    @UserDefault(key: "isMarketingPushOn", defaultValue: false)
+    var isMarketingPushOn: Bool
+
+    @UserDefault(key: "marketingAgreementDate", defaultValue: nil)
+    var marketingAgreementDate: String?
 
     func clear() {
         userId = 0

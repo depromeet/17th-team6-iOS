@@ -10,6 +10,7 @@ struct FeedFeature {
     @Dependency(\.selfieFeedsUseCase) var selfieFeedsUseCase
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
     @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
+    @Dependency(\.notificationUnreadCountUseCase) var notificationUnreadCountUseCase
 
     // MARK: - State
     @ObservableState
@@ -17,6 +18,8 @@ struct FeedFeature {
         var selectedDate: Date = Date()
         var weekDates: [Date] = []
         var weekCounts: [SelfieWeekCountResult] = []
+        
+        var unreadCount: Int = 0
 
         // 인증 유저 관련
         var selfieUsers: [SelfieUserViewState] = []
@@ -81,6 +84,10 @@ struct FeedFeature {
         case onAppear
         case selectDate(Date)
         case changeWeek(Int)
+        
+        case fetchUnreadCount
+        case fetchUnreadCountSuccess(Int)
+        case fetchUnreadCountFailure(APIError)
         
         // 주간 데이터
         case fetchWeekCounts(startDate: String, endDate: String)
@@ -193,7 +200,8 @@ struct FeedFeature {
                 return .merge(
                     .send(.fetchWeekCounts(startDate: startStr, endDate: endStr)),
                     .send(.fetchSelfieUsers(todayStr)),
-                    .send(.fetchSelfieFeeds(page: 0))
+                    .send(.fetchSelfieFeeds(page: 0)),
+                    .send(.fetchUnreadCount)
                 )
 
             // MARK: - 주차 변경
@@ -220,6 +228,23 @@ struct FeedFeature {
                     .send(.fetchSelfieFeeds(page: 0)),
                     .send(.fetchSelfieUsers(dateStr))
                 )
+                
+            case .fetchUnreadCount:
+                return .run { send in
+                    do {
+                        let result = try await notificationUnreadCountUseCase.execute()
+                        await send(.fetchUnreadCountSuccess(result.count))
+                    } catch {
+                        await send(.fetchUnreadCountFailure(error as? APIError ?? .unknown))
+                    }
+                }
+
+            case let .fetchUnreadCountSuccess(count):
+                state.unreadCount = count
+                return .none
+
+            case let .fetchUnreadCountFailure(error):
+                return handleAPIError(error)
 
             // MARK: - 주간 인증 개수
             case let .fetchWeekCounts(start, end):
@@ -293,6 +318,7 @@ struct FeedFeature {
                 }
 
                 let mapped = SelfieFeedItemMapper.mapList(from: result.feeds)
+                
                 if state.currentPage == 0 {
                     state.feeds = mapped
                 } else {
@@ -302,6 +328,8 @@ struct FeedFeature {
                     state.feeds.append(contentsOf: newItems)
                 }
                 state.currentPage += 1
+                
+                state.feeds.sort { $0.selfieDate > $1.selfieDate }
                 return .none
 
             case let .fetchSelfieFeedsFailure(error):

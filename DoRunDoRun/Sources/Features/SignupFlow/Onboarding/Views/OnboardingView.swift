@@ -18,12 +18,14 @@ struct OnboardingView: View {
                     Spacer()
                     TabView(selection: $store.currentPage.sending(\.pageChanged)) {
                         ForEach(Array(store.pages.enumerated()), id: \.offset) { index, page in
-                            OnboardingPageView(
-                                image: Image(page.image),
-                                title: page.title,
-                                subtitle: page.subtitle
-                            )
-                            .tag(index)
+                            WithPerceptionTracking {
+                                OnboardingPageView(
+                                    image: Image(page.image),
+                                    title: page.title,
+                                    subtitle: page.subtitle
+                                )
+                                .tag(index)
+                            }
                         }
                     }
                     .frame(height: 386)
