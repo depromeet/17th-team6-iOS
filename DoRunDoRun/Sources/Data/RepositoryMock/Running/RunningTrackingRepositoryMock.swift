@@ -38,6 +38,12 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
     private var speedMps: Double = 3.2            // 약 5:13/km 정도
     private var cadenceSpm: Double = 172.0
 
+    // 수집 데이터 저장
+    private var coordinates: [RunningPoint] = []
+    private var cadenceSamples: [Double] = []
+    private var fastestSpeed: Double = 0
+    private var coordinateAtFastestSpeed: RunningPoint?
+
     // MARK: - API
     func startTracking() async throws -> AsyncThrowingStream<RunningSnapshot, Error> {
         guard state == .idle || state == .stopped else {
@@ -112,32 +118,55 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
                 feed: nil
             )
         }
+
+        // 실제 수집한 데이터 기반으로 통계 계산
+        let elapsedSec = elapsedNow()
+        let km = totalDistanceMeters / 1000.0
+        let avgPaceSecPerKm: Double = km > 0 ? (elapsedSec / km) : 0
+
+        // 평균 케이던스 계산
+        let avgCadence = cadenceSamples.isEmpty ? 0 : cadenceSamples.reduce(0, +) / Double(cadenceSamples.count)
+        // 최대 케이던스
+        let maxCadence = cadenceSamples.max() ?? 0
+
+        // 가장 빠른 페이스 (가장 빠른 속도 = 가장 작은 페이스 값)
+        let fastestPaceSecPerKm: Double = fastestSpeed > 0 ? (1000.0 / fastestSpeed) : 0
+
+        // 시작/종료 시각
+        let startedAt = self.startAt ?? Date()
+        let finishedAt = Date()
+
+        // 가장 빠른 속도 지점 (없으면 첫 번째 좌표 사용)
+        let fastestCoordinate = coordinateAtFastestSpeed ?? coordinates.first ?? RunningPoint(
+            timestamp: Date(),
+            coordinate: RunningCoordinate(latitude: startLat, longitude: startLon),
+            altitude: 25.0,
+            speedMps: 0
+        )
+
+        let detail = RunningDetail(
+            sessionId: sessionId,
+            startedAt: startedAt,
+            finishedAt: finishedAt,
+            totalDistanceMeters: totalDistanceMeters,
+            elapsed: .seconds(elapsedSec),
+            avgPaceSecPerKm: avgPaceSecPerKm,
+            avgCadenceSpm: avgCadence,
+            maxCadenceSpm: maxCadence,
+            fastestPaceSecPerKm: fastestPaceSecPerKm,
+            coordinateAtmaxPace: fastestCoordinate,
+            coordinates: coordinates,
+            mapImageData: nil,
+            mapImageURL: nil,
+            feed: nil
+        )
+
         state = .stopped
         stopTicker()
         finishStream()
         reset()
 
-        return RunningDetail(
-            sessionId: sessionId,
-            startedAt: Date(),
-            finishedAt: Date().addingTimeInterval(3600),
-            totalDistanceMeters: 3210.5,
-            elapsed: .seconds(900),
-            avgPaceSecPerKm: 280.0,
-            avgCadenceSpm: 175.0,
-            maxCadenceSpm: 186.0,
-            fastestPaceSecPerKm: 265.0,
-            coordinateAtmaxPace: RunningPoint(
-                timestamp: Date(),
-                coordinate: RunningCoordinate(latitude: 37.5465, longitude: 127.0652),
-                altitude: 25.0,
-                speedMps: 3.8
-            ),
-            coordinates: [],
-            mapImageData: nil,
-            mapImageURL: nil,
-            feed: nil
-        )
+        return detail
     }
 
     // MARK: - Ticker
@@ -237,6 +266,16 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
             speedMps: speedMps
         )
 
+        // 데이터 저장
+        coordinates.append(point)
+        cadenceSamples.append(cadenceSpm)
+
+        // 가장 빠른 속도 추적
+        if speedMps > fastestSpeed {
+            fastestSpeed = speedMps
+            coordinateAtFastestSpeed = point
+        }
+
         continuation?.yield(
             RunningSnapshot(
                 timestamp: point.timestamp,
@@ -271,5 +310,10 @@ actor RunningTrackingRepositoryMock: RunningTrackingRepository {
         headingDeg = 90.0
         speedMps = 3.2
         cadenceSpm = 172.0
+
+        coordinates = []
+        cadenceSamples = []
+        fastestSpeed = 0
+        coordinateAtFastestSpeed = nil
     }
 }
