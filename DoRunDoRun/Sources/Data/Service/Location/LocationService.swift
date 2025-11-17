@@ -15,6 +15,10 @@ enum LocationServiceError: Error {
 
 /// 사용자 위치 기반 데이터 수집 관련 인터페이스
 protocol LocationService: AnyObject {
+    /// 위치 권한 요청 (비동기)
+    /// - Returns: 사용자가 권한을 허용했는지 여부
+    func requestPermission() async -> Bool
+
     /// CoreLocation 업데이트 스트림을 시작하고 비동기 시퀀스를 반환
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error>
     func stopTracking()
@@ -24,9 +28,12 @@ protocol LocationService: AnyObject {
 final class LocationServiceImpl: NSObject, LocationService {
     // 해당 객체를 만들 스레드에서 델리게이트 메서드가 실행된다.
     private let manager = CLLocationManager()
-    
+
     private var continuation: AsyncThrowingStream<CLLocation, Error>.Continuation?
     private var isStreaming: Bool = false
+
+    // 권한 요청을 위한 continuation
+    private var permissionContinuation: CheckedContinuation<Bool, Never>?
     
     override init() {
         super.init()
@@ -43,28 +50,42 @@ final class LocationServiceImpl: NSObject, LocationService {
         manager.distanceFilter = 5 // 5~10m 권장
     }
     
+    func requestPermission() async -> Bool {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return true
+        case .denied, .restricted:
+            return false
+        case .notDetermined:
+            // 권한 요청 후 delegate 응답 대기
+            return await withCheckedContinuation { continuation in
+                self.permissionContinuation = continuation
+                manager.requestWhenInUseAuthorization()
+            }
+        @unknown default:
+            return false
+        }
+    }
+
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error> {
         if isStreaming { throw LocationServiceError.alreadyStreaming }
-        
-        // 위치 권한 확인
+
+        // 위치 권한 확인 (요청은 하지 않음)
         try checkAuthorizationStatus()
-        
+
         return makeStreaming()
     }
-    
+
     func stopTracking() {
         continuation?.finish()
     }
-    
-    /// 사용자 권한 요청 메서드
+
+    /// 사용자 권한 확인 메서드 (요청은 하지 않음)
     func checkAuthorizationStatus() throws(LocationServiceError) {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
             break
-        case .notDetermined:
-            manager.requestWhenInUseAuthorization()
-            break
-        case .denied, .restricted:
+        case .notDetermined, .denied, .restricted:
             throw LocationServiceError.notAuthorized
         @unknown default:
             break
@@ -98,18 +119,18 @@ final class LocationServiceImpl: NSObject, LocationService {
     }
 }
 
+// MARK: - CLLocationManagerDelegate
+
 extension LocationServiceImpl: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .denied, .restricted:
-            if isStreaming {
-                continuation?.finish(throwing: LocationServiceError.notAuthorized)
-            }
-        case .authorizedAlways, .authorizedWhenInUse:
-            break
-        default:
-            break
+        // 권한 요청 응답 처리
+        if permissionContinuation != nil {
+            handlePermissionResponse(status: manager.authorizationStatus)
+            return
         }
+
+        // 스트리밍 중 권한 변경 감지
+        handleStreamingAuthChange(status: manager.authorizationStatus)
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -135,5 +156,41 @@ extension LocationServiceImpl: CLLocationManagerDelegate {
             }
         }
         continuation?.finish(throwing: LocationServiceError.runtimeError(error))
+    }
+    
+    // MARK: Delegate Helper Methods
+    
+    /// 권한 요청에 대한 사용자 응답 처리
+    private func handlePermissionResponse(status: CLAuthorizationStatus) {
+        guard let permissionContinuation else { return }
+
+        switch status {
+        case .authorizedAlways, .authorizedWhenInUse:
+            permissionContinuation.resume(returning: true)
+            self.permissionContinuation = nil
+        case .denied, .restricted:
+            permissionContinuation.resume(returning: false)
+            self.permissionContinuation = nil
+        case .notDetermined:
+            // 아직 결정 안 됨, 계속 대기
+            break
+        @unknown default:
+            permissionContinuation.resume(returning: false)
+            self.permissionContinuation = nil
+        }
+    }
+
+    /// 스트리밍 중 권한 변경 감지 (예: 설정에서 권한 취소)
+    private func handleStreamingAuthChange(status: CLAuthorizationStatus) {
+        guard isStreaming else { return }
+
+        switch status {
+        case .denied, .restricted:
+            continuation?.finish(throwing: LocationServiceError.notAuthorized)
+        case .authorizedAlways, .authorizedWhenInUse:
+            break
+        default:
+            break
+        }
     }
 }
