@@ -55,6 +55,9 @@ struct OnboardingView: View {
                 case .findAccount(let store): FindAccountView(store: store)
                 }
             }
+            .onAppear {
+                store.send(.onAppear)
+            }
         }
     }
 }

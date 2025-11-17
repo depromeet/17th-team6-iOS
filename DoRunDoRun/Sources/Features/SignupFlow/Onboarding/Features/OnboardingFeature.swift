@@ -17,6 +17,9 @@ struct OnboardingPage: Equatable {
 
 @Reducer
 struct OnboardingFeature {
+    // MARK: - Dependencies
+    @Dependency(\.locationPermissionUseCase) var locationPermissionUseCase
+
     @ObservableState
     struct State {
         var pages: [OnboardingPage] = [
@@ -39,7 +42,7 @@ struct OnboardingFeature {
         var currentPage = 0
         let totalPages = 3
         var path = StackState<Path.State>()
-        
+
         var marketingConsentAt: Date? = nil
         var locationConsentAt: Date = Date()
         var personalConsentAt: Date = Date()
@@ -47,17 +50,18 @@ struct OnboardingFeature {
 
     enum Action {
         // 내부 동작
+        case onAppear
         case nextPage
         case previousPage
         case pageChanged(Int)
-        
+
         // 버튼 액션
         case signupButtonTapped
         case loginButtonTapped
-        
+
         // 네비게이션 경로
         case path(StackActionOf<Path>)
-        
+
         // 상위 피처에서 처리
         case finished
     }
@@ -65,6 +69,12 @@ struct OnboardingFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+
+            // MARK: - 화면 진입 시 위치 권한 요청
+            case .onAppear:
+                return .run { [locationPermissionUseCase] _ in
+                    await locationPermissionUseCase.requestPermission()
+                }
 
             // MARK: - 온보딩 내부 동작 (페이지 전환)
             case .nextPage:
