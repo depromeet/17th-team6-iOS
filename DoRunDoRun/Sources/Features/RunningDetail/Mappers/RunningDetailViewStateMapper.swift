@@ -27,7 +27,8 @@ struct RunningDetailViewStateMapper {
                 paceSecPerKm: RunningConverterManager.speedToPace($0.speedMps) ?? 0
             )
         }
-
+        print("🐯: \(points)")
+        
         return RunningDetailViewState(
             sessionId: detail.sessionId,
             startedAtText: startedAtText,
@@ -69,6 +70,19 @@ struct RunningDetailViewStateMapper {
             spmText: RunningFormatterManager.shared.formatCadence(from: detail.avgCadenceSpm),
             tagStatus: .possible, // 인증 피드 생성 화면임으로 항상 인증 가능 상태일 것
             mapImageURL: detail.mapImageURL
+        )
+    }
+
+    /// ViewState → RunningCompleteRequest (서버 완료 요청용)
+    static func toCompleteRequest(from viewState: RunningDetailViewState) -> RunningCompleteRequest {
+        RunningCompleteRequest(
+            totalDistanceMeters: viewState.totalDistanceMeters,
+            elapsed: viewState.elapsed,
+            avgPaceSecPerKm: viewState.avgPaceSecPerKm,
+            fastestPaceSecPerKm: viewState.fastestPaceSecPerKm,
+            coordinateAtMaxPace: viewState.coordinateAtmaxPace.coordinate,
+            avgCadenceSpm: viewState.avgCadenceSpm,
+            maxCadenceSpm: viewState.maxCadenceSpm
         )
     }
 }
