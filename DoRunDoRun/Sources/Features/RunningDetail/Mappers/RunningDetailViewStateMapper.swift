@@ -27,7 +27,6 @@ struct RunningDetailViewStateMapper {
                 paceSecPerKm: RunningConverterManager.speedToPace($0.speedMps) ?? 0
             )
         }
-        print("🐯: \(points)")
         
         return RunningDetailViewState(
             sessionId: detail.sessionId,
