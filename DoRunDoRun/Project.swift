@@ -28,6 +28,8 @@ let project = Project(
                         "UIInterfaceOrientationPortrait"
                     ],
                     "UIUserInterfaceStyle": "Light",
+                    "CFBundleShortVersionString": .string("$(MARKETING_VERSION)"),
+                    "CFBundleVersion": .string("$(CURRENT_PROJECT_VERSION)"),
                     "NSLocationWhenInUseUsageDescription": "러닝 중 현재 위치와 이동 경로를 기록하고, 달린 거리를 계산하기 위해 위치 정보가 필요합니다.",
                     "NSMotionUsageDescription": "걸음 수 및 움직임 데이터를 활용해 운동 정보를 정확하게 표시하기 위해 모션 데이터를 사용합니다.",
                     "NSPhotoLibraryAddUsageDescription": "러닝 인증 사진을 앨범에 저장하기 위해 사진 보관함 접근 권한이 필요합니다.",
@@ -67,7 +69,9 @@ let project = Project(
             ],
             settings: .settings(
                 base: [
-                    "OTHER_LDFLAGS": "-ObjC"
+                    "OTHER_LDFLAGS": "-ObjC",
+                    "MARKETING_VERSION": "1.0.1",
+                    "CURRENT_PROJECT_VERSION": "2"
                 ],
                 configurations: [
                     .debug(name: "Debug", xcconfig: "../Configs/Debug.xcconfig"),
