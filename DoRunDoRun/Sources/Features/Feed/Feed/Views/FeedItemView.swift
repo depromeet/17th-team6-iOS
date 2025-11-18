@@ -21,6 +21,7 @@ struct FeedItemView: View {
     let onSaveImageTapped: () -> Void
     let onReportTapped: () -> Void
     let onImageTapped: () -> Void
+    let onProfileTapped: () -> Void
 
     @State private var showMenu = false
     
@@ -75,6 +76,10 @@ private extension FeedItemView {
             .menuStyle(.button)
             .menuIndicator(.hidden)
             .fixedSize()
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onProfileTapped()
         }
     }
     

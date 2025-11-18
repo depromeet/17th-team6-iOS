@@ -32,9 +32,11 @@ struct UserSummary: Equatable {
 
 /// 개별 셀피 피드 (러닝 인증 게시물)
 /// 피드 리스트의 각 아이템에 해당하는 데이터
-struct SelfieFeed: Equatable, Identifiable {
+struct SelfieFeed: Equatable {
     /// 피드 고유 ID
-    let id: Int
+    let feedID: Int
+    /// 작성자 고유 ID
+    let userID: Int
     /// 날짜 (ex. "2025-11-06")
     let date: String
     /// 작성자 이름

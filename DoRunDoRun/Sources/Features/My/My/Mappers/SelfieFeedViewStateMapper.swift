@@ -69,7 +69,7 @@ private extension SelfieFeedViewStateMapper {
     static func makeFeedCell(from feed: SelfieFeed, using formatter: DateFormatterManager) -> SelfieFeedViewState {
         let date = formatter.isoDate(from: feed.selfieTime) ?? Date()
         let item = makeFeedItem(from: feed, date: date, using: formatter)
-        return .init(id: "feed-\(feed.id)-\(feed.date)", kind: .feed(item))
+        return .init(id: "feed-\(feed.feedID)-\(feed.date)", kind: .feed(item))
     }
 }
 
@@ -95,7 +95,8 @@ private extension SelfieFeedViewStateMapper {
 
         return .init(
             isMyFeed: feed.isMyFeed,
-            feedID: feed.id,
+            feedID: feed.feedID,
+            userID: feed.userID,
             dayText: dayText,
             imageURL: feed.imageUrl,
             isMap: isMap,

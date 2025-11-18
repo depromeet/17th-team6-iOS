@@ -32,6 +32,8 @@ struct SelfieFeedItem: Equatable {
     let isMyFeed: Bool
     /// 피드 고유 ID
     let feedID: Int
+    /// 작성자 ID
+    let userID: Int
     /// 일자 텍스트 (ex. "15일")
     let dayText: String
     /// 이미지 URL (지도 or 셀피)
@@ -100,6 +102,7 @@ extension SelfieFeedItem {
         SelfieFeedItem(
             isMyFeed: false,
             feedID: feedID,
+            userID: -1,
             dayText: "",
             imageURL: nil,
             isMap: false,

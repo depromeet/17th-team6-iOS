@@ -44,6 +44,7 @@ struct SelfieFeedContainerDTO: Codable {
 /// 하나의 피드(러닝 인증 게시물)에 대한 상세 정보
 struct SelfieFeedDTO: Codable {
     let feedId: Int
+    let userId: Int
     let date: String
     let userName: String
     let profileImageUrl: String
@@ -108,7 +109,8 @@ extension SelfieFeedDTO {
     /// 서버 DTO를 도메인 모델로 매핑
     func toDomain() -> SelfieFeed {
         .init(
-            id: feedId,
+            feedID: feedId,
+            userID: userId,
             date: date,
             userName: userName,
             profileImageUrl: profileImageUrl,

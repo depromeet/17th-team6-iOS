@@ -47,7 +47,8 @@ struct SelfieFeedItemMapper {
 
         return SelfieFeedItem(
             isMyFeed: feed.isMyFeed,
-            feedID: feed.id,
+            feedID: feed.feedID,
+            userID: feed.userID,
             dayText: dayText,
             imageURL: feed.imageUrl,
             isMap: feed.imageUrl.lowercased().contains("map"),

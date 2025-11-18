@@ -27,8 +27,9 @@ final class SelfieFeedRepositoryMock: SelfieFeedRepository {
         let now = Date()
         
         let feeds = (0..<size).map { index -> SelfieFeed in
-            let id = startId + index
-            let date = Calendar.current.date(byAdding: .day, value: -(id - 1), to: now) ?? now
+            let feedID = startId + index
+            let userID = startId + index + 100
+            let date = Calendar.current.date(byAdding: .day, value: -(feedID - 1), to: now) ?? now
             let dateString = ISO8601DateFormatter().string(from: date)
             
             // 리액션 샘플 데이터
@@ -72,17 +73,18 @@ final class SelfieFeedRepositoryMock: SelfieFeedRepository {
             
             // 피드 데이터 구성
             return SelfieFeed(
-                id: id,
+                feedID: feedID,
+                userID: userID,
                 date: String(dateString.prefix(10)),
                 userName: "두런두런",
-                profileImageUrl: "https://picsum.photos/id/\(100 + id)/100",
+                profileImageUrl: "https://picsum.photos/id/\(100 + feedID)/100",
                 isMyFeed: true,
                 selfieTime: dateString,
-                totalDistance: Double(5000 + (id * 10)),  // km
-                totalRunTime: Double(2400 + (id * 5)),    // sec
-                averagePace: Double(360 + (id % 5) * 3),  // sec/km
-                cadence: 140 + (id % 3),                  // spm
-                imageUrl: "https://picsum.photos/id/\(200 + id)/200",
+                totalDistance: Double(5000 + (feedID * 10)),  // km
+                totalRunTime: Double(2400 + (feedID * 5)),    // sec
+                averagePace: Double(360 + (feedID % 5) * 3),  // sec/km
+                cadence: 140 + (feedID % 3),                  // spm
+                imageUrl: "https://picsum.photos/id/\(200 + feedID)/200",
                 reactions: reactions
             )
         }

@@ -18,6 +18,10 @@ struct AppFeature {
         var my = MyFeature.State()
         var selectedTab: Tab = .running
 
+        // 각 탭의 Navigation Path
+        var feedPath = StackState<FeedPath.State>()
+        var myPath = StackState<MyPath.State>()
+
         enum Tab: Hashable { case running, feed, my }
     }
 
@@ -25,15 +29,19 @@ struct AppFeature {
         case splash(SplashFeature.Action)
         case appStarted
         case refreshTokenResponse(Bool) // refresh 결과 처리
-        
+
         // 로그인 전
         case onboarding(OnboardingFeature.Action)
-        
+
         // 로그인 후
         case tabSelected(State.Tab)
         case running(RunningFeature.Action)
         case feed(FeedFeature.Action)
         case my(MyFeature.Action)
+
+        // Navigation Path
+        case feedPath(StackActionOf<FeedPath>)
+        case myPath(StackActionOf<MyPath>)
     }
 
     var body: some ReducerOf<Self> {
@@ -85,7 +93,7 @@ struct AppFeature {
             case .onboarding(.finished):
                 // 온보딩 완료 → 메인 탭으로 전환
                 state.isLoggedIn = true
-                state.my.path.removeAll()
+                state.myPath.removeAll()
                 return .none
                 
             case let .tabSelected(tab):
@@ -140,10 +148,180 @@ struct AppFeature {
                 state.onboarding.path.removeAll()
                 state.onboarding = OnboardingFeature.State()
                 return .none
-                
+
+            // MARK: - FeedFeature Navigation Delegates
+            case .feed(.delegate(.navigateToMyProfile)):
+                // 본인 프로필 탭 시 Feed 탭 내에서 MyView로 navigation
+                state.feedPath.append(.myProfile)
+                return .none
+
+            case .feed(.delegate(.navigateToFriendList)):
+                state.feedPath.append(.friendList(FriendListFeature.State()))
+                return .none
+
+            case .feed(.delegate(.navigateToNotificationList)):
+                state.feedPath.append(.notificationList(NotificationFeature.State()))
+                return .none
+
+            case let .feed(.delegate(.navigateToCertificationList(users))):
+                state.feedPath.append(.certificationList(FeedCertificationListFeature.State(users: users)))
+                return .none
+
+            case let .feed(.delegate(.navigateToFriendProfile(userID))):
+                state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case let .feed(.delegate(.navigateToFeedDetail(feedID, feed))):
+                state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                return .none
+
+            case let .feed(.delegate(.navigateToEditFeed(feed))):
+                state.feedPath.append(.editMyFeedDetail(EditMyFeedDetailFeature.State(feed: feed)))
+                return .none
+
+            case .feed(.delegate(.navigateToSelectSession)):
+                state.feedPath.append(.selectSession(SelectSessionFeature.State()))
+                return .none
+
+            case .feed(.delegate(.navigateBack)):
+                state.feedPath.removeLast()
+                return .none
+
+            // MARK: - MyFeature Navigation Delegates
+            case let .my(.delegate(.navigateToFeedDetail(feedID, feed))):
+                state.myPath.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                return .none
+
+            case let .my(.delegate(.navigateToSessionDetail(session, sessionId))):
+                state.myPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                return .none
+
+            case .my(.delegate(.navigateToSetting)):
+                state.myPath.append(.setting(SettingFeature.State()))
+                return .none
+
+            case .my(.delegate(.navigateBack)):
+                state.myPath.removeLast()
+                return .none
+
+            // MARK: - Path Element Delegates (Feed Path)
+            case .feedPath(.element(id: _, action: .friendList(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .notificationList(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .certificationList(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .friendProfile(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case let .feedPath(.element(id: _, action: .feedDetail(.delegate(.feedUpdated(feedID, imageURL))))):
+                if let index = state.feed.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feed.feeds[index].imageURL = imageURL
+                }
+                return .send(.feed(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL))))
+
+            case let .feedPath(.element(id: _, action: .feedDetail(.delegate(.feedDeleted(feedID))))):
+                state.feed.feeds.removeAll(where: { $0.feedID == feedID })
+                return .send(.feed(.delegate(.feedDeleteCompleted(feedID: feedID))))
+
+            case let .feedPath(.element(id: _, action: .feedDetail(.delegate(.reactionUpdated(feedID, reactions))))):
+                if let index = state.feed.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feed.feeds[index].reactions = reactions
+                }
+                return .none
+
+            case .feedPath(.element(id: _, action: .feedDetail(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case let .feedPath(.element(id: _, action: .editMyFeedDetail(.delegate(.updateCompleted(feedID, imageURL))))):
+                if let index = state.feed.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feed.feeds[index].imageURL = imageURL
+                }
+                return .send(.feed(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL))))
+
+            case .feedPath(.element(id: _, action: .editMyFeedDetail(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .selectSession(.delegate(.feedUploadCompleted)))):
+                state.feedPath.removeLast()
+                return .send(.feed(.fetchSelfieFeeds(page: 0)))
+
+            case .feedPath(.element(id: _, action: .selectSession(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            // MARK: - Path Element Delegates (My Path)
+            case let .myPath(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(feedID, imageURL))))):
+                if let index = state.my.feeds.firstIndex(where: {
+                    if case let .feed(item) = $0.kind {
+                        return item.feedID == feedID
+                    }
+                    return false
+                }) {
+                    if case let .feed(item) = state.my.feeds[index].kind {
+                        var updatedFeed = item
+                        updatedFeed.imageURL = imageURL
+                        state.my.feeds[index] = .init(id: state.my.feeds[index].id, kind: .feed(updatedFeed))
+                    }
+                }
+                return .send(.my(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL))))
+
+            case let .myPath(.element(id: _, action: .myFeedDetail(.delegate(.feedDeleted(feedID))))):
+                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
+                return .send(.my(.delegate(.feedDeleteCompleted(feedID: feedID))))
+
+            case .myPath(.element(id: _, action: .myFeedDetail(.backButtonTapped))):
+                state.myPath.removeLast()
+                return .none
+
+            case .myPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
+                state.myPath.removeLast()
+                return .none
+
+            case .myPath(.element(id: _, action: .setting(.delegate(.logoutCompleted)))):
+                return .send(.my(.delegate(.logoutCompleted)))
+
+            case .myPath(.element(id: _, action: .setting(.delegate(.withdrawCompleted)))):
+                return .send(.my(.delegate(.withdrawCompleted)))
+
+            case .myPath(.element(id: _, action: .setting(.backButtonTapped))):
+                state.myPath.removeLast()
+                return .none
+
             default:
                 return .none
             }
         }
+        .forEach(\.feedPath, action: \.feedPath)
+        .forEach(\.myPath, action: \.myPath)
+    }
+
+    // MARK: - Path Reducers
+    @Reducer
+    enum FeedPath {
+        case friendList(FriendListFeature)
+        case notificationList(NotificationFeature)
+        case certificationList(FeedCertificationListFeature)
+        case friendProfile(FriendProfileFeature)
+        case myProfile  // 본인 프로필 (MyFeature 공유)
+        case feedDetail(MyFeedDetailFeature)
+        case editMyFeedDetail(EditMyFeedDetailFeature)
+        case selectSession(SelectSessionFeature)
+    }
+
+    @Reducer
+    enum MyPath {
+        case myFeedDetail(MyFeedDetailFeature)
+        case mySessionDetail(MySessionDetailFeature)
+        case setting(SettingFeature)
     }
 }

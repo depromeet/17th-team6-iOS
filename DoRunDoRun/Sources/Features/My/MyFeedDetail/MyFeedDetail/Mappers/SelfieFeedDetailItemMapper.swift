@@ -36,6 +36,7 @@ struct SelfieFeedDetailItemMapper {
         return SelfieFeedItem(
             isMyFeed: detail.isMyFeed,
             feedID: detail.feedId,
+            userID: detail.userId,
             dayText: dateFormatter.formatDayLabel(from: date),
             imageURL: detail.imageUrl,
             isMap: detail.imageUrl.lowercased().contains("map"),

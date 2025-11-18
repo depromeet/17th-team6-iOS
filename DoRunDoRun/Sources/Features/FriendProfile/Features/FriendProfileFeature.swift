@@ -1,53 +1,31 @@
 //
-//  MyFeature.swift
+//  FriendProfileFeature.swift
 //  DoRunDoRun
 //
-//  Created by Jaehui Yu on 11/5/25.
+//  Created by Jaehui Yu on 11/17/25.
 //
 
 import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct MyFeature {
+struct FriendProfileFeature{
     // MARK: - Dependencies
     @Dependency(\.selfieFeedsUseCase) var selfieFeedsUseCase
-    @Dependency(\.runSessionsUseCase) var runSessionsUseCase
 
     // MARK: - State
     @ObservableState
-    struct State {
+    struct State: Equatable {
         // MARK: Navigation
-        // Path는 AppFeature에서 관리
-
-        // MARK: Tabs
-        enum Tab: Int, CaseIterable {
-            case feed
-            case session
-        }
-        var currentTap: Int = 0
-        let totalTaps = Tab.allCases.count
+        @Presents var feedDetail: MyFeedDetailFeature.State?
 
         // MARK: Feed Data
+        var userID: Int
         var feeds: [SelfieFeedViewState] = []
         var userSummary: UserSummaryViewState?
         var currentPage = 0
         var isLoading = false
         var hasNextPage = true
-        
-        // MARK: Calendar
-        var currentMonth: Date = Date()
-        var monthTitle: String {
-            DateFormatterManager.shared.formatYearMonthLabel(from: currentMonth)
-        }
-
-        // MARK: Session Data
-        var sessions: [RunningSessionSummaryViewState] = []
-        var filteredSessions: [RunningSessionSummaryViewState] {
-            sessions.filter {
-                CalendarManager.shared.calendar.isDate($0.date, equalTo: currentMonth, toGranularity: .month)
-            }
-        }
 
         // MARK: Sub Features State
         var networkErrorPopup = NetworkErrorPopupFeature.State()
@@ -56,23 +34,15 @@ struct MyFeature {
         // MARK: Failed Requests
         enum FailedRequestType: Equatable {
             case fetchSelfieFeeds(page: Int)
-            case fetchSessions
         }
         var lastFailedRequest: FailedRequestType? = nil
     }
 
     // MARK: - Action
-    enum Action {
+    enum Action: Equatable {
         // Navigation
-        // Path는 AppFeature에서 관리
         case feedItemTapped(SelfieFeedItem)
-        case sessionCardTapped(RunningSessionSummaryViewState)
-        case settingButtonTapped
-
-        // Tabs
-        case pageChanged(Int)
-        case feedTapped
-        case sessionTapped
+        case feedDetail(PresentationAction<MyFeedDetailFeature.Action>)
 
         // Lifecycle
         case onAppear
@@ -83,15 +53,6 @@ struct MyFeature {
         case loadNextPageIfNeeded(currentItem: SelfieFeedViewState?)
         case fetchSelfieFeedsFailure(APIError)
 
-        // Calendar
-        case previousMonthTapped
-        case nextMonthTapped
-
-        // Sessions
-        case fetchSessions
-        case fetchSessionsSuccess([RunningSessionSummary])
-        case fetchSessionsFailure(APIError)
-
         // Failed Requests
         case setLastFailedRequest(State.FailedRequestType)
 
@@ -101,18 +62,12 @@ struct MyFeature {
 
         // Delegate
         enum Delegate: Equatable {
-            case logoutCompleted
-            case withdrawCompleted
             case feedUpdateCompleted(feedID: Int, newImageURL: String?)
             case feedDeleteCompleted(feedID: Int)
-
-            // Navigation Delegates
-            case navigateToFeedDetail(feedID: Int, feed: SelfieFeedItem)
-            case navigateToSessionDetail(session: RunningSessionSummaryViewState, sessionId: Int)
-            case navigateToSetting
-            case navigateBack
         }
         case delegate(Delegate)
+        
+        case backButtonTapped
     }
 
     // MARK: - Reducer
@@ -123,30 +78,33 @@ struct MyFeature {
         Reduce { state, action in
             switch action {
 
-            // MARK: - Tabs
-            case let .pageChanged(index):
-                state.currentTap = index
-                return .none
-
-            case .feedTapped:
-                state.currentTap = State.Tab.feed.rawValue
-                return .none
-
-            case .sessionTapped:
-                state.currentTap = State.Tab.session.rawValue
-                return .none
-
             // MARK: - Navigation: Feed Detail
             case let .feedItemTapped(feed):
-                return .send(.delegate(.navigateToFeedDetail(feedID: feed.feedID, feed: feed)))
+                state.feedDetail = MyFeedDetailFeature.State(feedId: feed.feedID, feed: feed)
+                return .none
 
-            // MARK: - Navigation: Session Detail
-            case let .sessionCardTapped(session):
-                return .send(.delegate(.navigateToSessionDetail(session: session, sessionId: session.id)))
+            case let .feedDetail(.presented(.delegate(.feedUpdated(feedID, imageURL)))):
+                if let index = state.feeds.firstIndex(where: {
+                    if case let .feed(item) = $0.kind {
+                        return item.feedID == feedID
+                    }
+                    return false
+                }) {
+                    if case let .feed(item) = state.feeds[index].kind {
+                        var updatedFeed = item
+                        updatedFeed.imageURL = imageURL
+                        state.feeds[index] = .init(id: state.feeds[index].id, kind: .feed(updatedFeed))
+                    }
+                }
+                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
 
-            // MARK: - Navigation: Setting
-            case .settingButtonTapped:
-                return .send(.delegate(.navigateToSetting))
+            case let .feedDetail(.presented(.delegate(.feedDeleted(feedID)))):
+                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.feeds)
+                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
+
+            case .feedDetail(.presented(.backButtonTapped)):
+                state.feedDetail = nil
+                return .none
 
             // MARK: - Lifecycle
             case .onAppear:
@@ -157,17 +115,13 @@ struct MyFeature {
                 guard !state.isLoading else { return .none }
                 state.isLoading = true
                 
-                return .merge(
-                    .send(.fetchSelfieFeeds(page: 0)),
-                    .send(.fetchSessions)
-                )
+                return .send(.fetchSelfieFeeds(page: 0))
 
             // MARK: - Feed API
             case let .fetchSelfieFeeds(page):
                 state.isLoading = true
-                return .run { [page] send in
+                return .run { [page, userId = state.userID] send in
                     do {
-                        let userId = UserManager.shared.userId
                         let feeds = try await selfieFeedsUseCase.execute(currentDate: nil, userId: userId, page: page, size: 20)
                         await send(.fetchSelfieFeedsSuccess(feeds))
                     } catch {
@@ -216,49 +170,6 @@ struct MyFeature {
                 state.isLoading = false
                 return handleAPIError(apiError)
 
-            // MARK: - Calendar
-            case .previousMonthTapped:
-                if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: state.currentMonth) {
-                    state.currentMonth = newDate
-                }
-                return .send(.fetchSessions)
-
-            case .nextMonthTapped:
-                if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: state.currentMonth) {
-                    state.currentMonth = newDate
-                }
-                return .send(.fetchSessions)
-
-            // MARK: - Session API
-            case .fetchSessions:
-                return .run { [currentMonth = state.currentMonth] send in
-                    do {
-                        let calendar = Calendar.current
-                        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
-                        let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-                        let sessions = try await runSessionsUseCase.fetchSessions(
-                            isSelfied: nil,
-                            startDateTime: startOfMonth,
-                            endDateTime: endOfMonth
-                        )
-                        await send(.fetchSessionsSuccess(sessions))
-                    } catch {
-                        await send(.setLastFailedRequest(.fetchSessions))
-                        await send(.fetchSessionsFailure(error as? APIError ?? .unknown))
-                    }
-                }
-
-            case let .fetchSessionsSuccess(sessions):
-                state.sessions = RunningSessionSummaryViewStateMapper.map(
-                    from: sessions,
-                    currentDate: Date() 
-                )
-                return .none
-
-            case let .fetchSessionsFailure(apiError):
-                state.isLoading = false
-                return handleAPIError(apiError)
-
             // MARK: - Save Request Failure Type
             case let .setLastFailedRequest(request):
                 state.lastFailedRequest = request
@@ -271,19 +182,20 @@ struct MyFeature {
                 switch failed {
                 case let .fetchSelfieFeeds(page):
                     return .send(.fetchSelfieFeeds(page: page))
-                case .fetchSessions:
-                    return .send(.fetchSessions)
                 }
 
             default:
                 return .none
             }
         }
+        .ifLet(\.$feedDetail, action: \.feedDetail) {
+            MyFeedDetailFeature()
+        }
     }
 }
 
 // MARK: - API Error Handler
-private extension MyFeature {
+private extension FriendProfileFeature {
     func handleAPIError(_ apiError: APIError) -> Effect<Action> {
         switch apiError {
         case .networkError:
@@ -301,7 +213,7 @@ private extension MyFeature {
     }
 }
 
-extension MyFeature {
+extension FriendProfileFeature {
     /// 피드 삭제 후, 해당 피드가 없으면 monthHeader까지 깔끔하게 청소
     static func removeFeedAndCleanupIfEmpty(
         feedID: Int,
