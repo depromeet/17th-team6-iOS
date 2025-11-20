@@ -49,6 +49,12 @@ struct MySessionDetailFeature {
         // Navigation
         case createFeed(PresentationAction<CreateFeedFeature.Action>)
         case myFeedDetail(PresentationAction<MyFeedDetailFeature.Action>)
+
+        // Delegate
+        enum Delegate: Equatable {
+            case navigateToMyProfile
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
@@ -115,11 +121,16 @@ struct MySessionDetailFeature {
             case .myFeedDetail(.presented(.backButtonTapped)):
                 state.myFeedDetail = nil
                 return .none
-                
+
+            case .myFeedDetail(.presented(.delegate(.navigateToMyProfile))):
+                // 세션 상세에서 인증 게시물을 보고 있을 때 내 프로필을 탭하면 sheet dismiss + delegate 전달
+                state.myFeedDetail = nil
+                return .send(.delegate(.navigateToMyProfile))
+
             case .createFeed(.presented(.backButtonTapped)):
                 state.createFeed = nil
                 return .none
-                
+
             default:
                 return .none
             }

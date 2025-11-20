@@ -205,11 +205,21 @@ struct AppFeature {
 
             // MARK: - MyFeature Navigation Delegates
             case let .my(.delegate(.navigateToFeedDetail(feedID, feed))):
-                state.myPath.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                // feedPath에 myProfile이 있으면 feedPath에 append, 아니면 myPath에 append
+                if state.feedPath.last?.is(\.myProfile) == true {
+                    state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                } else {
+                    state.myPath.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                }
                 return .none
 
             case let .my(.delegate(.navigateToSessionDetail(session, sessionId))):
-                state.myPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                // feedPath에 myProfile이 있으면 feedPath에 append, 아니면 myPath에 append
+                if state.feedPath.last?.is(\.myProfile) == true {
+                    state.feedPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                } else {
+                    state.myPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                }
                 return .none
 
             case .my(.delegate(.navigateToSetting)):
@@ -217,7 +227,12 @@ struct AppFeature {
                 return .none
 
             case .my(.delegate(.navigateBack)):
-                state.myPath.removeLast()
+                // feedPath에 myProfile이 있으면 feedPath에서 제거, 아니면 myPath에서 제거
+                if state.feedPath.last?.is(\.myProfile) == true {
+                    state.feedPath.removeLast()
+                } else {
+                    state.myPath.removeLast()
+                }
                 return .none
 
             // MARK: - Path Element Delegates (Feed Path)
@@ -278,7 +293,12 @@ struct AppFeature {
                 return .none
 
             case .feedPath(.element(id: _, action: .feedDetail(.delegate(.navigateToMyProfile)))):
-                state.feedPath.append(.myProfile)
+                // feedPath에 이미 myProfile이 있으면 feedDetail만 dismiss, 없으면 myProfile append
+                if state.feedPath.contains(where: { $0.is(\.myProfile) }) {
+                    state.feedPath.removeLast()
+                } else {
+                    state.feedPath.append(.myProfile)
+                }
                 return .none
 
             case let .feedPath(.element(id: _, action: .editMyFeedDetail(.delegate(.updateCompleted(feedID, imageURL))))):
@@ -296,6 +316,15 @@ struct AppFeature {
                 return .send(.feed(.fetchSelfieFeeds(page: 0)))
 
             case .feedPath(.element(id: _, action: .selectSession(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
+
+            case .feedPath(.element(id: _, action: .mySessionDetail(.delegate(.navigateToMyProfile)))):
+                // feedPath의 세션 상세에서 인증 게시물을 보고 내 프로필을 선택한 경우 - 세션 상세 화면 dismiss
                 state.feedPath.removeLast()
                 return .none
 
@@ -336,6 +365,11 @@ struct AppFeature {
                 state.myPath.removeLast()
                 return .none
 
+            case .myPath(.element(id: _, action: .mySessionDetail(.delegate(.navigateToMyProfile)))):
+                // 세션 상세에서 인증 게시물을 보고 내 프로필을 선택한 경우 - 세션 상세 화면 dismiss
+                state.myPath.removeLast()
+                return .none
+
             case .myPath(.element(id: _, action: .setting(.delegate(.logoutCompleted)))):
                 return .send(.my(.delegate(.logoutCompleted)))
 
@@ -369,6 +403,7 @@ struct AppFeature {
         case feedDetail(MyFeedDetailFeature)
         case editMyFeedDetail(EditMyFeedDetailFeature)
         case selectSession(SelectSessionFeature)
+        case mySessionDetail(MySessionDetailFeature)
     }
 
     @Reducer

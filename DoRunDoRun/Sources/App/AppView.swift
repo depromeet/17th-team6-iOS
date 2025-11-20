@@ -75,6 +75,7 @@ struct MainTabView: View {
                     case .feedDetail(let store): MyFeedDetailView(store: store)
                     case .editMyFeedDetail(let store): EditMyFeedDetailView(store: store)
                     case .selectSession(let store): SelectSessionView(store: store)
+                    case .mySessionDetail(let store): MySessionDetailView(store: store)
                     }
                 }
                 .tabItem {
