@@ -104,6 +104,22 @@ struct AppFeature {
             case .running(.delegate(.navigateToFeed)):
                 state.selectedTab = .feed
                 return .none
+
+            // Running delegate: 프로필 탭 → My 탭 전환
+            case .running(.delegate(.navigateToMyProfile)):
+                state.selectedTab = .my
+                return .none
+
+            // RunningReady delegate: Feed 동기화
+            case .running(.ready(.delegate(.feedUpdateCompleted(let feedID, let newImageURL)))):
+                if let index = state.feed.feeds.firstIndex(where: { $0.feedID == feedID }) {
+                    state.feed.feeds[index].imageURL = newImageURL
+                }
+                return .send(.feed(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: newImageURL))))
+
+            case .running(.ready(.delegate(.feedDeleteCompleted(let feedID)))):
+                state.feed.feeds.removeAll(where: { $0.feedID == feedID })
+                return .send(.feed(.delegate(.feedDeleteCompleted(feedID: feedID))))
                 
             // MARK: - Feed ↔ My 동기화
             case .feed(.delegate(.feedUpdateCompleted(let feedID, let newImageURL))):
@@ -209,12 +225,28 @@ struct AppFeature {
                 state.feedPath.removeLast()
                 return .none
 
+            case let .feedPath(.element(id: _, action: .friendList(.delegate(.navigateToFriendProfile(userID))))):
+                state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case .feedPath(.element(id: _, action: .friendList(.delegate(.navigateToMyProfile)))):
+                state.feedPath.append(.myProfile)
+                return .none
+
             case .feedPath(.element(id: _, action: .notificationList(.backButtonTapped))):
                 state.feedPath.removeLast()
                 return .none
 
             case .feedPath(.element(id: _, action: .certificationList(.backButtonTapped))):
                 state.feedPath.removeLast()
+                return .none
+
+            case let .feedPath(.element(id: _, action: .certificationList(.delegate(.navigateToFriendProfile(userID))))):
+                state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case .feedPath(.element(id: _, action: .certificationList(.delegate(.navigateToMyProfile)))):
+                state.feedPath.append(.myProfile)
                 return .none
 
             case .feedPath(.element(id: _, action: .friendProfile(.backButtonTapped))):
@@ -239,6 +271,14 @@ struct AppFeature {
 
             case .feedPath(.element(id: _, action: .feedDetail(.backButtonTapped))):
                 state.feedPath.removeLast()
+                return .none
+
+            case let .feedPath(.element(id: _, action: .feedDetail(.delegate(.navigateToFriendProfile(userID))))):
+                state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case .feedPath(.element(id: _, action: .feedDetail(.delegate(.navigateToMyProfile)))):
+                state.feedPath.append(.myProfile)
                 return .none
 
             case let .feedPath(.element(id: _, action: .editMyFeedDetail(.delegate(.updateCompleted(feedID, imageURL))))):
@@ -283,6 +323,15 @@ struct AppFeature {
                 state.myPath.removeLast()
                 return .none
 
+            case let .myPath(.element(id: _, action: .myFeedDetail(.delegate(.navigateToFriendProfile(userID))))):
+                state.myPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case .myPath(.element(id: _, action: .myFeedDetail(.delegate(.navigateToMyProfile)))):
+                // My 탭에서 본인을 탭한 경우 - 피드 상세 화면 dismiss
+                state.myPath.removeLast()
+                return .none
+
             case .myPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.myPath.removeLast()
                 return .none
@@ -294,6 +343,10 @@ struct AppFeature {
                 return .send(.my(.delegate(.withdrawCompleted)))
 
             case .myPath(.element(id: _, action: .setting(.backButtonTapped))):
+                state.myPath.removeLast()
+                return .none
+
+            case .myPath(.element(id: _, action: .friendProfile(.backButtonTapped))):
                 state.myPath.removeLast()
                 return .none
 
@@ -323,5 +376,6 @@ struct AppFeature {
         case myFeedDetail(MyFeedDetailFeature)
         case mySessionDetail(MySessionDetailFeature)
         case setting(SettingFeature)
+        case friendProfile(FriendProfileFeature)
     }
 }

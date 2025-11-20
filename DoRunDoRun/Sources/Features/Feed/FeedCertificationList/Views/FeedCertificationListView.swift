@@ -61,7 +61,9 @@ private extension FeedCertificationListView {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(store.users) { user in
-                    FeedCertificationListRowView(user: user)
+                    FeedCertificationListRowView(user: user) {
+                        store.send(.userTapped(user.id))
+                    }
                 }
             }
         }

@@ -18,6 +18,8 @@ struct RunningDetailView: View {
             ZStack {
                 // MARK: - Main Content
                 VStack(spacing: .zero) {
+                    profileSection
+
                     HStack(spacing: 4) {
                         Image(.distance, fill: .fill, size: .small)
                             .renderingMode(.template)
@@ -144,6 +146,33 @@ struct RunningDetailView: View {
 
 // MARK: - UI Components
 private extension RunningDetailView {
+    /// 프로필 섹션
+    var profileSection: some View {
+        HStack(spacing: 8) {
+            ProfileImageView(
+                image: Image(.profilePlaceholder),
+                imageURL: UserManager.shared.profileImageURL,
+                style: .plain,
+                size: .small
+            )
+
+            HStack(spacing: 4) {
+                TypographyText(text: UserManager.shared.nickname, style: .t2_500, color: .gray900)
+                Circle()
+                    .fill(Color.blue600)
+                    .frame(width: 20, height: 20)
+                    .overlay(Text("나").typography(.c1_700, color: .gray0))
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            store.send(.profileTapped)
+        }
+    }
+
     var placeholderMapView: some View {
         ZStack {
             Color.gray50

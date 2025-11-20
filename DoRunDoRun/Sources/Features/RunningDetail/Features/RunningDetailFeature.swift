@@ -65,8 +65,11 @@ struct RunningDetailFeature {
         enum Delegate: Equatable {
             case backButtonTapped
             case feedUploadCompleted
+            case navigateToMyProfile
         }
         case delegate(Delegate)
+
+        case profileTapped
         
         case createFeed(PresentationAction<CreateFeedFeature.Action>)
     }
@@ -85,6 +88,9 @@ struct RunningDetailFeature {
             switch action {
             case .backButtonTapped:
                 return .send(.delegate(.backButtonTapped))
+
+            case .profileTapped:
+                return .send(.delegate(.navigateToMyProfile))
                 
             case .checkUploadable:
                 guard let sessionId = state.detail.sessionId else { return .none }

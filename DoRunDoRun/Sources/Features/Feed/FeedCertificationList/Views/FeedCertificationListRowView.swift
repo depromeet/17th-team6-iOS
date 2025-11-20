@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FeedCertificationListRowView: View {
     let user: SelfieUserViewState
+    let onTap: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -34,5 +35,9 @@ struct FeedCertificationListRowView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: 76)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
 }

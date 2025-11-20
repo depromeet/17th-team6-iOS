@@ -96,27 +96,33 @@ private extension MyFeedDetailView {
     /// 프로필 섹션
     var profileSection: some View {
         HStack(spacing: 8) {
-            ProfileImageView(
-                image: Image(.profilePlaceholder),
-                imageURL: store.feed.profileImageURL,
-                style: .plain,
-                size: .small
-            )
-            
-            HStack(spacing: 4) {
-                TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
-                if store.feed.isMyFeed {
-                    Circle()
-                        .fill(Color.blue600)
-                        .frame(width: 20, height: 20)
-                        .overlay(Text("나").typography(.c1_700, color: .gray0))
+            HStack(spacing: 8) {
+                ProfileImageView(
+                    image: Image(.profilePlaceholder),
+                    imageURL: store.feed.profileImageURL,
+                    style: .plain,
+                    size: .small
+                )
+
+                HStack(spacing: 4) {
+                    TypographyText(text: store.feed.userName, style: .t2_500, color: .gray0)
+                    if store.feed.isMyFeed {
+                        Circle()
+                            .fill(Color.blue600)
+                            .frame(width: 20, height: 20)
+                            .overlay(Text("나").typography(.c1_700, color: .gray0))
+                    }
                 }
+
+                TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
             }
-            
-            TypographyText(text: store.feed.relativeTimeText, style: .b2_400, color: .gray500)
-            
+            .contentShape(Rectangle())
+            .onTapGesture {
+                store.send(.profileTapped)
+            }
+
             Spacer()
-            
+
             Menu {
                 if store.feed.isMyFeed {
                     Button("수정하기") {
@@ -137,12 +143,16 @@ private extension MyFeedDetailView {
                 Image(.more, size: .medium)
                     .renderingMode(.template)
                     .foregroundColor(.gray0)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .menuStyle(.button)
             .menuIndicator(.hidden)
             .fixedSize()
+            .zIndex(100)
         }
         .padding(.top, 16)
+        .zIndex(50)
     }
     
     /// 피드 이미지 섹션

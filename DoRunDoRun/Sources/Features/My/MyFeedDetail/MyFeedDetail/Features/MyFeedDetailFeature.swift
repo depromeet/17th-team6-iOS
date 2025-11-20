@@ -158,7 +158,10 @@ struct MyFeedDetailFeature {
         
         /// 상단 뒤로가기 버튼 탭
         case backButtonTapped
-        
+
+        /// 프로필 영역 탭
+        case profileTapped
+
         /// 수정 화면 액션
         case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
         
@@ -167,6 +170,8 @@ struct MyFeedDetailFeature {
             case feedUpdated(feedID: Int, imageURL: String?)
             case feedDeleted(feedID: Int)
             case reactionUpdated(feedID: Int, reactions: [ReactionViewState])
+            case navigateToFriendProfile(userID: Int)
+            case navigateToMyProfile
         }
         case delegate(Delegate)
     }
@@ -256,6 +261,15 @@ struct MyFeedDetailFeature {
                 )
                 return .none
                 
+                // MARK: - 리액션 상세 시트 유저 프로필 탭
+            case let .reactionDetail(.delegate(.navigateToFriendProfile(userID))):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToFriendProfile(userID: userID)))
+
+            case .reactionDetail(.delegate(.navigateToMyProfile)):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToMyProfile))
+
                 // MARK: - 리액션 상세 시트 닫기
             case .reactionDetail(.dismissRequested):
                 state.isReactionDetailPresented = false
@@ -369,6 +383,14 @@ struct MyFeedDetailFeature {
             case let .confirmReport(feedID):
                 print("신고 완료 (feedID: \(feedID))")
                 return .none
+
+            // MARK: - 프로필 영역 탭
+            case .profileTapped:
+                if state.feed.isMyFeed {
+                    return .send(.delegate(.navigateToMyProfile))
+                } else {
+                    return .send(.delegate(.navigateToFriendProfile(userID: state.feed.userID)))
+                }
                 
                 // MARK: - 피드 이미지 저장 버튼 탭
             case .saveImageButtonTapped:

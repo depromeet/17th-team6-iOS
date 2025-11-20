@@ -35,15 +35,28 @@ struct MainTabView: View {
     var body: some View {
         WithPerceptionTracking {
             TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-                RunningView(store: store.scope(state: \.running, action: \.running))
-                    .tabItem {
-                        VStack {
-                            Image(.running, fill: .fill, size: .medium)
-                                .renderingMode(.template)
-                            Text("러닝")
-                        }
+                NavigationStack(path: $store.scope(state: \.running.ready.path, action: \.running.ready.path)) {
+                    RunningView(store: store.scope(state: \.running, action: \.running))
+                } destination: { pathStore in
+                    switch pathStore.case {
+                    case .friendList(let store): FriendListView(store: store)
+                    case .friendProfile(let store): FriendProfileView(store: store)
+                    case .myProfile:
+                        // 본인 프로필: AppFeature의 MyFeature state 공유
+                        MyView(
+                            store: self.store.scope(state: \.my, action: \.my),
+                            hideNavigationTitle: true  // Running에서 진입 시 타이틀 숨김
+                        )
                     }
-                    .tag(AppFeature.State.Tab.running)
+                }
+                .tabItem {
+                    VStack {
+                        Image(.running, fill: .fill, size: .medium)
+                            .renderingMode(.template)
+                        Text("러닝")
+                    }
+                }
+                .tag(AppFeature.State.Tab.running)
 
                 NavigationStack(path: $store.scope(state: \.feedPath, action: \.feedPath)) {
                     FeedView(store: store.scope(state: \.feed, action: \.feed))
@@ -80,6 +93,7 @@ struct MainTabView: View {
                     case .myFeedDetail(let store): MyFeedDetailView(store: store)
                     case .mySessionDetail(let store): MySessionDetailView(store: store)
                     case .setting(let store): SettingView(store: store)
+                    case .friendProfile(let store): FriendProfileView(store: store)
                     }
                 }
                 .tabItem {

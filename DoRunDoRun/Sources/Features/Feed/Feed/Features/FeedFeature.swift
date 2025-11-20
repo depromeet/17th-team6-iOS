@@ -416,6 +416,15 @@ struct FeedFeature {
             case let .addReactionFailure(error):
                 return handleAPIError(error)
                 
+            // MARK: - 리액션 상세 시트 유저 프로필 탭
+            case let .reactionDetail(.delegate(.navigateToFriendProfile(userID))):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToFriendProfile(userID: userID)))
+
+            case .reactionDetail(.delegate(.navigateToMyProfile)):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToMyProfile))
+
             // MARK: - 리액션 관련 시트 닫기
             case .reactionDetail(.dismissRequested),
                     .reactionPicker(.dismissRequested),
