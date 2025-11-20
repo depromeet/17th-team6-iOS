@@ -19,16 +19,15 @@ struct RunningDetailViewStateMapper {
         let elapsedText = runningFormatter.formatDuration(from: Int(detail.elapsed.components.seconds))
         let paceText = runningFormatter.formatPace(from: detail.avgPaceSecPerKm)
         let cadenceText = runningFormatter.formatCadence(from: detail.avgCadenceSpm)
-
-        // 결과 화면에서는 전체 평균 페이스를 모든 좌표에 적용
+        
         let points = detail.coordinates.map {
             RunningCoordinateViewState(
-                latitude: $0.latitude,
-                longitude: $0.longitude,
-                paceSecPerKm: detail.avgPaceSecPerKm
+                latitude: $0.coordinate.latitude,
+                longitude: $0.coordinate.longitude,
+                paceSecPerKm: RunningConverterManager.speedToPace($0.speedMps) ?? 0
             )
         }
-
+        
         return RunningDetailViewState(
             sessionId: detail.sessionId,
             startedAtText: startedAtText,
@@ -48,38 +47,17 @@ struct RunningDetailViewStateMapper {
             coordinateAtmaxPace: detail.coordinateAtmaxPace,
 
             points: points,
-            coordinates: detail.coordinates,
             mapImageData: detail.mapImageData,
             mapImageURL: detail.mapImageURL,
 
             feed: detail.feed
         )
     }
-
-    /// ViewState → Domain (Reverse Mapping)
-    static func toDomain(from viewState: RunningDetailViewState) -> RunningDetail {
-        RunningDetail(
-            sessionId: viewState.sessionId,
-            startedAt: viewState.startedAt,
-            finishedAt: viewState.finishedAt,
-            totalDistanceMeters: viewState.totalDistanceMeters,
-            elapsed: viewState.elapsed,
-            avgPaceSecPerKm: viewState.avgPaceSecPerKm,
-            avgCadenceSpm: viewState.avgCadenceSpm,
-            maxCadenceSpm: viewState.maxCadenceSpm,
-            fastestPaceSecPerKm: viewState.fastestPaceSecPerKm,
-            coordinateAtmaxPace: viewState.coordinateAtmaxPace,
-            coordinates: viewState.coordinates,
-            mapImageData: viewState.mapImageData,
-            mapImageURL: viewState.mapImageURL,
-            feed: viewState.feed
-        )
-    }
     
     /// ViewState → ViewState
     static func map(from detail: RunningDetailViewState) -> RunningSessionSummaryViewState {
         let formatter = DateFormatterManager.shared
-        
+
         return RunningSessionSummaryViewState(
             id: detail.sessionId ?? 0,
             date: detail.startedAt,
@@ -91,6 +69,19 @@ struct RunningDetailViewStateMapper {
             spmText: RunningFormatterManager.shared.formatCadence(from: detail.avgCadenceSpm),
             tagStatus: .possible, // 인증 피드 생성 화면임으로 항상 인증 가능 상태일 것
             mapImageURL: detail.mapImageURL
+        )
+    }
+
+    /// ViewState → RunningCompleteRequest (서버 완료 요청용)
+    static func toCompleteRequest(from viewState: RunningDetailViewState) -> RunningCompleteRequest {
+        RunningCompleteRequest(
+            totalDistanceMeters: viewState.totalDistanceMeters,
+            elapsed: viewState.elapsed,
+            avgPaceSecPerKm: viewState.avgPaceSecPerKm,
+            fastestPaceSecPerKm: viewState.fastestPaceSecPerKm,
+            coordinateAtMaxPace: viewState.coordinateAtmaxPace.coordinate,
+            avgCadenceSpm: viewState.avgCadenceSpm,
+            maxCadenceSpm: viewState.maxCadenceSpm
         )
     }
 }

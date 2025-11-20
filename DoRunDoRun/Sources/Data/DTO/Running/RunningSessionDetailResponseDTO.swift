@@ -59,9 +59,14 @@ extension RunningSessionDetailDataDTO {
         
         // 모든 세그먼트를 평탄화하여 좌표 배열로 변환
         let allCoordinates = segments.flatMap { $0 }.map { point in
-            RunningCoordinate(
-                latitude: point.latitude,
-                longitude: point.longitude
+            RunningPoint(
+                timestamp: parser.isoDate(from: point.time) ?? Date(),
+                coordinate: RunningCoordinate(
+                    latitude: point.latitude,
+                    longitude: point.longitude
+                ),
+                altitude: point.altitude,
+                speedMps: point.speed
             )
         }
 

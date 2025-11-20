@@ -57,10 +57,10 @@ final class RunningSessionRepositoryImpl: RunningSessionRepository {
     
     func completeSession(
         sessionId: Int,
-        detail: RunningDetail,
+        request: RunningCompleteRequest,
         mapImage: Data?
     ) async throws -> String? {
-        let requestData = RunningCompleteRequestDTO(from: detail)
+        let requestData = RunningCompleteRequestDTO(from: request)
 
         let response = try await apiClient.request(
             RunningAPI.complete(sessionId: sessionId, data: requestData, mapImage: mapImage),

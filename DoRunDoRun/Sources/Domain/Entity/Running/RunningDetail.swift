@@ -29,7 +29,7 @@ struct RunningDetail: Equatable {
     /// 최대 페이스 시점의 좌표 정보
     let coordinateAtmaxPace: RunningPoint
     /// 전체 경로 좌표 정도
-    let coordinates: [RunningCoordinate]
+    let coordinates: [RunningPoint]
     
     // 지도 이미지
     var mapImageData: Data?

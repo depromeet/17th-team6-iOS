@@ -32,7 +32,7 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
     private var latestCurrentPaceSecPerKm: Double = 0
 
     // 전체 경로 좌표 정보
-    private var points: [RunningCoordinate] = []
+    private var points: [RunningPoint] = []
 
     // 누적 걸음수 (일시정지 구간 제외, pedometer 이벤트 델타 기반)
     private var totalSteps: Int = 0
@@ -190,7 +190,8 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
 
             // GPS 속도로 즉시 페이스 계산
             if location.speed > 0 {
-                latestCurrentPaceSecPerKm = 1000.0 / location.speed
+                latestCurrentPaceSecPerKm = RunningConverterManager
+                    .speedToPace(location.speed) ?? 0
             } else {
                 // 정지 상태 또는 GPS 신호 없음
                 latestCurrentPaceSecPerKm = 0
@@ -230,7 +231,7 @@ actor RunningTrackingRepositoryImpl: RunningTrackingRepository {
 
         let point = lastLocation.map { $0.toDomain() }
 
-        if let point { points.append(point.coordinate) }
+        if let point { points.append(point) }
 
         continuation?.yield(
             RunningSnapshot(
