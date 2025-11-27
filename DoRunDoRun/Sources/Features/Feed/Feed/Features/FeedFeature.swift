@@ -5,47 +5,34 @@ import ComposableArchitecture
 @Reducer
 struct FeedFeature {
     // MARK: - Dependencies
+    @Dependency(\.notificationUnreadCountUseCase) var notificationUnreadCountUseCase
     @Dependency(\.selfieWeekUseCase) var selfieWeekUseCase
     @Dependency(\.selfieUserUseCase) var selfieUserUseCase
     @Dependency(\.selfieFeedsUseCase) var selfieFeedsUseCase
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
     @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
-    @Dependency(\.notificationUnreadCountUseCase) var notificationUnreadCountUseCase
 
     // MARK: - State
     @ObservableState
-    struct State: Equatable {
+    struct State {
+        // Path는 AppFeature에서 관리
+
+        var unreadCount: Int = 0
         var selectedDate: Date = Date()
         var weekDates: [Date] = []
         var weekCounts: [SelfieWeekCountResult] = []
-        
-        var unreadCount: Int = 0
-
-        // 인증 유저 관련
         var selfieUsers: [SelfieUserViewState] = []
         var isLoadingUsers = false
-
-        // 피드 관련
         var feeds: [SelfieFeedItem] = []
         var currentPage = 0
         var isLoading = false
         var hasNextPage = true
-
-        // 리액션 관련
-        var reactionDetail = ReactionDetailSheetFeature.State()
-        var reactionPicker = ReactionPickerSheetFeature.State()
         var isReactionDetailPresented = false
         var isReactionPickerPresented = false
         var selectedFeedIDForReaction: Int? = nil
-
-        // 토스트 & 팝업 & 에러
-        var toast = ToastFeature.State()
-        var popup = PopupFeature.State()
-        var networkErrorPopup = NetworkErrorPopupFeature.State()
-        var serverError = ServerErrorFeature.State()
-        
-        // 실패한 로직 저장
+        var lastFailedRequest: FailedRequestType? = nil
         enum FailedRequestType: Equatable {
+            case fetchUnreadCount
             case fetchWeekCounts(startDate: String, endDate: String)
             case fetchSelfieUsers(String)
             case fetchSelfieFeeds(page: Int)
@@ -53,65 +40,58 @@ struct FeedFeature {
             case addReaction(feedID: Int, emoji: EmojiType)
             case deleteFeed(Int)
         }
-        var lastFailedRequest: FailedRequestType? = nil
 
+        var reactionDetail = ReactionDetailSheetFeature.State()
+        var reactionPicker = ReactionPickerSheetFeature.State()
+        var toast = ToastFeature.State()
+        var popup = PopupFeature.State()
+        var networkErrorPopup = NetworkErrorPopupFeature.State()
+        var serverError = ServerErrorFeature.State()
 
-        // Navigation
-        @Presents var selectSession: SelectSessionFeature.State?
-        @Presents var editMyFeedDetail: EditMyFeedDetailFeature.State?
-        @Presents var certificationList: FeedCertificationListFeature.State?
-        @Presents var friendList: FriendListFeature.State?
-        @Presents var notificationList: NotificationFeature.State?
-        @Presents var myFeedDetail: MyFeedDetailFeature.State?
-
-        // MARK: - Helpers (UI 계산용)
         func displayedReactions(for feed: SelfieFeedItem) -> [ReactionViewState] {
             return Array(feed.reactions.prefix(3))
         }
-
         func hiddenReactions(for feed: SelfieFeedItem) -> [ReactionViewState] {
             Array(feed.reactions.dropFirst(3))
         }
-
         func extraReactionCount(for feed: SelfieFeedItem) -> Int {
             max(0, feed.reactions.count - 3)
         }
     }
 
     // MARK: - Action
-    enum Action: Equatable {
-        // Lifecycle
-        case onAppear
-        case selectDate(Date)
-        case changeWeek(Int)
+    enum Action {
+        // Path는 AppFeature에서 관리
+
+        case friendListButtonTapped
         
         case fetchUnreadCount
         case fetchUnreadCountSuccess(Int)
         case fetchUnreadCountFailure(APIError)
+        case notificationButtonTapped
         
-        // 주간 데이터
+        case onAppear
+        case selectDate(Date)
+        
+        case changeWeek(Int)
         case fetchWeekCounts(startDate: String, endDate: String)
         case fetchWeekCountsSuccess([SelfieWeekCountResult])
         case fetchWeekCountsFailure(APIError)
 
-        // 유저 데이터
         case fetchSelfieUsers(String)
         case fetchSelfieUsersSuccess([SelfieUserResult])
         case fetchSelfieUsersFailure(APIError)
-        
-        // 인증 리스트
         case certificationSummaryTapped
 
-        // 피드 데이터
         case fetchSelfieFeeds(page: Int)
         case fetchSelfieFeedsSuccess(SelfieFeedResult)
         case fetchSelfieFeedsFailure(APIError)
         case loadNextPageIfNeeded(currentItem: SelfieFeedItem?)
         
-        // 피드 디테일
-        case showFeedDetail(SelfieFeedItem)
-
-        // 리액션
+        case feedProfileTapped(feed: SelfieFeedItem)
+        
+        case feedImageTapped(SelfieFeedItem)
+        
         case reactionTapped(feedID: Int, reaction: ReactionViewState)
         case reactionSuccess(SelfieFeedReactionResult)
         case reactionFailure(APIError)
@@ -119,54 +99,46 @@ struct FeedFeature {
         case addReactionTapped(feedID: Int)
         case addReactionSuccess(SelfieFeedReactionResult)
         case addReactionFailure(APIError)
-
-        // 시트
         case reactionDetail(ReactionDetailSheetFeature.Action)
         case reactionPicker(ReactionPickerSheetFeature.Action)
         case dismissSheet
-
-        // 피드 수정/삭제/저장
+        
         case editButtonTapped(feedID: Int)
+
         case showDeletePopup(Int)
         case confirmDelete(Int)
         case deleteFeedSuccess(Int)
         case deleteFeedFailure(APIError)
+        
         case saveImageButtonTapped(feed: SelfieFeedItem)
         case saveImageSuccess
         
-        // 신고 관련
         case showReportPopup(Int)
         case confirmReport(Int)
         
-        // 피드 업로드
         case uploadButtonTapped
         
-        // 친구 리스트
-        case friendListButtonTapped
-        
-        // 알림 리스트
-        case notificationButtonTapped
-        
-        // 토스트 & 팝업 & 에러
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
         
-        // 실패한 로직 저장
         case setLastFailedRequest(State.FailedRequestType)
-        
-        // Navigation
-        case selectSession(PresentationAction<SelectSessionFeature.Action>)
-        case editMyFeedDetail(PresentationAction<EditMyFeedDetailFeature.Action>)
-        case certificationList(PresentationAction<FeedCertificationListFeature.Action>)
-        case friendList(PresentationAction<FriendListFeature.Action>)
-        case notificationList(PresentationAction<NotificationFeature.Action>)
-        case myFeedDetail(PresentationAction<MyFeedDetailFeature.Action>)
-        
+                
         enum Delegate: Equatable {
             case feedUpdateCompleted(feedID: Int, newImageURL: String?)
             case feedDeleteCompleted(feedID: Int)
+            case navigateToMyProfile
+
+            // Navigation Delegates
+            case navigateToFriendList
+            case navigateToNotificationList
+            case navigateToCertificationList(users: [SelfieUserViewState])
+            case navigateToFriendProfile(userID: Int)
+            case navigateToFeedDetail(feedID: Int, feed: SelfieFeedItem)
+            case navigateToEditFeed(feed: SelfieFeedItem)
+            case navigateToSelectSession
+            case navigateBack
         }
         case delegate(Delegate)
     }
@@ -184,14 +156,20 @@ struct FeedFeature {
             let calendar = Calendar.current
 
             switch action {
+                
+            // MARK: - 친구 리스트
+            case .friendListButtonTapped:
+                return .send(.delegate(.navigateToFriendList))
+
+            // MARK: - 알림 리스트
+            case .notificationButtonTapped:
+                return .send(.delegate(.navigateToNotificationList))
+                
             // MARK: - 초기 로드
             case .onAppear:
-                if state.weekDates.isEmpty {
-                    updateWeekDates(for: Date(), in: &state)
-                }
-
-                guard let start = state.weekDates.first,
-                      let end = state.weekDates.last else { return .none }
+                if state.weekDates.isEmpty { updateWeekDates(for: Date(), in: &state) }
+                
+                guard let start = state.weekDates.first, let end = state.weekDates.last else { return .none }
 
                 let startStr = DateFormatterManager.shared.formatAPIDateText(from: start)
                 let endStr = DateFormatterManager.shared.formatAPIDateText(from: end)
@@ -209,11 +187,11 @@ struct FeedFeature {
                 guard let newDate = calendar.date(byAdding: .day, value: 7 * offset, to: state.selectedDate) else { return .none }
                 updateWeekDates(for: newDate, in: &state)
 
-                guard let start = state.weekDates.first,
-                      let end = state.weekDates.last else { return .none }
+                guard let start = state.weekDates.first, let end = state.weekDates.last else { return .none }
 
                 let startStr = DateFormatterManager.shared.formatAPIDateText(from: start)
                 let endStr = DateFormatterManager.shared.formatAPIDateText(from: end)
+                
                 return .send(.fetchWeekCounts(startDate: startStr, endDate: endStr))
 
             // MARK: - 날짜 선택
@@ -224,29 +202,34 @@ struct FeedFeature {
                 state.feeds = []
 
                 let dateStr = DateFormatterManager.shared.formatAPIDateText(from: date)
+                
                 return .merge(
                     .send(.fetchSelfieFeeds(page: 0)),
                     .send(.fetchSelfieUsers(dateStr))
                 )
-                
+              
+            // MARK: - 읽지 않은 알림 수 조회
             case .fetchUnreadCount:
                 return .run { send in
                     do {
                         let result = try await notificationUnreadCountUseCase.execute()
                         await send(.fetchUnreadCountSuccess(result.count))
                     } catch {
+                        await send(.setLastFailedRequest(.fetchUnreadCount))
                         await send(.fetchUnreadCountFailure(error as? APIError ?? .unknown))
                     }
                 }
-
+            
+            // 조회 성공
             case let .fetchUnreadCountSuccess(count):
                 state.unreadCount = count
                 return .none
 
+            // 조회 실패
             case let .fetchUnreadCountFailure(error):
                 return handleAPIError(error)
 
-            // MARK: - 주간 인증 개수
+            // MARK: - 주간 인증 개수 조회
             case let .fetchWeekCounts(start, end):
                 return .run { send in
                     do {
@@ -258,14 +241,16 @@ struct FeedFeature {
                     }
                 }
 
+            // 조회 성공
             case let .fetchWeekCountsSuccess(result):
                 state.weekCounts = result
                 return .none
 
+            // 조회 실패
             case let .fetchWeekCountsFailure(error):
                 return handleAPIError(error)
 
-            // MARK: - 인증 유저
+            // MARK: - 인증 유저 조회
             case let .fetchSelfieUsers(date):
                 state.isLoadingUsers = true
                 return .run { send in
@@ -277,26 +262,23 @@ struct FeedFeature {
                         await send(.fetchSelfieUsersFailure(error as? APIError ?? .unknown))
                     }
                 }
-
+            
+            // 조회 성공
             case let .fetchSelfieUsersSuccess(users):
                 state.isLoadingUsers = false
                 state.selfieUsers = SelfieUserViewStateMapper.mapList(from: users)
                 return .none
-
+                
+            // 조회 실패
             case let .fetchSelfieUsersFailure(error):
                 state.isLoadingUsers = false
                 return handleAPIError(error)
                 
-            // MARK: - 인증 리스트
+            // MARK: - 인증 유저 요약 탭
             case .certificationSummaryTapped:
-                state.certificationList = .init(users: state.selfieUsers)
-                return .none
+                return .send(.delegate(.navigateToCertificationList(users: state.selfieUsers)))
                 
-            case .certificationList(.presented(.backButtonTapped)):
-                state.certificationList = nil
-                return .none
-
-            // MARK: - 피드 목록
+            // MARK: - 피드 목록 조회
             case let .fetchSelfieFeeds(page):
                 state.isLoading = true
                 let dateStr = DateFormatterManager.shared.formatAPIDateText(from: state.selectedDate)
@@ -310,15 +292,16 @@ struct FeedFeature {
                     }
                 }
 
+            // 조회 성공
             case let .fetchSelfieFeedsSuccess(result):
                 state.isLoading = false
+
                 guard !result.feeds.isEmpty else {
                     state.hasNextPage = false
                     return .none
                 }
 
                 let mapped = SelfieFeedItemMapper.mapList(from: result.feeds)
-                
                 if state.currentPage == 0 {
                     state.feeds = mapped
                 } else {
@@ -330,13 +313,15 @@ struct FeedFeature {
                 state.currentPage += 1
                 
                 state.feeds.sort { $0.selfieDate > $1.selfieDate }
+                
                 return .none
 
+            // 조회 실패
             case let .fetchSelfieFeedsFailure(error):
                 state.isLoading = false
                 return handleAPIError(error)
 
-            // MARK: - 무한 스크롤
+            // 페이지네이션
             case let .loadNextPageIfNeeded(currentItem):
                 guard let currentItem,
                       !state.isLoading,
@@ -350,33 +335,20 @@ struct FeedFeature {
                 }
                 return .none
                 
-            // MARK: - 피드 디테일
-            case let .showFeedDetail(feed):
-                state.myFeedDetail = .init(feedId: feed.feedID, feed: feed)
-                return .none
-                
-            case .myFeedDetail(.presented(.delegate(.feedUpdated(let feedID, let imageURL)))):
-                if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
-                    state.feeds[index].imageURL = imageURL
+            // MARK: - 피드 프로필 탭
+            case let .feedProfileTapped(feed):
+                // 본인 프로필이면 My 탭으로 전환, 아니면 친구 프로필로 이동
+                if feed.userID == UserManager.shared.userId {
+                    return .send(.delegate(.navigateToMyProfile))
+                } else {
+                    return .send(.delegate(.navigateToFriendProfile(userID: feed.userID)))
                 }
-                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
 
-            case .myFeedDetail(.presented(.delegate(.feedDeleted(let feedID)))):
-                state.feeds.removeAll(where: { $0.feedID == feedID })
-                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
-
-            case .myFeedDetail(.presented(.delegate(.reactionUpdated(let feedID, let reactions)))):
-                if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
-                    state.feeds[index].reactions = reactions
-                }
-                return .none
+            // MARK: - 피드 이미지 탭
+            case let .feedImageTapped(feed):
+                return .send(.delegate(.navigateToFeedDetail(feedID: feed.feedID, feed: feed)))
                 
-            case .myFeedDetail(.presented(.backButtonTapped)):
-                state.myFeedDetail = nil
-                return .none
-
-
-            // MARK: - 리액션
+            // MARK: - 리액션 탭
             case let .reactionTapped(feedID, reaction):
                 return .run { send in
                     do {
@@ -387,7 +359,8 @@ struct FeedFeature {
                         await send(.reactionFailure(error as? APIError ?? .unknown))
                     }
                 }
-
+                
+            // 리액션 추가 성공
             case let .reactionSuccess(result):
                 if let index = state.feeds.firstIndex(where: { $0.feedID == result.selfieId }) {
                     state.feeds[index].reactions = Self.toggleReaction(
@@ -396,9 +369,11 @@ struct FeedFeature {
                 }
                 return .none
 
+            // 리액션 추가 실패
             case let .reactionFailure(error):
                 return handleAPIError(error)
 
+            // MARK: - 리액션 롱탭
             case let .reactionLongPressed(feedID, reaction):
                 state.isReactionDetailPresented = true
                 state.reactionDetail = .init(
@@ -408,22 +383,13 @@ struct FeedFeature {
                 )
                 return .none
 
-            // MARK: - 시트 닫기
-            case .reactionDetail(.dismissRequested),
-                 .reactionPicker(.dismissRequested),
-                 .dismissSheet:
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    state.isReactionDetailPresented = false
-                    state.isReactionPickerPresented = false
-                }
-                return .none
-
-            // MARK: - 리액션 추가
+            // MARK: - 리액션 추가 버튼 탭
             case let .addReactionTapped(feedID):
                 state.isReactionPickerPresented = true
                 state.selectedFeedIDForReaction = feedID
                 return .none
 
+            // 리액션 피커 시트 내에서 리액션 선택
             case let .reactionPicker(.reactionSelected(emoji)):
                 state.isReactionPickerPresented = false
                 guard let feedID = state.selectedFeedIDForReaction else { return .none } 
@@ -437,6 +403,7 @@ struct FeedFeature {
                     }
                 }
 
+            // 리액션 피커 시트 내에서 리액션 추가 성공
             case let .addReactionSuccess(result):
                 if let index = state.feeds.firstIndex(where: { $0.feedID == result.selfieId }) {
                     state.feeds[index].reactions = Self.addOrToggleReaction(
@@ -445,26 +412,35 @@ struct FeedFeature {
                 }
                 return .none
 
+            // 리액션 피커 시트 내에서 리액션 추가 실패
             case let .addReactionFailure(error):
                 return handleAPIError(error)
+                
+            // MARK: - 리액션 상세 시트 유저 프로필 탭
+            case let .reactionDetail(.delegate(.navigateToFriendProfile(userID))):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToFriendProfile(userID: userID)))
 
-            // MARK: - 수정 / 삭제 / 저장
+            case .reactionDetail(.delegate(.navigateToMyProfile)):
+                state.isReactionDetailPresented = false
+                return .send(.delegate(.navigateToMyProfile))
+
+            // MARK: - 리액션 관련 시트 닫기
+            case .reactionDetail(.dismissRequested),
+                    .reactionPicker(.dismissRequested),
+                    .dismissSheet:
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    state.isReactionDetailPresented = false
+                    state.isReactionPickerPresented = false
+                }
+                return .none
+
+            // MARK: - 수정 버튼 탭
             case let .editButtonTapped(feedID):
                 guard let feed = state.feeds.first(where: { $0.feedID == feedID }) else { return .none }
-                state.editMyFeedDetail = .init(feed: feed)
-                return .none
-
-            case let .editMyFeedDetail(.presented(.delegate(.updateCompleted(feedID, imageURL)))):
-                if let index = state.feeds.firstIndex(where: { $0.feedID == feedID }) {
-                    state.feeds[index].imageURL = imageURL
-                }
-                state.editMyFeedDetail = nil
-                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
-
-            case .editMyFeedDetail(.presented(.backButtonTapped)):
-                state.editMyFeedDetail = nil
-                return .none
-
+                return .send(.delegate(.navigateToEditFeed(feed: feed)))
+                
+            // MARK: - 삭제 팝업
             case let .showDeletePopup(feedID):
                 return .send(
                     .popup(.show(
@@ -476,6 +452,7 @@ struct FeedFeature {
                     ))
                 )
 
+            // 삭제 처리
             case let .confirmDelete(feedID):
                 return .run { send in
                     do {
@@ -486,28 +463,32 @@ struct FeedFeature {
                         await send(.deleteFeedFailure(error as? APIError ?? .unknown))
                     }
                 }
-
+                
+            // 삭제 성공
             case let .deleteFeedSuccess(feedID):
                 state.feeds.removeAll(where: { $0.feedID == feedID })
                 if let myIndex = state.selfieUsers.firstIndex(where: { $0.isMe }) {
                     state.selfieUsers.remove(at: myIndex)
                 }
                 return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
-
+                
+            // 삭제 실패
             case let .deleteFeedFailure(error):
                 return handleAPIError(error)
 
+            // MARK: - 이미지 저장 버튼 탭
             case let .saveImageButtonTapped(feed):
                 return .run { send in
                     let image = await MyFeedImageCaptureView(feed: feed).snapshot()
                     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                     await send(.saveImageSuccess)
                 }
-
+                
+            // 이미지 저장
             case .saveImageSuccess:
                 return .send(.toast(.show("이미지를 저장했어요.")))
                 
-            // MARK: - 게시물 신고
+            // MARK: - 신고 팝업
             case let .showReportPopup(feedID):
                 return .send(
                     .popup(.show(
@@ -518,41 +499,15 @@ struct FeedFeature {
                         cancelTitle: "취소"
                     ))
                 )
-                
+            
+            // 신고 처리
             case let .confirmReport(feedID):
                 print("신고 완료 (feedID: \(feedID))")
                 return .none
               
-            // MARK: - 피드 업로드
+            // MARK: - 피드 업로드 버튼 탭
             case .uploadButtonTapped:
-                state.selectSession = .init()
-                return .none
-                
-            case .selectSession(.presented(.delegate(.feedUploadCompleted))):
-                state.selectSession = nil
-                return .send(.fetchSelfieFeeds(page: 0))
-                
-            case .selectSession(.presented(.backButtonTapped)):
-                state.selectSession = nil
-                return .none
-                
-            // MARK: - 친구 리스트
-            case .friendListButtonTapped:
-                state.friendList = .init()
-                return .none
-                
-            case .friendList(.presented(.backButtonTapped)):
-                state.friendList = nil
-                return .none
-                
-            // MARK: - 알림 리스트
-            case .notificationButtonTapped:
-                state.notificationList = .init()
-                return .none
-                
-            case .notificationList(.presented(.backButtonTapped)):
-                state.notificationList = nil
-                return .none
+                return .send(.delegate(.navigateToSelectSession))
                 
             // MARK: - 실패한 로직 저장
             case let .setLastFailedRequest(request):
@@ -564,6 +519,8 @@ struct FeedFeature {
                  .serverError(.retryButtonTapped):
                 guard let failed = state.lastFailedRequest else { return .none }
                 switch failed {
+                case .fetchUnreadCount:
+                    return .send(.fetchUnreadCount)
                 case let .fetchWeekCounts(start, end):
                     return .send(.fetchWeekCounts(startDate: start, endDate: end))
                 case let .fetchSelfieUsers(date):
@@ -582,12 +539,6 @@ struct FeedFeature {
                 return .none
             }
         }
-        .ifLet(\.$selectSession, action: \.selectSession) { SelectSessionFeature() }
-        .ifLet(\.$editMyFeedDetail, action: \.editMyFeedDetail) { EditMyFeedDetailFeature() }
-        .ifLet(\.$certificationList, action: \.certificationList) { FeedCertificationListFeature() }
-        .ifLet(\.$friendList, action: \.friendList) { FriendListFeature() }
-        .ifLet(\.$notificationList, action: \.notificationList) { NotificationFeature() }
-        .ifLet(\.$myFeedDetail, action: \.myFeedDetail) { MyFeedDetailFeature() }
     }
 }
 

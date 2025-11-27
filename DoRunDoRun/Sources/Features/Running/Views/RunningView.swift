@@ -71,6 +71,31 @@ struct RunningView: View {
     }
 }
 
+// MARK: - Navigation Destinations
+extension RunningView {
+    @ViewBuilder
+    func pathDestination(for pathState: RunningReadyFeature.Path.State) -> some View {
+        switch pathState {
+        case .friendList(let friendListState):
+            FriendListView(
+                store: Store(
+                    initialState: friendListState,
+                    reducer: { FriendListFeature() }
+                )
+            )
+        case .friendProfile(let friendProfileState):
+            FriendProfileView(
+                store: Store(
+                    initialState: friendProfileState,
+                    reducer: { FriendProfileFeature() }
+                )
+            )
+        case .myProfile:
+            Text("My Profile - TODO")
+        }
+    }
+}
+
 #Preview {
     RunningView(
         store: Store(initialState: RunningFeature.State()) {

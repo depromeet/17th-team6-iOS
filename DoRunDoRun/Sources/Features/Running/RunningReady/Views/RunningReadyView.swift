@@ -55,11 +55,6 @@ private extension RunningReadyView {
                 .ignoresSafeArea(edges: .top)
                 .navigationBarHidden(true)
             }
-            .navigationDestination(
-                item: $store.scope(state: \.friendList, action: \.friendList)
-            ) { store in
-                FriendListView(store: store)
-            }
         }
     }
     

@@ -89,9 +89,15 @@ private extension FriendListView {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(store.friends, id: \.renderId) { friend in
-                        FriendListRowView(friend: friend) {
-                            store.send(.showDeletePopup(friend.id))
-                        }
+                        FriendListRowView(
+                            friend: friend,
+                            onTap: {
+                                store.send(.friendTapped(friend.id))
+                            },
+                            onDelete: {
+                                store.send(.showDeletePopup(friend.id))
+                            }
+                        )
                         .onAppear {
                             if friend.id == store.friends.last?.id {
                                 store.send(.loadNextPageIfNeeded(currentItem: friend))

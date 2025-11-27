@@ -40,6 +40,14 @@ struct ReactionDetailSheetFeature {
         case reactionTapped(EmojiType)
         /// 시트 닫기 요청
         case dismissRequested
+        /// 유저 프로필 탭
+        case userTapped(Int)
+
+        enum Delegate: Equatable {
+            case navigateToFriendProfile(userID: Int)
+            case navigateToMyProfile
+        }
+        case delegate(Delegate)
     }
 
     // MARK: - Reducer
@@ -69,6 +77,20 @@ struct ReactionDetailSheetFeature {
                 state.selectedEmoji = emoji
                 sortUsers(in: &state, for: emoji)
                 return .none
+
+            // MARK: - 유저 프로필 탭
+            case let .userTapped(userID):
+                guard let user = state.selectedUsers.first(where: { $0.id == userID }) else {
+                    return .none
+                }
+
+                if user.isMe {
+                    // 본인인 경우 My 프로필로 이동
+                    return .send(.delegate(.navigateToMyProfile))
+                } else {
+                    // 친구인 경우 친구 프로필로 이동
+                    return .send(.delegate(.navigateToFriendProfile(userID: userID)))
+                }
 
             default:
                 return .none

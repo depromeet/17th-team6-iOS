@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FriendListRowView: View {
     let friend: FriendRunningStatusViewState
+    let onTap: () -> Void
     let onDelete: () -> Void
 
     var body: some View {
@@ -19,16 +20,16 @@ struct FriendListRowView: View {
                 style: .grayBorder,
                 size: .large
             )
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 TypographyText(text: friend.name, style: .t2_700, color: .gray900)
                 if let latestRanText = friend.latestRanText {
                     TypographyText(text: latestRanText, style: .b2_400, color: .gray500)
                 }
             }
-            
+
             Spacer()
-            
+
             Menu {
                 Button("친구 삭제하기") {
                     onDelete()
@@ -44,5 +45,9 @@ struct FriendListRowView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: 76)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
 }

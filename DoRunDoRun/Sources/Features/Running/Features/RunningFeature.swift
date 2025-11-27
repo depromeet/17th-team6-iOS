@@ -47,7 +47,10 @@ struct RunningFeature {
         case stopRunning
         
         case runningDetail(PresentationAction<RunningDetailFeature.Action>)
-        enum Delegate: Equatable { case navigateToFeed }
+        enum Delegate: Equatable {
+            case navigateToFeed
+            case navigateToMyProfile
+        }
         case delegate(Delegate)
     }
     
@@ -175,6 +178,9 @@ struct RunningFeature {
             case .runningDetail(.presented(.delegate(.feedUploadCompleted))):
                 state.runningDetail = nil
                 return .send(.delegate(.navigateToFeed))
+
+            case .runningDetail(.presented(.delegate(.navigateToMyProfile))):
+                return .send(.delegate(.navigateToMyProfile))
 
             default:
                 return .none

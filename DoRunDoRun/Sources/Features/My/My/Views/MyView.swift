@@ -3,20 +3,33 @@ import ComposableArchitecture
 
 struct MyView: View {
     @Perception.Bindable var store: StoreOf<MyFeature>
+    var hideNavigationTitle: Bool = false  // Feed에서 진입 시 true
 
     var body: some View {
         WithPerceptionTracking {
-            NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-                ZStack(alignment: .bottom) {
-                    serverErrorSection
-                    mainSection
-                    networkErrorPopupSection
+            ZStack(alignment: .bottom) {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+            .onAppear { store.send(.onAppear) }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.visible, for: .navigationBar)
+            .toolbar {
+                // 왼쪽: 타이포그라피 (Feed에서 진입 시 숨김)
+                if !hideNavigationTitle {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        TypographyText(text: "마이", style: .t1_700, color: .gray900)
+                            .allowsHitTesting(false)  // 터치 비활성화로 배경 제거
+                    }
                 }
-            } destination: { store in
-                switch store.case {
-                case .myFeedDetail(let store): MyFeedDetailView(store: store)
-                case .mySessionDetail(let store): MySessionDetailView(store: store)
-                case .setting(let store): SettingView(store: store)
+                // 오른쪽: 설정 버튼
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        store.send(.settingButtonTapped)
+                    } label: {
+                        Image(.setting, fill: .fill, size: .medium)
+                    }
                 }
             }
         }
@@ -43,31 +56,13 @@ private extension MyView {
     private var mainSection: some View {
         if store.serverError.serverErrorType == nil {
             VStack(spacing: 0) {
-                navigationSection
                 profileSection
                 tabHeaderSection
                 tabContentSection
             }
-            .onAppear { store.send(.onAppear) }
-            .toolbar(.hidden, for: .navigationBar)
         }
     }
     
-    /// 네비게이션 섹션
-    private var navigationSection: some View {
-        HStack {
-            TypographyText(text: "마이", style: .t1_700, color: .gray900)
-            Spacer()
-            Button {
-                store.send(.settingButtonTapped)
-            } label: {
-                Image(.setting, fill: .fill, size: .medium)
-            }
-        }
-        .frame(height: 44)
-        .padding(.horizontal, 20)
-    }
-
     /// 프로필 섹션
     private var profileSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -161,7 +156,7 @@ private extension MyView {
                 }
             }
             .tag(MyFeature.State.Tab.feed.rawValue)
-            
+
             VStack(spacing: 0) {
                  MonthNavigationHeaderView(
                      monthTitle: store.monthTitle,

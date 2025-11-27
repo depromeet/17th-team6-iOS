@@ -64,9 +64,12 @@ struct FriendListFeature {
         
         case friendCodeInputButtonTapped
         case backButtonTapped
-        
+        case friendTapped(Int)
+
         enum Delegate: Equatable {
             case friendAdded
+            case navigateToFriendProfile(userID: Int)
+            case navigateToMyProfile
         }
         case delegate(Delegate)
     }
@@ -209,6 +212,20 @@ struct FriendListFeature {
             case .friendCodeInput(.presented(.backButtonTapped)):
                 state.friendCodeInput = nil
                 return .none
+
+            // MARK: - Friend Profile Navigation
+            case let .friendTapped(friendID):
+                guard let friend = state.friends.first(where: { $0.id == friendID }) else {
+                    return .none
+                }
+
+                if friend.isMe {
+                    // 본인인 경우 My 프로필로 이동
+                    return .send(.delegate(.navigateToMyProfile))
+                } else {
+                    // 친구인 경우 친구 프로필로 이동
+                    return .send(.delegate(.navigateToFriendProfile(userID: friendID)))
+                }
 
             // MARK: - Retry Handling
             case .networkErrorPopup(.retryButtonTapped),

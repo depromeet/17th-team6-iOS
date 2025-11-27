@@ -153,5 +153,9 @@ private extension ReactionDetailSheetView {
             Spacer()
         }
         .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            store.send(.userTapped(user.id))
+        }
     }
 }

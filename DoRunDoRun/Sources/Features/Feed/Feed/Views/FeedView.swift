@@ -15,7 +15,6 @@ struct FeedView: View {
                 networkErrorPopupSection
             }
             .onAppear { store.send(.onAppear) }
-            // 시트 표시 상태 변화 감지
             .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { visible in
                 if visible {
                     UIApplication.presentOverlay(
@@ -28,7 +27,9 @@ struct FeedView: View {
                             ZStack(alignment: .bottom) {
                                 Color.clear
                                     .ignoresSafeArea()
-                                
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { store.send(.dismissSheet) }
+
                                 if store.isReactionDetailPresented {
                                     ReactionDetailSheetView(
                                         store: store.scope(state: \.reactionDetail, action: \.reactionDetail)
@@ -46,36 +47,28 @@ struct FeedView: View {
                     UIApplication.dismissOverlay()
                 }
             }
-            // Navigation destinations
-            .navigationDestination(
-                item: $store.scope(state: \.selectSession, action: \.selectSession)
-            ) { store in
-                SelectSessionView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.editMyFeedDetail, action: \.editMyFeedDetail)
-            ) { store in
-                EditMyFeedDetailView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.certificationList, action: \.certificationList)
-            ) { store in
-                FeedCertificationListView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.friendList, action: \.friendList)
-            ) { store in
-                FriendListView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.notificationList, action: \.notificationList)
-            ) { store in
-                NotificationView(store: store)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.myFeedDetail, action: \.myFeedDetail)
-            ) { store in
-                MyFeedDetailView(store: store)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.visible, for: .navigationBar)
+            .toolbar {
+                // 왼쪽: 타이포그라피 유지
+                ToolbarItem(placement: .navigationBarLeading) {
+                    TypographyText(text: "인증피드", style: .t1_700, color: .gray900)
+                        .allowsHitTesting(false)  // 터치 비활성화로 배경 제거
+                }
+                // 오른쪽: 친구 리스트, 알림 버튼
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 12) {
+                        Button(action: { store.send(.friendListButtonTapped) }) {
+                            Image(.friends, fill: .fill, size: .medium)
+                        }
+                        Button { store.send(.notificationButtonTapped) } label: {
+                            Image(
+                                store.unreadCount > 0 ? .alarmActive : .alarm,
+                                size: .medium
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -100,46 +93,21 @@ private extension FeedView {
     var mainSection: some View {
         Group {
             if store.serverError.serverErrorType == nil {
-                VStack(spacing: 0) {
-                    headerSection
-                    if store.feeds.isEmpty {
-                        VStack(spacing: 0) {
+                if store.feeds.isEmpty {
+                    VStack(spacing: 0) {
+                        scrollHeaderSection
+                        FeedEmptyView()
+                    }
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
                             scrollHeaderSection
-                            FeedEmptyView()
-                        }
-                    } else {
-                        ScrollView {
-                            LazyVStack(spacing: 0) {
-                                scrollHeaderSection
-                                feedListSection
-                            }
+                            feedListSection
                         }
                     }
                 }
             }
         }
-    }
-
-    /// Header Section
-    var headerSection: some View {
-        HStack {
-            TypographyText(text: "인증피드", style: .t1_700)
-            Spacer()
-            HStack(spacing: 12) {
-                Button(action: { store.send(.friendListButtonTapped) }) {
-                    Image(.friends, fill: .fill, size: .medium)
-                }
-                Button { store.send(.notificationButtonTapped) } label: {
-                    Image(
-                        store.unreadCount > 0 ? .alarmActive : .alarm,
-                        size: .medium
-                    )
-                }
-            }
-        }
-        .frame(height: 44)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
     }
 
     /// Scroll Header
@@ -203,7 +171,8 @@ private extension FeedView {
                         onDeleteTapped: { store.send(.showDeletePopup(feed.feedID)) },
                         onSaveImageTapped: { store.send(.saveImageButtonTapped(feed: feed)) },
                         onReportTapped: { store.send(.showReportPopup(feed.feedID)) },
-                        onImageTapped: { store.send(.showFeedDetail(feed)) }
+                        onImageTapped: { store.send(.feedImageTapped(feed)) },
+                        onProfileTapped: { store.send(.feedProfileTapped(feed: feed)) }
                     )
                 }
             }
