@@ -21,10 +21,39 @@ struct MyFeedDetailView: View {
                 toastSection
                 popupSection
                 networkErrorPopupSection
-                sheetOverlaySection
             }
             .ignoresSafeArea(edges: .bottom)
             .onAppear { store.send(.onAppear) }
+            .onChange(of: store.isReactionDetailPresented || store.isReactionPickerPresented) { visible in
+                if visible {
+                    UIApplication.presentOverlay(
+                        dim: {
+                            Color.dimLight
+                                .ignoresSafeArea()
+                                .onTapGesture { store.send(.dismissSheet) }
+                        },
+                        sheet: {
+                            ZStack(alignment: .bottom) {
+                                Color.clear
+                                    .ignoresSafeArea()
+
+                                if store.isReactionDetailPresented {
+                                    ReactionDetailSheetView(
+                                        store: store.scope(state: \.reactionDetail, action: \.reactionDetail)
+                                    )
+                                }
+                                if store.isReactionPickerPresented {
+                                    ReactionPickerSheetView(
+                                        store: store.scope(state: \.reactionPicker, action: \.reactionPicker)
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    UIApplication.dismissOverlay()
+                }
+            }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -325,34 +354,3 @@ private extension MyFeedDetailView {
     }
 }
 
-// MARK: - Sheet Overlay
-private extension MyFeedDetailView {
-    /// Sheet Overlay
-    @ViewBuilder
-    var sheetOverlaySection: some View {
-        ZStack(alignment: .bottom) {
-            if store.isReactionDetailPresented || store.isReactionPickerPresented {
-                Color.dimLight
-                    .onTapGesture { store.send(.dismissSheet) }
-                    .transition(.opacity)
-            }
-
-            if store.isReactionDetailPresented {
-                ReactionDetailSheetView(
-                    store: store.scope(state: \.reactionDetail, action: \.reactionDetail)
-                )
-                .transition(.move(edge: .bottom))
-            }
-
-            if store.isReactionPickerPresented {
-                ReactionPickerSheetView(
-                    store: store.scope(state: \.reactionPicker, action: \.reactionPicker)
-                )
-                .transition(.move(edge: .bottom))
-            }
-        }
-        .edgesIgnoringSafeArea(.all)
-        .animation(.easeInOut(duration: 0.3),
-                   value: store.isReactionDetailPresented || store.isReactionPickerPresented)
-    }
-}
