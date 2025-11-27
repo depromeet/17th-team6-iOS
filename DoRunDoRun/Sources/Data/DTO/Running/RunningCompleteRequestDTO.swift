@@ -44,25 +44,25 @@ struct MaxCadenceDTO: Encodable {
 
 // MARK: - Domain to DTO Mapping
 extension RunningCompleteRequestDTO {
-    init(from detail: RunningDetail) {
-        self.distance = DistanceDTO(total: Int(detail.totalDistanceMeters))
+    init(from request: RunningCompleteRequest) {
+        self.distance = DistanceDTO(total: Int(request.totalDistanceMeters))
 
         // Duration을 초 단위로 변환
-        let totalSeconds = detail.elapsed.components.seconds + (detail.elapsed.components.attoseconds / 1_000_000_000_000_000_000)
+        let totalSeconds = request.elapsed.components.seconds + (request.elapsed.components.attoseconds / 1_000_000_000_000_000_000)
         self.duration = DurationDTO(total: Int(totalSeconds))
 
         self.pace = PaceDTO(
-            avg: Int(detail.avgPaceSecPerKm),
+            avg: Int(request.avgPaceSecPerKm),
             max: MaxPaceDTO(
-                value: Int(detail.fastestPaceSecPerKm),
-                latitude: detail.coordinateAtmaxPace.coordinate.latitude,
-                longitude: detail.coordinateAtmaxPace.coordinate.longitude
+                value: Int(request.fastestPaceSecPerKm),
+                latitude: request.coordinateAtMaxPace.latitude,
+                longitude: request.coordinateAtMaxPace.longitude
             )
         )
 
         self.cadence = CadenceDTO(
-            avg: Int(detail.avgCadenceSpm),
-            max: MaxCadenceDTO(value: Int(detail.maxCadenceSpm))
+            avg: Int(request.avgCadenceSpm),
+            max: MaxCadenceDTO(value: Int(request.maxCadenceSpm))
         )
     }
 }

@@ -193,11 +193,12 @@ struct RunningDetailFeature {
 
                 return .run { [completer = self.sessionCompleter, detail = state.detail] send in
                     do {
-                        // ViewState → Domain 변환
-                        let domainDetail = RunningDetailViewStateMapper.toDomain(from: detail)
+                        // ViewState → RunningCompleteRequest 변환
+                        let completeRequest = RunningDetailViewStateMapper.toCompleteRequest(from: detail)
+
                         let mapImageURL = try await completer.complete(
                             sessionId: sessionId,
-                            detail: domainDetail,
+                            request: completeRequest,
                             mapImage: mapImageData
                         )
                         await send(.sessionCompletedSuccessfully(mapImageURL: mapImageURL))

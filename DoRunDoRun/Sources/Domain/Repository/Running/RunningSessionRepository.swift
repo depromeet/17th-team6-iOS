@@ -31,12 +31,12 @@ protocol RunningSessionRepository: AnyObject {
     /// 러닝 세션 완료 (최종 데이터 및 지도 이미지 전송)
     /// - Parameters:
     ///   - sessionId: 세션 ID
-    ///   - detail: 최종 러닝 상세 정보
+    ///   - request: 러닝 완료 요청 데이터
     ///   - mapImage: 지도 이미지 데이터
     /// - Returns: 서버에서 반환한 지도 이미지 URL
     func completeSession(
         sessionId: Int,
-        detail: RunningDetail,
+        request: RunningCompleteRequest,
         mapImage: Data?
     ) async throws -> String?
 

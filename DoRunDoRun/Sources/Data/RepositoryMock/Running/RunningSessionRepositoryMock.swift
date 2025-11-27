@@ -27,7 +27,7 @@ final class RunningSessionRepositoryMock: RunningSessionRepository {
 
     func completeSession(
         sessionId: Int,
-        detail: RunningDetail,
+        request: RunningCompleteRequest,
         mapImage: Data?
     ) async throws -> String? {
         // Mock 응답 반환 (서버에 데이터 전송 시뮬레이션)
