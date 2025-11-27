@@ -36,6 +36,8 @@ struct MyFeedDetailView: View {
                             ZStack(alignment: .bottom) {
                                 Color.clear
                                     .ignoresSafeArea()
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { store.send(.dismissSheet) }
 
                                 if store.isReactionDetailPresented {
                                     ReactionDetailSheetView(
