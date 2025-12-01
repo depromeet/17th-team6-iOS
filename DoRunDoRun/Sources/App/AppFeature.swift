@@ -252,6 +252,28 @@ struct AppFeature {
                 state.feedPath.removeLast()
                 return .none
 
+            case let .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFriendProfile(userID))))):
+                state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
+                return .none
+
+            case let .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFeedDetail(feedID))))):
+                state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: .empty(feedID: feedID))))
+                return .none
+
+            case .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFeedUpload)))):
+                state.feedPath.append(.selectSession(SelectSessionFeature.State()))
+                return .none
+
+            case .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToRunningStart)))):
+                state.feedPath.removeLast() // 알림 목록 닫기
+                state.selectedTab = .running // Running 탭으로 전환
+                return .none
+
+            case .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFriendList)))):
+                state.feedPath.removeLast() // 알림 목록 닫기
+                state.feedPath.append(.friendList(FriendListFeature.State()))
+                return .none
+
             case .feedPath(.element(id: _, action: .certificationList(.backButtonTapped))):
                 state.feedPath.removeLast()
                 return .none

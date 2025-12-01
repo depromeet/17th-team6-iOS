@@ -15,4 +15,5 @@ struct NotificationViewState: Equatable, Identifiable {
     let timeText: String
     var isRead: Bool
     let type: NotificationType
+    let relatedId: Int?
 }
