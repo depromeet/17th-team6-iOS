@@ -65,7 +65,7 @@ private extension NotificationView {
                         LazyVStack(spacing: 0) {
                             ForEach(store.notifications) { notification in
                                 NotificationRowView(notification: notification) {
-                                    store.send(.markAsRead(notification.id))
+                                    store.send(.notificationTapped(notification))
                                 }
                                 .onAppear {
                                     if notification.id == store.notifications.last?.id {

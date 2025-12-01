@@ -41,12 +41,22 @@ struct NotificationFeature {
         case notificationsSuccess([NotificationsResult])
         case loadNextPageIfNeeded(currentItem: NotificationViewState?)
         case notificationsFailure(APIError)
-        
+
+        case notificationTapped(NotificationViewState)
         case markAsRead(Int)
         case notificationReadSuccess(Int)
         case notificationReadFailure(APIError)
-        
+
         case backButtonTapped
+
+        enum Delegate: Equatable {
+            case navigateToFriendProfile(userID: Int)
+            case navigateToFeedDetail(feedID: Int)
+            case navigateToFeedUpload
+            case navigateToRunningStart
+            case navigateToFriendList
+        }
+        case delegate(Delegate)
     }
 
     var body: some ReducerOf<Self> {
@@ -113,6 +123,13 @@ struct NotificationFeature {
                 state.isLoading = false
                 return handleAPIError(apiError)
 
+            // MARK: - 알림 탭 처리
+            case let .notificationTapped(notification):
+                // 알림을 읽음 처리하고 해당 화면으로 이동
+                let markAsReadEffect = performMarkAsRead(id: notification.id)
+                let navigationEffect = handleNotificationNavigation(notification: notification)
+                return .merge(markAsReadEffect, navigationEffect)
+
             // MARK: - 알림 읽음 처리
             case let .markAsRead(id):
                 state.lastFailedRequest = .markAsRead(id: id)
@@ -164,6 +181,35 @@ struct NotificationFeature {
             } catch {
                 await send(.notificationReadFailure(error as? APIError ?? .unknown))
             }
+        }
+    }
+
+    func handleNotificationNavigation(notification: NotificationViewState) -> Effect<Action> {
+        switch notification.type {
+        case .cheerFriend:
+            // 친구 응원 → 친구 프로필
+            guard let friendID = notification.relatedId else { return .none }
+            return .send(.delegate(.navigateToFriendProfile(userID: friendID)))
+
+        case .feedUploaded, .feedReaction:
+            // 피드 업로드/리액션 → 피드 상세
+            guard let feedID = notification.relatedId else { return .none }
+            return .send(.delegate(.navigateToFeedDetail(feedID: feedID)))
+
+        case .feedReminder:
+            // 피드 업로드 독촉 → 피드 작성 화면
+            return .send(.delegate(.navigateToFeedUpload))
+
+        case .runningProgressReminder, .newUserRunningReminder:
+            // 러닝 독촉 → 러닝 시작 화면
+            return .send(.delegate(.navigateToRunningStart))
+
+        case .newUserFriendReminder:
+            // 친구 추가 독촉 → 친구 목록 화면
+            return .send(.delegate(.navigateToFriendList))
+
+        case .unknown:
+            return .none
         }
     }
 
