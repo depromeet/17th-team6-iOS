@@ -65,6 +65,9 @@ struct RunningMapView: UIViewRepresentable {
         mapView.mapView.minZoomLevel = CameraZoomLevel.min
         mapView.mapView.maxZoomLevel = CameraZoomLevel.max
 
+        // 내 위치 마커 표시
+        mapView.mapView.locationOverlay.hidden = false
+
         // Delegate 설정 (제스처 감지용)
         context.coordinator.onMapGestureDetected = onMapGestureDetected
         mapView.mapView.addCameraDelegate(delegate: context.coordinator)
@@ -253,6 +256,12 @@ private extension RunningMapView {
 
     /// Ready 단계에서 지도 상태를 갱신합니다 (매 렌더링마다)
     func updateForReady(_ uiView: NMFNaverMapView, context: Context) {
+        // 내 위치 마커 업데이트
+        if let userLoc = userLocation {
+            let location = NMGLatLng(lat: userLoc.latitude, lng: userLoc.longitude)
+            uiView.mapView.locationOverlay.location = location
+        }
+
         // 친구 마커 업데이트
         context.coordinator.friendMarkerManager.update(
             friends: statuses,
@@ -306,6 +315,12 @@ private extension RunningMapView {
 
     /// Active 단계에서 지도 상태를 갱신합니다 (매 렌더링마다)
     func updateForActive(_ uiView: NMFNaverMapView, context: Context) {
+        // 내 위치 마커 업데이트
+        if let lastCoord = runningCoordinates.last {
+            let location = NMGLatLng(lat: lastCoord.latitude, lng: lastCoord.longitude)
+            uiView.mapView.locationOverlay.location = location
+        }
+
         // GPS Following 카메라 추적
         updateCameraForFollowing(
             isFollowing: isFollowingLocation,

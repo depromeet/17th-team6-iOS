@@ -33,4 +33,9 @@ final actor UserLocationRepositoryMock: UserLocationRepository {
     func stopTracking() async {
         // Mock: 아무 동작 안함
     }
+
+    func hasLocationPermission() async -> Bool {
+        // Mock: 항상 권한 있음
+        return true
+    }
 }

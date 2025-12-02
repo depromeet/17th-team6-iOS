@@ -6,6 +6,7 @@
 //
 
 import ComposableArchitecture
+import UIKit
 
 @Reducer
 struct RunningReadyFeature {
@@ -21,8 +22,12 @@ struct RunningReadyFeature {
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
-        
+        var popup = PopupFeature.State()
+
         var shouldRefresh: Bool = true
+
+        /// 위치 추적 중인지 여부
+        var isTrackingLocation: Bool = false
 
         /// Entity -> ViewState 매핑 결과
         var statuses: [FriendRunningStatusViewState] = []
@@ -55,7 +60,8 @@ struct RunningReadyFeature {
         case toast(ToastFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
-        
+        case popup(PopupFeature.Action)
+
         case onAppear
         case onDisappear
         case loadStatuses(page: Int)
@@ -77,6 +83,11 @@ struct RunningReadyFeature {
 
         case startButtonTapped
 
+        case locationPermissionDenied
+        case popupActionTapped
+        case toggleGpsFollowing
+        case checkLocationPermissionOnAppActive
+
         enum Delegate: Equatable {
             case feedUpdateCompleted(feedID: Int, newImageURL: String?)
             case feedDeleteCompleted(feedID: Int)
@@ -97,6 +108,7 @@ struct RunningReadyFeature {
         Scope(state: \.toast, action: \.toast) { ToastFeature() }
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
+        Scope(state: \.popup, action: \.popup) { PopupFeature() }
 
         Reduce { state, action in
             // path 관련 액션들을 여기서 먼저 처리
@@ -118,6 +130,7 @@ struct RunningReadyFeature {
                 guard !state.isLoading else { return .none }
                 state.isLoading = true
 
+                state.isTrackingLocation = true
                 return .merge(
                     .send(.loadStatuses(page: 0)),
                     .run { [userLocationUseCase] send in
@@ -126,6 +139,11 @@ struct RunningReadyFeature {
                             for try await coordinate in locationStream {
                                 await send(.userLocationUpdated(coordinate))
                             }
+                        } catch let error as LocationServiceError {
+                            if case .notAuthorized = error {
+                                await send(.locationPermissionDenied)
+                            }
+                            print("[GPS] 위치 추적 실패: \(error)")
                         } catch {
                             print("[GPS] 위치 추적 실패: \(error)")
                         }
@@ -136,6 +154,7 @@ struct RunningReadyFeature {
             case .onDisappear:
                 state.userLocation = nil
                 state.isFollowingUserLocation = true  // 다음 진입 시를 위해 초기값으로 리셋
+                state.isTrackingLocation = false
                 return .run { [userLocationUseCase] _ in
                     await userLocationUseCase.stopTracking()
                     print("[GPS] 위치 추적 중단")
@@ -271,12 +290,54 @@ struct RunningReadyFeature {
 
             // MARK: GPS 버튼 - Following 모드 토글
             case .gpsButtonTapped:
+                return .run { [userLocationUseCase] send in
+                    let hasPermission = await userLocationUseCase.hasLocationPermission()
+                    if !hasPermission {
+                        await send(.locationPermissionDenied)
+                    } else {
+                        await send(.toggleGpsFollowing)
+                    }
+                }
+
+            // MARK: GPS Following 모드 토글
+            case .toggleGpsFollowing:
                 state.isFollowingUserLocation.toggle()
                 // Following이 켜지면 친구 포커싱 해제
                 if state.isFollowingUserLocation {
                     state.focusedFriendID = nil
                 }
                 return .none
+
+            // MARK: 앱 활성화 시 위치 권한 확인
+            case .checkLocationPermissionOnAppActive:
+                // 이미 위치 추적 중이고 위치가 있으면 재시작하지 않음
+                if state.isTrackingLocation && state.userLocation != nil {
+                    return .none
+                }
+
+                return .run { [userLocationUseCase] send in
+                    let hasPermission = await userLocationUseCase.hasLocationPermission()
+                    if hasPermission {
+                        // 권한이 허용되었으면 위치 추적 재시작
+                        // 기존 스트림을 먼저 중지하고 다시 시작
+                        await userLocationUseCase.stopTracking()
+
+                        do {
+                            let locationStream = try await userLocationUseCase.startTracking()
+                            for try await coordinate in locationStream {
+                                await send(.userLocationUpdated(coordinate))
+                            }
+                        } catch let error as LocationServiceError {
+                            if case .notAuthorized = error {
+                                // 권한이 다시 거부된 경우 (드문 경우)
+                                await send(.locationPermissionDenied)
+                            }
+                            print("[GPS] 위치 추적 재시작 실패: \(error)")
+                        } catch {
+                            print("[GPS] 위치 추적 재시작 실패: \(error)")
+                        }
+                    }
+                }
 
             // MARK: 사용자 위치 업데이트
             case let .userLocationUpdated(coordinate):
@@ -327,7 +388,27 @@ struct RunningReadyFeature {
                 state.statuses = []
                 // 실제 러닝 시작 로직은 상위 Feature(RunningFeature)에서 담당
                 return .none
-                
+
+            // MARK: 위치 권한 거부
+            case .locationPermissionDenied:
+                return .send(.popup(.show(
+                    action: .locationPermission,
+                    title: "위치 권한이 필요해요",
+                    message: "러닝 기록을 위해\n위치 권한을 허용해주세요.",
+                    actionTitle: "설정으로 이동",
+                    cancelTitle: "닫기"
+                )))
+
+            // MARK: 팝업 액션 버튼
+            case .popupActionTapped:
+                guard case .locationPermission = state.popup.action else { return .none }
+                return .run { _ in
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        await UIApplication.shared.open(url)
+                    }
+                }
+                .concatenate(with: .send(.popup(.hide)))
+
             default:
                 return .none
             }

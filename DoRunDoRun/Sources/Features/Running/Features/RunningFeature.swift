@@ -11,6 +11,7 @@ enum RunningPhase: Equatable {
 @Reducer
 struct RunningFeature {
     @Dependency(\.runningUseCase) var runningUseCase
+    @Dependency(\.userLocationUseCase) var userLocationUseCase
 
     @ObservableState
     struct State {
@@ -65,7 +66,14 @@ struct RunningFeature {
             switch action {
             // Ready → 세션 생성 시작
             case .ready(.startButtonTapped):
-                return .send(._createSession)
+                return .run { [userLocationUseCase] send in
+                    let hasPermission = await userLocationUseCase.hasLocationPermission()
+                    if !hasPermission {
+                        await send(.ready(.locationPermissionDenied))
+                    } else {
+                        await send(._createSession)
+                    }
+                }
 
             case ._createSession:
                 return .run { [useCase = self.runningUseCase] send in

@@ -10,6 +10,8 @@ protocol UserLocationUseCaseProtocol {
     func startTracking() async throws -> AsyncThrowingStream<RunningCoordinate, Error>
     /// 위치 추적 중단
     func stopTracking() async
+    /// 현재 위치 권한 상태 확인
+    func hasLocationPermission() async -> Bool
 }
 
 final class UserLocationUseCase: UserLocationUseCaseProtocol {
@@ -24,6 +26,10 @@ final class UserLocationUseCase: UserLocationUseCaseProtocol {
     }
 
     func stopTracking() async {
-        await repository.stopTracking()
+        return await repository.stopTracking()
+    }
+
+    func hasLocationPermission() async -> Bool {
+        return await repository.hasLocationPermission()
     }
 }
