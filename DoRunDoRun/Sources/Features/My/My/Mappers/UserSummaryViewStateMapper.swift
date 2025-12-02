@@ -7,10 +7,12 @@
 
 import Foundation
 
+import Dependencies
+
 struct UserSummaryViewStateMapper {
     static func map(from entity: UserSummary) -> UserSummaryViewState {
-        let runningFormatter = RunningFormatterManager.shared
-        
+        @Dependency(\.runningFormatter) var runningFormatter
+
         return UserSummaryViewState(
             name: entity.name,
             profileImageURL: entity.profileImageUrl,

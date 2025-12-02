@@ -45,7 +45,7 @@ struct MyFeature {
         var sessions: [RunningSessionSummaryViewState] = []
         var filteredSessions: [RunningSessionSummaryViewState] {
             sessions.filter {
-                CalendarManager.shared.calendar.isDate($0.date, equalTo: currentMonth, toGranularity: .month)
+                Calendar.current.isDate($0.date, equalTo: currentMonth, toGranularity: .month)
             }
         }
 

@@ -7,11 +7,13 @@
 
 import Foundation
 
+import Dependencies
+
 struct SelfieFeedDetailItemMapper {
     static func map(from detail: SelfieFeedDetailResult) -> SelfieFeedItem {
         let dateFormatter = DateFormatterManager.shared
-        let runningFormatter = RunningFormatterManager.shared
-        
+        @Dependency(\.runningFormatter) var runningFormatter
+
         let date = dateFormatter.isoDate(from: detail.selfieTime) ?? Date()
         
         // 리액션 변환
