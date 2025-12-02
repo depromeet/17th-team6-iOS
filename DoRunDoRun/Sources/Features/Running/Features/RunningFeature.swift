@@ -49,8 +49,10 @@ struct RunningFeature {
         
         case runningDetail(PresentationAction<RunningDetailFeature.Action>)
         enum Delegate: Equatable {
+            case navigateToFriendList
+            case navigateToFriendProfile(userID: Int)
+            case navigateBack
             case navigateToFeed
-            case navigateToMyProfile
         }
         case delegate(Delegate)
     }
@@ -177,8 +179,18 @@ struct RunningFeature {
             case let .updatePhase(phase):
                 state.phase = phase
                 return .none
+                
+            // RunningReady delegate relay
+            case .ready(.delegate(.navigateToFriendList)):
+                return .send(.delegate(.navigateToFriendList))
+                
+            case .ready(.delegate(.navigateToFriendProfile(let userID))):
+                return .send(.delegate(.navigateToFriendProfile(userID: userID)))
+                
+            case .ready(.delegate(.navigateBack)):
+                return .send(.delegate(.navigateBack))
 
-            // RunningDetail delegate: 뒤로가기 버튼
+            // RunningDetail delegate relay
             case .runningDetail(.presented(.delegate(.backButtonTapped))):
                 state.runningDetail = nil
                 return .send(.delegate(.navigateToFeed))
@@ -186,9 +198,6 @@ struct RunningFeature {
             case .runningDetail(.presented(.delegate(.feedUploadCompleted))):
                 state.runningDetail = nil
                 return .send(.delegate(.navigateToFeed))
-
-            case .runningDetail(.presented(.delegate(.navigateToMyProfile))):
-                return .send(.delegate(.navigateToMyProfile))
 
             default:
                 return .none

@@ -18,7 +18,6 @@ struct RunningReadyFeature {
     // MARK: - State
     @ObservableState
     struct State {
-        var path = StackState<Path.State>()
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
@@ -56,7 +55,6 @@ struct RunningReadyFeature {
 
     // MARK: - Action
     enum Action {
-        case path(StackActionOf<Path>)
         case toast(ToastFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
@@ -91,16 +89,11 @@ struct RunningReadyFeature {
         enum Delegate: Equatable {
             case feedUpdateCompleted(feedID: Int, newImageURL: String?)
             case feedDeleteCompleted(feedID: Int)
+            case navigateToFriendList
+            case navigateToFriendProfile(userID: Int)
+            case navigateBack
         }
         case delegate(Delegate)
-    }
-
-    // MARK: - Path Reducer
-    @Reducer
-    enum Path {
-        case friendList(FriendListFeature)
-        case friendProfile(FriendProfileFeature)
-        case myProfile
     }
 
     // MARK: - Reducer Body
@@ -109,11 +102,6 @@ struct RunningReadyFeature {
         Scope(state: \.networkErrorPopup, action: \.networkErrorPopup) { NetworkErrorPopupFeature() }
         Scope(state: \.serverError, action: \.serverError) { ServerErrorFeature() }
         Scope(state: \.popup, action: \.popup) { PopupFeature() }
-
-        Reduce { state, action in
-            // path 관련 액션들을 여기서 먼저 처리
-            return handlePathActions(state: &state, action: action)
-        }
 
         Reduce { state, action in
             switch action {
@@ -351,38 +339,8 @@ struct RunningReadyFeature {
                 
             // MARK: 친구 목록 버튼
             case .friendListButtonTapped:
-                state.path.append(.friendList(FriendListFeature.State()))
-                return .none
+                return .send(.delegate(.navigateToFriendList))
 
-            // MARK: - Path Element Delegates
-            case .path(.element(id: _, action: .friendList(.delegate(.friendAdded)))):
-                state.shouldRefresh = true
-                return .none
-
-            case .path(.element(id: _, action: .friendList(.backButtonTapped))):
-                state.path.removeLast()
-                return .none
-
-            case let .path(.element(id: _, action: .friendList(.delegate(.navigateToFriendProfile(userID))))):
-                state.path.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
-                return .none
-
-            case .path(.element(id: _, action: .friendList(.delegate(.navigateToMyProfile)))):
-                state.path.append(.myProfile)
-                return .none
-
-            case .path(.element(id: _, action: .friendProfile(.backButtonTapped))):
-                state.path.removeLast()
-                return .none
-
-            case .path(.element(id: _, action: .friendProfile(.delegate(.feedUpdateCompleted(let feedID, let newImageURL))))):
-                // Feed 동기화는 상위에서 처리
-                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: newImageURL)))
-
-            case .path(.element(id: _, action: .friendProfile(.delegate(.feedDeleteCompleted(let feedID))))):
-                // Feed 동기화는 상위에서 처리
-                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
-                
             // MARK: 오늘의 러닝 시작 버튼
             case .startButtonTapped:
                 state.statuses = []
@@ -412,24 +370,6 @@ struct RunningReadyFeature {
             default:
                 return .none
             }
-        }
-        .forEach(\.path, action: \.path)
-    }
-
-    // MARK: - Path Actions Handler
-    private func handlePathActions(state: inout State, action: Action) -> Effect<Action> {
-        switch action {
-        case .path(.element(id: _, action: .friendList(.delegate(.friendAdded)))),
-             .path(.element(id: _, action: .friendList(.backButtonTapped))),
-             .path(.element(id: _, action: .friendList(.delegate(.navigateToFriendProfile)))),
-             .path(.element(id: _, action: .friendList(.delegate(.navigateToMyProfile)))),
-             .path(.element(id: _, action: .friendProfile(.backButtonTapped))),
-             .path(.element(id: _, action: .friendProfile(.delegate(.feedUpdateCompleted)))),
-             .path(.element(id: _, action: .friendProfile(.delegate(.feedDeleteCompleted)))):
-            // 이 액션들은 main Reduce에서 처리됨
-            return .none
-        default:
-            return .none
         }
     }
 }
