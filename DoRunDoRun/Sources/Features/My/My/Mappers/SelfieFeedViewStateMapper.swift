@@ -7,6 +7,8 @@
 
 import Foundation
 
+import Dependencies
+
 struct SelfieFeedViewStateMapper {
     static func map(from feeds: [SelfieFeed]) -> [SelfieFeedViewState] {
         let formatter = DateFormatterManager.shared
@@ -82,7 +84,7 @@ private extension SelfieFeedViewStateMapper {
         let relativeTimeText = formatter.formatRelativeTime(from: feed.selfieTime)
         
         // 러닝 포맷 관련
-        let runningFormatter = RunningFormatterManager.shared
+        @Dependency(\.runningFormatter) var runningFormatter
         let distanceText = runningFormatter.formatDistance(from: feed.totalDistance)
         let durationText = runningFormatter.formatDuration(from: Int(feed.totalRunTime))
         let paceText = runningFormatter.formatPace(from: feed.averagePace)

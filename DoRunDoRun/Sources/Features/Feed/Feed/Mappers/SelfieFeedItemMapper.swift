@@ -7,11 +7,13 @@
 
 import Foundation
 
+import Dependencies
+
 struct SelfieFeedItemMapper {
     static func map(from feed: SelfieFeed) -> SelfieFeedItem {
         let dateFormatter = DateFormatterManager.shared
-        let runningFormatter = RunningFormatterManager.shared
         let date = dateFormatter.isoDate(from: feed.selfieTime) ?? Date()
+        @Dependency(\.runningFormatter) var runningFormatter
         
         // 날짜 관련 포맷
         let dayText = dateFormatter.formatDayLabel(from: date)

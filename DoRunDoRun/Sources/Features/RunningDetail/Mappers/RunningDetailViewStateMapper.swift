@@ -7,13 +7,14 @@
 
 import Foundation
 
+import Dependencies
+
 struct RunningDetailViewStateMapper {
     /// Domain → ViewState (Forward Mapping)
     static func map(from detail: RunningDetail) -> RunningDetailViewState {
         let dateFormatter = DateFormatterManager.shared
-        let runningFormatter = RunningFormatterManager.shared
+        @Dependency(\.runningFormatter) var runningFormatter
         
-        // 전역 포맷 사용
         let startedAtText = dateFormatter.formatDateTime(from: detail.startedAt)
         let distanceText = runningFormatter.formatDistance(from: detail.totalDistanceMeters)
         let elapsedText = runningFormatter.formatDuration(from: Int(detail.elapsed.components.seconds))
@@ -57,16 +58,17 @@ struct RunningDetailViewStateMapper {
     /// ViewState → ViewState
     static func map(from detail: RunningDetailViewState) -> RunningSessionSummaryViewState {
         let formatter = DateFormatterManager.shared
+        @Dependency(\.runningFormatter) var runningFormatter
 
         return RunningSessionSummaryViewState(
             id: detail.sessionId ?? 0,
             date: detail.startedAt,
             dateText: formatter.formatDateWithWeekdayText(from: detail.startedAt),
             timeText: formatter.formatTime(from: detail.startedAt),
-            distanceText: RunningFormatterManager.shared.formatDistance(from: detail.totalDistanceMeters),
-            durationText: RunningFormatterManager.shared.formatDuration(from: Int(detail.elapsed.components.seconds)),
-            paceText: RunningFormatterManager.shared.formatPace(from: detail.avgPaceSecPerKm),
-            spmText: RunningFormatterManager.shared.formatCadence(from: detail.avgCadenceSpm),
+            distanceText: runningFormatter.formatDistance(from: detail.totalDistanceMeters),
+            durationText: runningFormatter.formatDuration(from: Int(detail.elapsed.components.seconds)),
+            paceText: runningFormatter.formatPace(from: detail.avgPaceSecPerKm),
+            spmText: runningFormatter.formatCadence(from: detail.avgCadenceSpm),
             tagStatus: .possible, // 인증 피드 생성 화면임으로 항상 인증 가능 상태일 것
             mapImageURL: detail.mapImageURL
         )

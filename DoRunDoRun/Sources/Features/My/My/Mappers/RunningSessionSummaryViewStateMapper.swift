@@ -7,6 +7,8 @@
 
 import Foundation
 
+import Dependencies
+
 struct RunningSessionSummaryViewStateMapper {
     static func map(
         from entities: [RunningSessionSummary],
@@ -22,7 +24,7 @@ struct RunningSessionSummaryViewStateMapper {
         }
         
         let dateFormatter = DateFormatterManager.shared
-        let runningFormatter = RunningFormatterManager.shared
+        @Dependency(\.runningFormatter) var runningFormatter
         
         return entities.map { entity in
             // MARK: 날짜 / 시간 텍스트
