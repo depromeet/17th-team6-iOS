@@ -362,7 +362,9 @@ struct RunningReadyFeature {
                 guard case .locationPermission = state.popup.action else { return .none }
                 return .run { _ in
                     if let url = URL(string: UIApplication.openSettingsURLString) {
-                        await UIApplication.shared.open(url)
+                        await MainActor.run {
+                            UIApplication.shared.open(url)
+                        }
                     }
                 }
                 .concatenate(with: .send(.popup(.hide)))
