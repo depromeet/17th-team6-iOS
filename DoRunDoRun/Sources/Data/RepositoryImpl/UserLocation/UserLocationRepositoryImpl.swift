@@ -38,4 +38,8 @@ final actor UserLocationRepositoryImpl: UserLocationRepository {
     func stopTracking() async {
         locationService.stopTracking()
     }
+
+    func hasLocationPermission() async -> Bool {
+        locationService.hasLocationPermission()
+    }
 }

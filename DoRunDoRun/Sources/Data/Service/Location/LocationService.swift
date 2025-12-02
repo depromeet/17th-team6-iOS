@@ -18,6 +18,8 @@ protocol LocationService: AnyObject {
     /// CoreLocation 업데이트 스트림을 시작하고 비동기 시퀀스를 반환
     func startTracking() throws(LocationServiceError) -> AsyncThrowingStream<CLLocation, Error>
     func stopTracking()
+    /// 현재 위치 권한 상태 확인
+    func hasLocationPermission() -> Bool
 }
 
 /// LocationService 인터페이스 구현체
@@ -55,7 +57,16 @@ final class LocationServiceImpl: NSObject, LocationService {
     func stopTracking() {
         continuation?.finish()
     }
-    
+
+    func hasLocationPermission() -> Bool {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return true
+        default:
+            return false
+        }
+    }
+
     /// 사용자 권한 요청 메서드
     func checkAuthorizationStatus() throws(LocationServiceError) {
         switch manager.authorizationStatus {
@@ -106,7 +117,10 @@ extension LocationServiceImpl: CLLocationManagerDelegate {
                 continuation?.finish(throwing: LocationServiceError.notAuthorized)
             }
         case .authorizedAlways, .authorizedWhenInUse:
-            break
+            // 권한이 허용되었고 스트리밍 중이라면 위치 업데이트 시작
+            if isStreaming {
+                manager.startUpdatingLocation()
+            }
         default:
             break
         }

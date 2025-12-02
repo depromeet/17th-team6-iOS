@@ -13,6 +13,7 @@ struct RunningReadyView: View {
     @Perception.Bindable var store: StoreOf<RunningReadyFeature>
     @State private var sheetOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         WithPerceptionTracking {
@@ -20,6 +21,12 @@ struct RunningReadyView: View {
                 serverErrorSection
                 mainSection
                 networkErrorPopupSection
+                popupSection
+            }
+            .onChange(of: scenePhase) { newPhase in
+                if newPhase == .active {
+                    store.send(.checkLocationPermissionOnAppActive)
+                }
             }
         }
     }
@@ -152,6 +159,39 @@ private extension RunningReadyView {
             }
             .transition(.opacity.combined(with: .scale))
             .zIndex(10)
+        }
+    }
+}
+
+// MARK: - Popup Section
+private extension RunningReadyView {
+    /// Action Popup Section
+    @ViewBuilder
+    var popupSection: some View {
+        if store.popup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        store.send(.popup(.hide))
+                    }
+
+                ActionPopupView(
+                    title: store.popup.title,
+                    message: store.popup.message,
+                    actionTitle: store.popup.actionTitle,
+                    cancelTitle: store.popup.cancelTitle,
+                    style: .actionAndCancel,
+                    onAction: {
+                        store.send(.popupActionTapped)
+                    },
+                    onCancel: {
+                        store.send(.popup(.hide))
+                    }
+                )
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(11)
         }
     }
 }
