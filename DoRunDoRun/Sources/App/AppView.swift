@@ -35,7 +35,7 @@ struct MainTabView: View {
     var body: some View {
         WithPerceptionTracking {
             TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-                NavigationStack(path: $store.scope(state: \.running.ready.path, action: \.running.ready.path)) {
+                NavigationStack(path: $store.scope(state: \.runningPath, action: \.runningPath)) {
                     RunningView(store: store.scope(state: \.running, action: \.running))
                 } destination: { pathStore in
                     switch pathStore.case {
@@ -94,7 +94,6 @@ struct MainTabView: View {
                     case .myFeedDetail(let store): MyFeedDetailView(store: store)
                     case .mySessionDetail(let store): MySessionDetailView(store: store)
                     case .setting(let store): SettingView(store: store)
-                    case .friendProfile(let store): FriendProfileView(store: store)
                     }
                 }
                 .tabItem {

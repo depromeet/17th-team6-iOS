@@ -59,13 +59,6 @@ struct FriendProfileFeature{
         // Sub Feature Action
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
         case serverError(ServerErrorFeature.Action)
-
-        // Delegate
-        enum Delegate: Equatable {
-            case feedUpdateCompleted(feedID: Int, newImageURL: String?)
-            case feedDeleteCompleted(feedID: Int)
-        }
-        case delegate(Delegate)
         
         case backButtonTapped
     }
@@ -82,25 +75,6 @@ struct FriendProfileFeature{
             case let .feedItemTapped(feed):
                 state.feedDetail = MyFeedDetailFeature.State(feedId: feed.feedID, feed: feed)
                 return .none
-
-            case let .feedDetail(.presented(.delegate(.feedUpdated(feedID, imageURL)))):
-                if let index = state.feeds.firstIndex(where: {
-                    if case let .feed(item) = $0.kind {
-                        return item.feedID == feedID
-                    }
-                    return false
-                }) {
-                    if case let .feed(item) = state.feeds[index].kind {
-                        var updatedFeed = item
-                        updatedFeed.imageURL = imageURL
-                        state.feeds[index] = .init(id: state.feeds[index].id, kind: .feed(updatedFeed))
-                    }
-                }
-                return .send(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL)))
-
-            case let .feedDetail(.presented(.delegate(.feedDeleted(feedID)))):
-                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.feeds)
-                return .send(.delegate(.feedDeleteCompleted(feedID: feedID)))
 
             case .feedDetail(.presented(.backButtonTapped)):
                 state.feedDetail = nil
