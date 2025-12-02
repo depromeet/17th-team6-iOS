@@ -7,13 +7,13 @@
 
 import Dependencies
 
-enum RunningFormatterManagerKey: DependencyKey {
+enum RunningFormatterKey: DependencyKey {
     static let liveValue = RunningFormatterManager()
 }
 
 extension DependencyValues {
     var runningFormatter: RunningFormatterManager {
-        get { self[RunningFormatterManagerKey.self] }
-        set { self[RunningFormatterManagerKey.self] = newValue }
+        get { self[RunningFormatterKey.self] }
+        set { self[RunningFormatterKey.self] = newValue }
     }
 }
