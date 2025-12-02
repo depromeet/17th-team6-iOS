@@ -147,5 +147,4 @@ final class DateFormatterManager {
             return "\(years)년 전"
         }
     }
-
 }
