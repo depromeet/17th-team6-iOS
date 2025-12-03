@@ -64,6 +64,7 @@ struct FeedView: View {
                         Button { store.send(.notificationButtonTapped) } label: {
                             Image(
                                 store.unreadCount > 0 ? .alarmActive : .alarm,
+                                fill: .fill,
                                 size: .medium
                             )
                         }
