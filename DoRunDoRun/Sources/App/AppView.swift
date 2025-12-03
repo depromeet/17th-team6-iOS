@@ -42,8 +42,8 @@ struct MainTabView: View {
                     case .friendList(let store): FriendListView(store: store)
                     case .friendProfile(let store): FriendProfileView(store: store)
                     case .myProfile:
-                        // 본인 프로필: AppFeature의 MyFeature state 공유
-                        MyView(
+                        // 본인 프로필: AppFeature의 MyProfileFeature state 공유
+                        MyProfileView(
                             store: self.store.scope(state: \.my, action: \.my),
                             hideNavigationTitle: true  // Running에서 진입 시 타이틀 숨김
                         )
@@ -63,19 +63,19 @@ struct MainTabView: View {
                 } destination: { pathStore in
                     switch pathStore.case {
                     case .friendList(let store): FriendListView(store: store)
-                    case .notificationList(let store): NotificationView(store: store)
-                    case .certificationList(let store): FeedCertificationListView(store: store)
+                    case .notificationList(let store): NotificationListView(store: store)
+                    case .certificationUserList(let store): CertificationUserListView(store: store)
                     case .friendProfile(let store): FriendProfileView(store: store)
                     case .myProfile:
-                        // 본인 프로필: AppFeature의 MyFeature state 공유
-                        MyView(
+                        // 본인 프로필: AppFeature의 MyProfileFeature state 공유
+                        MyProfileView(
                             store: self.store.scope(state: \.my, action: \.my),
                             hideNavigationTitle: true  // Feed에서 진입 시 타이틀 숨김
                         )
-                    case .feedDetail(let store): MyFeedDetailView(store: store)
+                    case .feedDetail(let store): FeedDetailView(store: store)
                     case .editMyFeedDetail(let store): EditMyFeedDetailView(store: store)
                     case .selectSession(let store): SelectSessionView(store: store)
-                    case .mySessionDetail(let store): MySessionDetailView(store: store)
+                    case .mySessionDetail(let store): SessionDetailView(store: store)
                     }
                 }
                 .tabItem {
@@ -88,11 +88,11 @@ struct MainTabView: View {
                 .tag(AppFeature.State.Tab.feed)
 
                 NavigationStack(path: $store.scope(state: \.myPath, action: \.myPath)) {
-                    MyView(store: store.scope(state: \.my, action: \.my))
+                    MyProfileView(store: store.scope(state: \.my, action: \.my))
                 } destination: { store in
                     switch store.case {
-                    case .myFeedDetail(let store): MyFeedDetailView(store: store)
-                    case .mySessionDetail(let store): MySessionDetailView(store: store)
+                    case .myFeedDetail(let store): FeedDetailView(store: store)
+                    case .mySessionDetail(let store): SessionDetailView(store: store)
                     case .setting(let store): SettingView(store: store)
                     }
                 }
