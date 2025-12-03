@@ -15,7 +15,7 @@ struct AppFeature {
         // 로그인 후
         var running = RunningFeature.State()
         var feed = FeedFeature.State()
-        var my = MyFeature.State()
+        var my = MyProfileFeature.State()
         var selectedTab: Tab = .running
         enum Tab: Hashable { case running, feed, my }
 
@@ -48,7 +48,7 @@ struct AppFeature {
         case tabSelected(State.Tab)
         case running(RunningFeature.Action)
         case feed(FeedFeature.Action)
-        case my(MyFeature.Action)
+        case my(MyProfileFeature.Action)
 
         // Navigation Path
         case runningPath(StackActionOf<RunningPath>)
@@ -61,7 +61,7 @@ struct AppFeature {
         Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
         Scope(state: \.running, action: \.running) { RunningFeature() }
         Scope(state: \.feed, action: \.feed) { FeedFeature() }
-        Scope(state: \.my, action: \.my) { MyFeature() }
+        Scope(state: \.my, action: \.my) { MyProfileFeature() }
 
         Reduce { state, action in
             switch action {
@@ -153,7 +153,7 @@ struct AppFeature {
                 
             case let .feed(.delegate(.feedDeleteCompleted(feedID))):
                 print("Feed에서 삭제 발생 → My에서도 즉시 반영")
-                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
+                MyProfileFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
                 return .none
                 
             case .my(.delegate(.feedUpdateCompleted(let feedID, let newImageURL))):
@@ -177,12 +177,12 @@ struct AppFeature {
 
             // 알림 목록으로 이동 (네비게이션 영역에 알림 아이콘 탭 시)
             case .feed(.delegate(.navigateToNotificationList)):
-                state.feedPath.append(.notificationList(NotificationFeature.State()))
+                state.feedPath.append(.notificationList(NotificationListFeature.State()))
                 return .none
 
             // 인증 유저 목록으로 이동 (오늘 인증한 유저 영역 탭 시)
-            case let .feed(.delegate(.navigateToCertificationList(users))):
-                state.feedPath.append(.certificationList(FeedCertificationListFeature.State(users: users)))
+            case let .feed(.delegate(.navigateToCertificationUserList(users))):
+                state.feedPath.append(.certificationUserList(CertificationUserListFeature.State(users: users)))
                 return .none
                 
             // 내 프로필로 이동 (피드의 본인 프로필 탭 시)
@@ -197,12 +197,12 @@ struct AppFeature {
                 
             // 피드 상세로 이동 (피드 이미지 탭 시)
             case let .feed(.delegate(.navigateToFeedDetail(feedID, feed))):
-                state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                state.feedPath.append(.feedDetail(FeedDetailFeature.State(feedId: feedID, feed: feed)))
                 return .none
 
             // 내 피드 수정하기로 이동 (본인 피드의 수정하기 버튼 탭 시)
             case let .feed(.delegate(.navigateToEditFeed(feed))):
-                state.feedPath.append(.editMyFeedDetail(EditMyFeedDetailFeature.State(feed: feed)))
+                state.feedPath.append(.editMyFeedDetail(EditFeedDetailFeature.State(feed: feed)))
                 return .none
 
             // 세션 선택으로 이동 (플로팅 버튼 탭 시)
@@ -215,7 +215,7 @@ struct AppFeature {
                 state.feedPath.removeLast()
                 return .none
 
-            // MARK: - MyFeature Navigation Delegates
+            // MARK: - MyProfileFeature Navigation Delegates
             // My 화면은 두 가지 경로로 진입 가능:
             // 1. My 탭에서 직접 진입 → myPath 사용
             // 2. Feed 탭에서 myProfile을 통해 진입 → feedPath 사용
@@ -226,10 +226,10 @@ struct AppFeature {
                 // Feed 탭 경로인지 My 탭 경로인지에 따라 다른 path 사용
                 if state.feedPath.last?.is(\.myProfile) == true {
                     // Feed → myProfile → feedDetail
-                    state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                    state.feedPath.append(.feedDetail(FeedDetailFeature.State(feedId: feedID, feed: feed)))
                 } else {
                     // My → myFeedDetail
-                    state.myPath.append(.myFeedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: feed)))
+                    state.myPath.append(.myFeedDetail(FeedDetailFeature.State(feedId: feedID, feed: feed)))
                 }
                 return .none
 
@@ -238,10 +238,10 @@ struct AppFeature {
                 // Feed 탭 경로인지 My 탭 경로인지에 따라 다른 path 사용
                 if state.feedPath.last?.is(\.myProfile) == true {
                     // Feed → myProfile → sessionDetail
-                    state.feedPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                    state.feedPath.append(.mySessionDetail(SessionDetailFeature.State(session: session, sessionId: sessionId)))
                 } else {
                     // My → mySessionDetail
-                    state.myPath.append(.mySessionDetail(MySessionDetailFeature.State(session: session, sessionId: sessionId)))
+                    state.myPath.append(.mySessionDetail(SessionDetailFeature.State(session: session, sessionId: sessionId)))
                 }
                 return .none
 
@@ -302,7 +302,7 @@ struct AppFeature {
             // feedPath stack의 각 화면에서 발생하는 액션 처리
             // 주요 화면들: friendList → friendProfile
             //           notificationList → friendProfile/feedDetail/selectSession
-            //           certificationList → friendProfile/myProfile
+            //           certificationUserList → friendProfile/myProfile
             //           feedDetail ↔ editMyFeedDetail
             //           selectSession (피드 업로드)
                 
@@ -333,7 +333,7 @@ struct AppFeature {
 
             // 피드 → 알림 목록 → 피드 상세로 이동 (친구 피드 업로드 알람/피드 리액션 알람을 탭한 경우)
             case let .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFeedDetail(feedID))))):
-                state.feedPath.append(.feedDetail(MyFeedDetailFeature.State(feedId: feedID, feed: .empty(feedID: feedID))))
+                state.feedPath.append(.feedDetail(FeedDetailFeature.State(feedId: feedID, feed: .empty(feedID: feedID))))
                 return .none
 
             // 피드 → 알림 목록 → 세션 선택으로 이동 (피드 업로드 독촉 알람을 탭한 경우)
@@ -354,17 +354,17 @@ struct AppFeature {
                 return .none
 
             // 피드 → 인증 유저 목록 → 뒤로 가기
-            case .feedPath(.element(id: _, action: .certificationList(.backButtonTapped))):
+            case .feedPath(.element(id: _, action: .certificationUserList(.backButtonTapped))):
                 state.feedPath.removeLast()
                 return .none
                 
             // 피드 → 인증 유저 목록 → 본인 프로필로 이동
-            case .feedPath(.element(id: _, action: .certificationList(.delegate(.navigateToMyProfile)))):
+            case .feedPath(.element(id: _, action: .certificationUserList(.delegate(.navigateToMyProfile)))):
                 state.feedPath.append(.myProfile)
                 return .none
 
             // 피드 → 인증 유저 목록 → 친구 프로필로 이동
-            case let .feedPath(.element(id: _, action: .certificationList(.delegate(.navigateToFriendProfile(userID))))):
+            case let .feedPath(.element(id: _, action: .certificationUserList(.delegate(.navigateToFriendProfile(userID))))):
                 state.feedPath.append(.friendProfile(FriendProfileFeature.State(userID: userID)))
                 return .none
                 
@@ -453,12 +453,12 @@ struct AppFeature {
             //           friendProfile
               
                 
-            // 마이 → 피드 상세 → 뒤로가기
+            // 마이 → 내 피드 상세 → 뒤로가기
             case .myPath(.element(id: _, action: .myFeedDetail(.backButtonTapped))):
                 state.myPath.removeLast()
                 return .none
                 
-            // 마이 → 피드 상세 → 피드 수정
+            // 마이 → 내 피드 상세 → 피드 수정
             case let .myPath(.element(id: _, action: .myFeedDetail(.delegate(.feedUpdated(feedID, imageURL))))):
                 if let index = state.my.feeds.firstIndex(where: {
                     if case let .feed(item) = $0.kind {
@@ -474,22 +474,22 @@ struct AppFeature {
                 }
                 return .send(.my(.delegate(.feedUpdateCompleted(feedID: feedID, newImageURL: imageURL))))
 
-            // 마이 → 피드 상세 → 피드 삭제
+            // 마이 → 내 피드 상세 → 피드 삭제
             case let .myPath(.element(id: _, action: .myFeedDetail(.delegate(.feedDeleted(feedID))))):
-                MyFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
+                MyProfileFeature.removeFeedAndCleanupIfEmpty(feedID: feedID, from: &state.my.feeds)
                 return .send(.my(.delegate(.feedDeleteCompleted(feedID: feedID))))
 
-            // 마이 → 피드 상세 → 본인 프로필 : 피드 상세에서 뒤로가기로 처리(중복 push 방지)
+            // 마이 → 내 피드 상세 → 본인 프로필 : 피드 상세에서 뒤로가기로 처리(중복 push 방지)
             case .myPath(.element(id: _, action: .myFeedDetail(.delegate(.navigateToMyProfile)))):
                 state.myPath.removeLast()
                 return .none
 
-            // 마이 → 세션 상세 → 뒤로가기
+            // 마이 → 내 세션 상세 → 뒤로가기
             case .myPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.myPath.removeLast()
                 return .none
 
-            // 마이 → 세션 상세 → 피드 상세 → 본인 프로필 : 세션 상세에서 뒤로가기로 처리(중복 push 방지)
+            // 마이 → 내 세션 상세 → 피드 상세 → 본인 프로필 : 세션 상세에서 뒤로가기로 처리(중복 push 방지)
             case .myPath(.element(id: _, action: .mySessionDetail(.delegate(.navigateToMyProfile)))):
                 // 세션 상세에서 인증 게시물을 보고 내 프로필을 선택한 경우 - 세션 상세 화면 dismiss
                 state.myPath.removeLast()
@@ -525,30 +525,30 @@ struct AppFeature {
     enum RunningPath {
         case friendList(FriendListFeature)        // 친구 목록
         case friendProfile(FriendProfileFeature)  // 친구 프로필
-        case myProfile                            // 내 프로필 (MyFeature 공유)
+        case myProfile                            // 내 프로필 (MyProfileFeature 공유)
     }
 
     /// Feed 탭 Navigation Stack
     /// - 특징: myProfile을 통해 My 화면 기능 접근 가능 (feedPath 사용)
     @Reducer
     enum FeedPath {
-        case friendList(FriendListFeature)                    // 친구 목록
-        case notificationList(NotificationFeature)            // 알림 목록
-        case certificationList(FeedCertificationListFeature)  // 인증 목록 (오늘 같이 뛴 사람들)
-        case friendProfile(FriendProfileFeature)              // 친구 프로필
-        case myProfile                                        // 내 프로필 (MyFeature 공유)
-        case feedDetail(MyFeedDetailFeature)                  // 피드 상세
-        case editMyFeedDetail(EditMyFeedDetailFeature)        // 피드 수정
-        case selectSession(SelectSessionFeature)              // 세션 선택 (피드 업로드)
-        case mySessionDetail(MySessionDetailFeature)          // 세션 상세
+        case friendList(FriendListFeature)                          // 친구 목록
+        case notificationList(NotificationListFeature)              // 알림 목록
+        case certificationUserList(CertificationUserListFeature)    // 인증 목록 (오늘 같이 뛴 사람들)
+        case friendProfile(FriendProfileFeature)                    // 친구 프로필
+        case myProfile                                              // 내 프로필 (MyProfileFeature 공유)
+        case feedDetail(FeedDetailFeature)                          // 피드 상세
+        case editMyFeedDetail(EditFeedDetailFeature)                // 피드 수정
+        case selectSession(SelectSessionFeature)                    // 세션 선택 (피드 업로드)
+        case mySessionDetail(SessionDetailFeature)                  // 내 세션 상세
     }
 
     /// My 탭 Navigation Stack
     /// - 주의: Feed 탭에서 myProfile로 진입한 경우 feedPath를 사용하므로 myPath는 사용되지 않음
     @Reducer
     enum MyPath {
-        case myFeedDetail(MyFeedDetailFeature)          // 내 피드 상세
-        case mySessionDetail(MySessionDetailFeature)    // 내 세션 상세
+        case myFeedDetail(FeedDetailFeature)            // 내 피드 상세
+        case mySessionDetail(SessionDetailFeature)      // 내 세션 상세
         case setting(SettingFeature)                    // 설정
     }
 }
