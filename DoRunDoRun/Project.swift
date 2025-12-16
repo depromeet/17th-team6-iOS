@@ -70,8 +70,8 @@ let project = Project(
             settings: .settings(
                 base: [
                     "OTHER_LDFLAGS": "-ObjC",
-                    "MARKETING_VERSION": "1.0.1",
-                    "CURRENT_PROJECT_VERSION": "2"
+                    "MARKETING_VERSION": "1.0.2",
+                    "CURRENT_PROJECT_VERSION": "1"
                 ],
                 configurations: [
                     .debug(name: "Debug", xcconfig: "../Configs/Debug.xcconfig"),
