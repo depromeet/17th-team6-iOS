@@ -9,6 +9,7 @@ let project = Project(
         .remote(url: "https://github.com/Moya/Moya.git", requirement: .upToNextMajor(from: "15.0.0")),
         .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .upToNextMajor(from: "8.6.0")),
         .remote(url: "https://github.com/firebase/firebase-ios-sdk.git", requirement: .upToNextMajor(from: "11.5.0")),
+        .remote(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git", requirement: .upToNextMajor(from: "12.14.0")),
     ],
     targets: [
         .target(
@@ -34,7 +35,6 @@ let project = Project(
                     "NSMotionUsageDescription": "걸음 수 및 움직임 데이터를 활용해 운동 정보를 정확하게 표시하기 위해 모션 데이터를 사용합니다.",
                     "NSPhotoLibraryAddUsageDescription": "러닝 인증 사진을 앨범에 저장하기 위해 사진 보관함 접근 권한이 필요합니다.",
                     "NSUserNotificationUsageDescription": "친구의 반응, 인증 알림 등 중요한 정보를 빠르게 받아보기 위해 알림 권한이 필요합니다.",
-
                     "UIBackgroundModes": .array([
                         .string("location"),
                         .string("remote-notification")
@@ -51,6 +51,15 @@ let project = Project(
                         .string("Pretendard-ExtraBold.otf"),
                         .string("Pretendard-Bold.otf"),
                         .string("Pretendard-Black.otf"),
+                    ]),
+                    "GADApplicationIdentifier": "$(ADMOB_APP_ID)",
+                    "ADMOB_BANNER_AD_UNIT_ID": "$(ADMOB_BANNER_AD_UNIT_ID)",
+                    "NSUserTrackingUsageDescription":
+                    "맞춤형 광고 제공을 위해 사용자의 활동을 추적합니다.",
+                    "SKAdNetworkItems": .array([
+                        .dictionary([
+                            "SKAdNetworkIdentifier": .string("cstr6suwn9.skadnetwork")
+                        ])
                     ])
                 ]
             ), buildableFolders: [
@@ -66,6 +75,7 @@ let project = Project(
                 .package(product: "Kingfisher"),
                 .package(product: "FirebaseAnalytics"),
                 .package(product: "FirebaseMessaging"),
+                .package(product: "GoogleMobileAds"),
             ],
             settings: .settings(
                 base: [
