@@ -70,7 +70,7 @@ let project = Project(
             settings: .settings(
                 base: [
                     "OTHER_LDFLAGS": "-ObjC",
-                    "MARKETING_VERSION": "1.0.2",
+                    "MARKETING_VERSION": "1.0.3",
                     "CURRENT_PROJECT_VERSION": "1"
                 ],
                 configurations: [
