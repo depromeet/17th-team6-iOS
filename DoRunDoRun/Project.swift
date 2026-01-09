@@ -54,6 +54,7 @@ let project = Project(
                     ]),
                     "GADApplicationIdentifier": "$(ADMOB_APP_ID)",
                     "ADMOB_BANNER_AD_UNIT_ID": "$(ADMOB_BANNER_AD_UNIT_ID)",
+                    "ADMOB_INTERSTITIAL_AD_UNIT_ID": "$(ADMOB_INTERSTITIAL_AD_UNIT_ID)",
                     "NSUserTrackingUsageDescription":
                     "맞춤형 광고 제공을 위해 사용자의 활동을 추적합니다.",
                     "SKAdNetworkItems": .array([

@@ -106,6 +106,29 @@ struct MainTabView: View {
                 .tag(AppFeature.State.Tab.my)
             }
             .tint(Color.gray900)
+            .onChange(of: store.shouldShowInterstitialAd) { shouldShow in
+                guard shouldShow else { return }
+
+                showInterstitialAd {
+                    store.send(.interstitialAdShown)
+                }
+            }
+        }
+    }
+    
+    private func showInterstitialAd(onDismiss: @escaping () -> Void) {
+        guard let rootVC = UIApplication.shared
+            .connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController
+        else { return }
+
+        let presenter = rootVC.topMostViewController()
+
+        InterstitialAdManager.shared.show(from: presenter) {
+            onDismiss()
         }
     }
 }

@@ -21,6 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
         // AdMob 초기화
         MobileAds.shared.start(completionHandler: nil)
+        InterstitialAdManager.shared.loadAd()
         
         // 앱 실행 시 사용자에게 알림 허용 권한을 받음
         UNUserNotificationCenter.current().delegate = self

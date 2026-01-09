@@ -4,6 +4,8 @@ import ComposableArchitecture
 struct AppFeature {
     @ObservableState
     struct State {
+        var shouldShowInterstitialAd = false
+
         var splash = SplashFeature.State()
         var showSplash = true
         
@@ -37,6 +39,8 @@ struct AppFeature {
     }
 
     enum Action {
+        case interstitialAdShown
+
         case splash(SplashFeature.Action)
         case appStarted
         case refreshTokenResponse(Bool) // refresh 결과 처리
@@ -65,6 +69,11 @@ struct AppFeature {
 
         Reduce { state, action in
             switch action {
+            case .interstitialAdShown:
+                state.shouldShowInterstitialAd = false
+                state.feedPath.removeLast()
+                return .send(.feed(.fetchSelfieFeeds(page: 0)))
+
             case .splash(.splashTimeoutEnded):
                 state.showSplash = false
                 return .send(.appStarted)
@@ -425,15 +434,14 @@ struct AppFeature {
                 return .none
 
             // 피드 → 세션 선택 → 피드 생성 → 피드 업로드 완료
-            case .feedPath(.element(id: _, action: .selectSession(.delegate(.feedUploadCompleted)))):
-                state.feedPath.removeLast()
-                return .send(.feed(.fetchSelfieFeeds(page: 0)))
+            case .feedPath(.element(_, .selectSession(.delegate(.feedUploadCompleted)))):
+                state.shouldShowInterstitialAd = true // 광고 표시
+                return .none
 
             // 피드 → 세션 상세 → 뒤로가기
             case .feedPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.feedPath.removeLast()
                 return .none
-                
                 
             // 피드 → (인증 유저 목록) → 본인 프로필 → 세션 상세 → 피드 상세 → 본인 프로필 : 세션 상세에서 뒤로가기로 처리(중복 push 방지)
             case .feedPath(.element(id: _, action: .mySessionDetail(.delegate(.navigateToMyProfile)))):

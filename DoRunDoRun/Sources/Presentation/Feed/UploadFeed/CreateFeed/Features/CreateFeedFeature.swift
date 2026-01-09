@@ -24,13 +24,15 @@ struct CreateFeedFeature {
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
         var serverError = ServerErrorFeature.State()
+
+        @Presents var uploadSuccess: UploadSuccessFeature.State?
     }
 
     // MARK: - Action
     enum Action: Equatable {
         case imageDataPicked(Data)
         case uploadButtonTapped
-        case uploadSuccess
+        case feedUploadSuccess
         case uploadFailure(APIError)
         case toast(ToastFeature.Action)
         case networkErrorPopup(NetworkErrorPopupFeature.Action)
@@ -38,6 +40,10 @@ struct CreateFeedFeature {
         case saveImageButtonTapped
         case saveImageSuccess
         case backButtonTapped
+
+        // Navigation
+        case uploadSuccess(PresentationAction<UploadSuccessFeature.Action>)
+
         enum DelegateAction: Equatable {
             case uploadCompleted
         }
@@ -79,16 +85,17 @@ struct CreateFeedFeature {
                     do {
                         // 이미지 데이터는 별도 파라미터로 전달
                         try await selfieFeedCreateUseCase.execute(data: dto, selfieImage: imageData)
-                        await send(.uploadSuccess)
+                        await send(.feedUploadSuccess)
                     } catch {
                         await send(.uploadFailure(error as? APIError ?? .unknown))
                     }
                 }
 
             // MARK: - 업로드 성공
-            case .uploadSuccess:
+            case .feedUploadSuccess:
                 state.isUploading = false
-                return .send(.delegate(.uploadCompleted))
+                state.uploadSuccess = .init()
+                return .none
 
             // MARK: - 업로드 실패
             case let .uploadFailure(error):
@@ -107,10 +114,16 @@ struct CreateFeedFeature {
             case .saveImageSuccess:
                 return .send(.toast(.show("이미지를 저장했어요.")))
 
+            // MARK: - UploadSuccess 완료
+            case .uploadSuccess(.presented(.delegate(.uploadSuccessCompleted))):
+                state.uploadSuccess = nil
+                return .send(.delegate(.uploadCompleted))
+
             default:
                 return .none
             }
         }
+        .ifLet(\.$uploadSuccess, action: \.uploadSuccess) { UploadSuccessFeature() }
     }
 }
 

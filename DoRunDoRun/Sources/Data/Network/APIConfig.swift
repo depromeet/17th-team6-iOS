@@ -16,11 +16,11 @@ enum APIConfig {
         return url
     }
     
-    static var admobBannerAdUnitID: String {
+    static var admobInterstitialAdUnitID: String {
         guard let value = Bundle.main.object(
-            forInfoDictionaryKey: "ADMOB_BANNER_AD_UNIT_ID"
+            forInfoDictionaryKey: "ADMOB_INTERSTITIAL_AD_UNIT_ID"
         ) as? String else {
-            fatalError("🚨 ADMOB_BANNER_AD_UNIT_ID not found in Info.plist")
+            fatalError("🚨 ADMOB_INTERSTITIAL_AD_UNIT_ID not found in Info.plist")
         }
         return value
     }
