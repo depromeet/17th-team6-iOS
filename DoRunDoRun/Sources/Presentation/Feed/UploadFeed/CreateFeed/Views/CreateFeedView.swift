@@ -42,6 +42,11 @@ struct CreateFeedView: View {
                     }
                 }
             }
+            .navigationDestination(
+                item: $store.scope(state: \.uploadSuccess, action: \.uploadSuccess)
+            ) { store in
+                UploadSuccessView(store: store)
+            }
         }
     }
 }
