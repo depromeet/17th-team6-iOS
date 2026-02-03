@@ -10,6 +10,18 @@ import Foundation
 enum CreateFeedSource {
     case feedFab
     case runningDetail
+    case sessionDetail
+    
+    var rawValue: String {
+        switch self {
+        case .feedFab:
+            return "feed_fab"
+        case .runningDetail:
+            return "running_detail"
+        case .sessionDetail:
+            return "session_detail"
+        }
+    }
 }
 
 enum EntryPoint {

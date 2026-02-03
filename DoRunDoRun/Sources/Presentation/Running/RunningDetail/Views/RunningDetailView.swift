@@ -84,9 +84,6 @@ struct RunningDetailView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 20)
-                .onAppear {
-                    store.send(.checkUploadable)
-                }
                 
                 // MARK: - Image Capture Dim Overlay
                 if store.detail.mapImageURL == nil,
@@ -102,6 +99,7 @@ struct RunningDetailView: View {
                     .zIndex(5)
                 }
             }
+            .onAppear { store.send(.onAppear) }
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {

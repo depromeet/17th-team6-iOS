@@ -61,7 +61,7 @@ final class AnalyticsTracker: AnalyticsTracking {
 
             case .createFeedCtaClicked(let source, let runningID):
                 var params: [String: Any] = [
-                    "source": source == .feedFab ? "feed_fab" : "running_detail"
+                    "source": source.rawValue
                 ]
                 if let runningID {
                     params["running_id"] = runningID
