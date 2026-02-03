@@ -9,6 +9,6 @@ import Foundation
 
 enum RunningAnalyticsEvent {
     case runStarted(runningID: String)
-    case runCompleted(runningID: String)
+    case runRecorded(runningID: String)
 }
 

@@ -224,6 +224,12 @@ struct RunningDetailFeature {
                 if let urlString = mapImageURL, let url = URL(string: urlString) {
                     state.detail.mapImageURL = url
                 }
+                // event
+                analytics.track(
+                    .running(.runRecorded(
+                            runningID: String(state.detail.sessionId ?? 0)
+                        ))
+                )
                 print("✅ Session completed successfully, mapImageURL: \(mapImageURL ?? "nil")")
                 return .none
 

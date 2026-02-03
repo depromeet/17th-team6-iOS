@@ -32,9 +32,9 @@ final class AnalyticsTracker: AnalyticsTracking {
                     parameters: ["running_id": id]
                 )
 
-            case .runCompleted(let id):
+            case .runRecorded(let id):
                 Analytics.logEvent(
-                    "run_completed",
+                    "run_recorded",
                     parameters: ["running_id": id]
                 )
             }
