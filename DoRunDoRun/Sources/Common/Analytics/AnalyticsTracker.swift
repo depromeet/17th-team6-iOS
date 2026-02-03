@@ -42,16 +42,16 @@ final class AnalyticsTracker: AnalyticsTracking {
         // MARK: My
         case .my(let e):
             switch e {
-            case .recordSegmentSelected:
+            case .sessionSegmentSelected:
                 Analytics.logEvent(
-                    "record_segment_clicked",
-                    parameters: ["segment_name": "record"]
+                    "session_segment_clicked",
+                    parameters: ["segment_name": "session"]
                 )
 
-            case .recordSelected(let id):
+            case .sessionItemSelected(let id):
                 Analytics.logEvent(
-                    "record_selected",
-                    parameters: ["record_id": id]
+                    "session_item_selected",
+                    parameters: ["session_id": id]
                 )
             }
 

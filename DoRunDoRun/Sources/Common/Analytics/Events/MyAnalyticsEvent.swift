@@ -8,6 +8,6 @@
 import Foundation
 
 enum MyAnalyticsEvent {
-    case recordSegmentSelected
-    case recordSelected(recordID: String)
+    case sessionSegmentSelected
+    case sessionItemSelected(sessionID: String)
 }

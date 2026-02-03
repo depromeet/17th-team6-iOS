@@ -13,6 +13,8 @@ struct MyProfileFeature {
     // MARK: - Dependencies
     @Dependency(\.selfieFeedsUseCase) var selfieFeedsUseCase
     @Dependency(\.runSessionsUseCase) var runSessionsUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     // MARK: - State
     @ObservableState
@@ -133,6 +135,7 @@ struct MyProfileFeature {
                 return .none
 
             case .sessionTapped:
+                analytics.track(.my(.sessionSegmentSelected))
                 state.currentTap = State.Tab.session.rawValue
                 return .none
 
@@ -142,6 +145,7 @@ struct MyProfileFeature {
 
             // MARK: - Navigation: Session Detail
             case let .sessionCardTapped(session):
+                analytics.track(.my(.sessionItemSelected(sessionID: String(session.id))))
                 return .send(.delegate(.navigateToSessionDetail(session: session, sessionId: session.id)))
 
             // MARK: - Navigation: Setting
@@ -150,6 +154,8 @@ struct MyProfileFeature {
 
             // MARK: - Lifecycle
             case .onAppear:
+                analytics.track(.screenViewed(.my))
+                
                 state.feeds = []
                 state.currentPage = 0
                 state.hasNextPage = true
