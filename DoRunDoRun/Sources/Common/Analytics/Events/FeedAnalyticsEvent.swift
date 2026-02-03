@@ -51,9 +51,12 @@ enum FeedAnalyticsEvent {
     )
 
     // MARK: Photo
-    case photoChangeClicked
     case photoChanged(source: String, fileSizeKB: Int)
 
     // MARK: Upload UX
     case uploadClicked(runningID: String?)
+    
+    // MARK: Result
+    case uploadSucceeded(entryPoint: EntryPoint)
+    case uploadFailed(errorCode: String)
 }

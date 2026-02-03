@@ -94,13 +94,7 @@ final class AnalyticsTracker: AnalyticsTracking {
                     "create_feed_entry_completed",
                     parameters: params
                 )
-
-            case .photoChangeClicked:
-                Analytics.logEvent(
-                    "create_feed_photo_change_clicked",
-                    parameters: nil
-                )
-
+                
             case .photoChanged(let source, let size):
                 Analytics.logEvent(
                     "create_feed_photo_changed",
@@ -119,30 +113,30 @@ final class AnalyticsTracker: AnalyticsTracking {
                     "create_feed_upload_clicked",
                     parameters: params
                 )
-            }
-
-        // MARK: Upload
-        case .upload(let e):
-            switch e {
-            case .uploadSucceeded(let postID):
+                
+            case .uploadSucceeded(let entryPoint):
                 Analytics.logEvent(
                     "create_feed_upload_succeeded",
-                    parameters: ["post_id": postID]
+                    parameters: [
+                        "entry_point": entryPoint.rawValue
+                    ]
                 )
 
             case .uploadFailed(let errorCode):
                 Analytics.logEvent(
                     "create_feed_upload_failed",
-                    parameters: ["error_code": errorCode]
+                    parameters: [
+                        "error_code": errorCode
+                    ]
                 )
             }
 
         // MARK: Ad
         case .ad(let e):
             switch e {
-            case .adDisplaySucceed:
+            case .adDisplaySucceeded:
                 Analytics.logEvent(
-                    "ad_display_succeed",
+                    "ad_display_succeeded",
                     parameters: nil
                 )
 

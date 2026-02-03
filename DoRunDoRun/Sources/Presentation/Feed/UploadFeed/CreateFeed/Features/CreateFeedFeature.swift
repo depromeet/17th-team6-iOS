@@ -13,10 +13,13 @@ import ComposableArchitecture
 struct CreateFeedFeature {
     // MARK: - Dependencies
     @Dependency(\.selfieFeedCreateUseCase) var selfieFeedCreateUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     // MARK: - State
     @ObservableState
     struct State: Equatable {
+        let entryPoint: EntryPoint
         let session: RunningSessionSummaryViewState
         var selectedImage: UIImage? = nil
         var selectedImageData: Data? = nil
@@ -30,6 +33,7 @@ struct CreateFeedFeature {
 
     // MARK: - Action
     enum Action: Equatable {
+        case onAppear
         case imageDataPicked(Data)
         case uploadButtonTapped
         case feedUploadSuccess
@@ -58,6 +62,17 @@ struct CreateFeedFeature {
 
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                // event
+                analytics.track(.screenViewed(.createFeed))
+                analytics.track(
+                    .feed(.createFeedEntryCompleted(
+                        runningID: String(state.session.id),
+                        entryPoint: state.entryPoint
+                    ))
+                )
+                return .none
+
 
             // MARK: - 이미지 선택
             case let .imageDataPicked(data):
@@ -66,11 +81,25 @@ struct CreateFeedFeature {
                    let jpegData = downsampledImage.jpegData(compressionQuality: 0.8) {
                     state.selectedImage = downsampledImage
                     state.selectedImageData = jpegData
+                    // event
+                    analytics.track(
+                        .feed(.photoChanged(
+                            source: "gallery",
+                            fileSizeKB: jpegData.count / 1024
+                        ))
+                    )
                 }
                 return .none
 
             // MARK: - 업로드 버튼 탭
             case .uploadButtonTapped:
+                // event
+                analytics.track(
+                    .feed(.uploadClicked(
+                        runningID: String(state.session.id)
+                    ))
+                )
+                
                 state.isUploading = true
 
                 // DTO에는 텍스트 데이터만 포함
@@ -94,12 +123,24 @@ struct CreateFeedFeature {
             // MARK: - 업로드 성공
             case .feedUploadSuccess:
                 state.isUploading = false
+                // event
+                analytics.track(
+                    .feed(.uploadSucceeded(
+                        entryPoint: state.entryPoint
+                    ))
+                )
                 state.uploadSuccess = .init()
                 return .none
 
             // MARK: - 업로드 실패
             case let .uploadFailure(error):
                 state.isUploading = false
+                // event
+                analytics.track(
+                    .feed(.uploadFailed(
+                        errorCode: error.analyticsCode
+                    ))
+                )
                 return handleAPIError(error)
                 
             // MARK: - 피드 이미지 저장 버튼 탭

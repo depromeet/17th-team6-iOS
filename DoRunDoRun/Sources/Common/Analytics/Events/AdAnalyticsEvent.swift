@@ -8,6 +8,6 @@
 import Foundation
 
 enum AdAnalyticsEvent {
-    case adDisplaySucceed
+    case adDisplaySucceeded
     case adDisplayFailed(errorCode: String)
 }

@@ -94,3 +94,33 @@ extension APIError {
         }
     }
 }
+
+extension APIError {
+
+    /// Analytics 전송용 에러 코드
+    /// - Note: 사용자 노출 ❌ / 로깅 전용 ⭕️
+    var analyticsCode: String {
+        switch self {
+
+        // 4xx
+        case .badRequest:          return "400_bad_request"
+        case .unauthorized:        return "401_unauthorized"
+        case .forbidden:           return "403_forbidden"
+        case .notFound:            return "404_not_found"
+        case .conflict:            return "409_conflict"
+        case .unprocessableEntity: return "422_unprocessable_entity"
+        case .tooManyRequests:     return "429_too_many_requests"
+
+        // 5xx
+        case .internalServer:      return "500_internal_server"
+        case .badGateway:          return "502_bad_gateway"
+        case .serviceUnavailable:  return "503_service_unavailable"
+        case .gatewayTimeout:      return "504_gateway_timeout"
+
+        // 기타
+        case .networkError:        return "network_error"
+        case .decodingError:       return "decoding_error"
+        case .unknown:             return "unknown_error"
+        }
+    }
+}

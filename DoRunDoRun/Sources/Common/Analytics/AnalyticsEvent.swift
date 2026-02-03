@@ -11,7 +11,6 @@ enum AnalyticsEvent {
     case screenViewed(Screen)
     case running(RunningAnalyticsEvent)
     case feed(FeedAnalyticsEvent)
-    case upload(UploadAnalyticsEvent)
     case ad(AdAnalyticsEvent)
     case my(MyAnalyticsEvent)
 }
