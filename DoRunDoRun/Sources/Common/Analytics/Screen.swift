@@ -9,6 +9,7 @@ import Foundation
 
 enum Screen {
     case runningDetail
+    case sessionDetail
     case feed
     case selectSession
     case inputManual
@@ -22,6 +23,7 @@ extension Screen {
     var name: String {
         switch self {
         case .runningDetail: return "running_detail"
+        case .sessionDetail: return "session_detail"
         case .feed: return "feed"
         case .selectSession: return "select_session"
         case .inputManual: return "input_manual"
@@ -35,6 +37,7 @@ extension Screen {
     var className: String {
         switch self {
         case .runningDetail: return "RunningDetailView"
+        case .sessionDetail: return "SessionDetailView"
         case .feed: return "FeedView"
         case .selectSession: return "SelectSessionView"
         case .inputManual: return "InputManualView"

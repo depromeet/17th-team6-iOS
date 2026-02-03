@@ -113,7 +113,7 @@ struct RunningDetailFeature {
 
                 if uploadable.isUploadable {
                     let summary = RunningDetailViewStateMapper.map(from: state.detail)
-                    state.createFeed = CreateFeedFeature.State(session: summary)
+                    state.createFeed = CreateFeedFeature.State(entryPoint: .runningDetailAfterRun, session: summary)
                 }
                 return .none
                 

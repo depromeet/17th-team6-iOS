@@ -134,7 +134,7 @@ struct SelectSessionFeature {
                     .feed(.sessionSelected(sessionID: String(selected.id)))
                 )
                 
-                state.createFeed = .init(session: selected)
+                state.createFeed = .init(entryPoint: .selectSession, session: selected)
                 return .none
                 
             case .createFeed(.presented(.delegate(.uploadCompleted))):

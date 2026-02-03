@@ -115,7 +115,7 @@ struct SessionDetailFeature {
                 return .none
 
             case .verificationPossibleButtonTapped:
-                state.createFeed = CreateFeedFeature.State(session: state.session)
+                state.createFeed = CreateFeedFeature.State(entryPoint: .runningDetailFromMy, session: state.session)
                 return .none
                 
             case .myFeedDetail(.presented(.backButtonTapped)):
