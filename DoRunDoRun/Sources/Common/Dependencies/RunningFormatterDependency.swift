@@ -1,5 +1,5 @@
 //
-//  RunningFormatterDependencies.swift
+//  RunningFormatterDependency.swift
 //  DoRunDoRun
 //
 //  Created by Jaehui Yu on 12/2/25.
