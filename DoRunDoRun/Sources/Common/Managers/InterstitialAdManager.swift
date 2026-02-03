@@ -11,6 +11,8 @@ import UIKit
 final class InterstitialAdManager: NSObject {
 
     static let shared = InterstitialAdManager()
+    
+    private let analytics: AnalyticsTracking = AnalyticsTracker()
 
     private var interstitialAd: InterstitialAd?
     private var onDismiss: (() -> Void)?
@@ -50,6 +52,7 @@ final class InterstitialAdManager: NSObject {
 extension InterstitialAdManager: FullScreenContentDelegate {
 
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        analytics.track(.ad(.adDisplaySucceeded))
         onDismiss?()
         onDismiss = nil
         loadAd() // 다음 광고 미리 로드
@@ -57,6 +60,7 @@ extension InterstitialAdManager: FullScreenContentDelegate {
 
     func ad(_ ad: FullScreenPresentingAd,
             didFailToPresentFullScreenContentWithError error: Error) {
+        analytics.track(.ad(.adDisplayFailed(errorCode: error.localizedDescription)))
         print("❌ Failed to present:", error)
         onDismiss?()
         loadAd()
