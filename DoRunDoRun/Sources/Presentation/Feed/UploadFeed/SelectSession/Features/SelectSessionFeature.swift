@@ -12,6 +12,8 @@ import ComposableArchitecture
 struct SelectSessionFeature {
     // MARK: - Dependencies
     @Dependency(\.runSessionsUseCase) var runSessionsUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     // MARK: - State
     @ObservableState
@@ -64,6 +66,8 @@ struct SelectSessionFeature {
 
             // MARK: - 화면 진입
             case .onAppear:
+                // event
+                analytics.track(.screenViewed(.selectSession))
                 return .send(.fetchSessions)
 
             // MARK: - 세션 목록 조회
@@ -124,6 +128,12 @@ struct SelectSessionFeature {
                       let selected = state.sessions.first(where: { $0.id == selectedID }) else {
                     return .none
                 }
+                
+                // event
+                analytics.track(
+                    .feed(.sessionSelected(sessionID: String(selected.id)))
+                )
+                
                 state.createFeed = .init(session: selected)
                 return .none
                 
