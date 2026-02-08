@@ -38,4 +38,14 @@ final actor UserLocationRepositoryMock: UserLocationRepository {
         // Mock: 항상 권한 있음
         return true
     }
+
+    func getAuthorizationStatus() async -> LocationAuthorizationStatus {
+        // Mock: 항상 허용됨
+        return .authorized
+    }
+
+    func requestLocationPermission() async -> Bool {
+        // Mock: 항상 권한 허용
+        return true
+    }
 }

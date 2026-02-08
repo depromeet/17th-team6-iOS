@@ -42,4 +42,12 @@ final actor UserLocationRepositoryImpl: UserLocationRepository {
     func hasLocationPermission() async -> Bool {
         locationService.hasLocationPermission()
     }
+
+    func getAuthorizationStatus() async -> LocationAuthorizationStatus {
+        locationService.getAuthorizationStatus()
+    }
+
+    func requestLocationPermission() async -> Bool {
+        await locationService.requestLocationPermission()
+    }
 }

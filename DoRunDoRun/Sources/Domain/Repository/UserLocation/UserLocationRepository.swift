@@ -12,4 +12,8 @@ protocol UserLocationRepository {
     func stopTracking() async
     /// 현재 위치 권한 상태 확인
     func hasLocationPermission() async -> Bool
+    /// 현재 위치 권한 상태 반환 (notDetermined 포함)
+    func getAuthorizationStatus() async -> LocationAuthorizationStatus
+    /// 위치 권한 요청 후 사용자 응답 대기
+    func requestLocationPermission() async -> Bool
 }
