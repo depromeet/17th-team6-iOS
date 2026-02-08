@@ -244,7 +244,7 @@ private extension SessionDetailView {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 50, height: 50)
-                        .cornerRadius(8)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 } else {
                     Rectangle()
                         .fill(Color.gray100)
