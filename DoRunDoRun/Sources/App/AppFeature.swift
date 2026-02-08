@@ -360,7 +360,7 @@ struct AppFeature {
             // 피드 → 알림 목록 → 뒤로 가기
             case .feedPath(.element(id: _, action: .notificationList(.backButtonTapped))):
                 state.feedPath.removeLast()
-                return .none
+                return .send(.feed(.fetchUnreadCount))
 
             // 피드 → 알림 목록 → 친구 프로필로 이동 (친구 응원 알람을 탭한 경우)
             case let .feedPath(.element(id: _, action: .notificationList(.delegate(.navigateToFriendProfile(userID))))):
