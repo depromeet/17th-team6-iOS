@@ -128,6 +128,9 @@ struct RouteFitMapView: UIViewRepresentable {
         )
     }
 
+    /// 짧은 경로에서 지도가 과도하게 확대되지 않도록 제한하는 최대 줌 레벨
+    private static let maxZoomLevel: Double = 17
+
     private func fitCamera(to bounds: NMGLatLngBounds, in mapView: NMFMapView) {
         let inset = UIEdgeInsets(
             top: cameraEdgeInsetAdjustment,
@@ -138,6 +141,13 @@ struct RouteFitMapView: UIViewRepresentable {
         let update = NMFCameraUpdate(fit: bounds, paddingInsets: inset)
         update.animation = .none
         mapView.moveCamera(update)
+
+        // 짧은 경로일 때 과도한 확대 방지
+        if mapView.zoomLevel > Self.maxZoomLevel {
+            let zoomUpdate = NMFCameraUpdate(zoomTo: Self.maxZoomLevel)
+            zoomUpdate.animation = .none
+            mapView.moveCamera(zoomUpdate)
+        }
     }
     
     // MARK: - Make Snapshot Data
