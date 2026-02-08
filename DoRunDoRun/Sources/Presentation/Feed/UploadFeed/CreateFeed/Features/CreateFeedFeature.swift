@@ -99,7 +99,7 @@ struct CreateFeedFeature {
                         runningID: String(state.session.id)
                     ))
                 )
-                
+
                 state.isUploading = true
 
                 // DTO에는 텍스트 데이터만 포함
@@ -107,13 +107,24 @@ struct CreateFeedFeature {
                     runSessionId: state.session.id,
                     content: "오늘도 완주!"
                 )
-                
+
                 let imageData = state.selectedImageData
+                let mapImageURL = state.session.mapImageURL
 
                 return .run { send in
                     do {
+                        // 선택된 이미지가 없으면 지도 이미지를 다운로드하여 전달
+                        let uploadImageData: Data?
+                        if let imageData {
+                            uploadImageData = imageData
+                        } else if let mapImageURL {
+                            uploadImageData = try? Data(contentsOf: mapImageURL)
+                        } else {
+                            uploadImageData = nil
+                        }
+
                         // 이미지 데이터는 별도 파라미터로 전달
-                        try await selfieFeedCreateUseCase.execute(data: dto, selfieImage: imageData)
+                        try await selfieFeedCreateUseCase.execute(data: dto, selfieImage: uploadImageData)
                         await send(.feedUploadSuccess)
                     } catch {
                         await send(.uploadFailure(error as? APIError ?? .unknown))
