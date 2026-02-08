@@ -17,73 +17,71 @@ struct RunningDetailView: View {
         WithPerceptionTracking {
             ZStack {
                 // MARK: - Main Content
-                VStack(spacing: .zero) {
-                    HStack(spacing: 4) {
-                        Image(.distance, fill: .fill, size: .small)
-                            .renderingMode(.template)
-                            .foregroundStyle(Color.blue600)
-                        TypographyText(text: store.detail.startedAtText, style: .b2_500, color: .gray700)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 16)
-                    
-                    HStack {
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: .zero) {
-                                TypographyText(text: "달린 거리", style: .c1_400, color: .gray500)
-                                TypographyText(text: store.detail.totalDistanceText, style: .h1_700, color: .gray900)
-                            }
-                            VStack(alignment: .leading, spacing: .zero) {
-                                TypographyText(text: "평균 페이스", style: .c1_400, color: .gray500)
-                                TypographyText(text: store.detail.avgPaceText, style: .t1_700, color: .gray900)
-                            }
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 4) {
+                            Image(.distance, fill: .fill, size: .small)
+                                .renderingMode(.template)
+                                .foregroundStyle(Color.blue600)
+                            TypographyText(text: store.detail.startedAtText, style: .b2_500, color: .gray700)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: .zero) {
-                                TypographyText(text: "달린 시간", style: .c1_400, color: .gray500)
-                                TypographyText(text: store.detail.durationText, style: .h1_700, color: .gray900)
+                        .padding(.vertical, 16)
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: .zero) {
+                                    TypographyText(text: "달린 거리", style: .c1_400, color: .gray500)
+                                    TypographyText(text: store.detail.totalDistanceText, style: .h1_700, color: .gray900)
+                                }
+                                VStack(alignment: .leading, spacing: .zero) {
+                                    TypographyText(text: "평균 페이스", style: .c1_400, color: .gray500)
+                                    TypographyText(text: store.detail.avgPaceText, style: .t1_700, color: .gray900)
+                                }
                             }
-                            VStack(alignment: .leading, spacing: .zero) {
-                                TypographyText(text: "평균 케이던스", style: .c1_400, color: .gray500)
-                                TypographyText(text: store.detail.cadenceText, style: .t1_700, color: .gray900)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: .zero) {
+                                    TypographyText(text: "달린 시간", style: .c1_400, color: .gray500)
+                                    TypographyText(text: store.detail.durationText, style: .h1_700, color: .gray900)
+                                }
+                                VStack(alignment: .leading, spacing: .zero) {
+                                    TypographyText(text: "평균 케이던스", style: .c1_400, color: .gray500)
+                                    TypographyText(text: store.detail.cadenceText, style: .t1_700, color: .gray900)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(Color.gray50)
+                        .cornerRadius(16)
+                        .padding(.bottom, 16)
+
+                        SquareRouteMap(
+                            points: store.detail.points,
+                            outerPadding: 20,
+                            data: $store.detail.mapImageData
+                        )
+                        .onAppear {
+                            store.send(.startImageCapture)
+                        }
+                        .onChange(of: store.detail.mapImageData) { _ in
+                            store.send(.getRouteImageData)
+                        }
+                        .cornerRadius(16)
+
+                        paceColorBar
+
+                        if store.isUploadable {
+                            recordVerificationButton {
+                                store.send(.recordVerificationButtonTapped)
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
-                    .background(Color.gray50)
-                    .cornerRadius(16)
-                    .padding(.bottom, 16)
-                    
-                    SquareRouteMap(
-                        points: store.detail.points,
-                        outerPadding: 20,
-                        data: $store.detail.mapImageData
-                    )
-                    .onAppear {
-                        store.send(.startImageCapture)
-                    }
-                    .onChange(of: store.detail.mapImageData) { _ in
-                        store.send(.getRouteImageData)
-                    }
-                    .cornerRadius(16)
-                    .padding(.bottom, 8)
-                    
-                    paceColorBar
-                        .padding(.bottom, 32)
-
-                    if store.isUploadable {
-                        recordVerificationButton {
-                            store.send(.recordVerificationButtonTapped)
-                        }
-                    }
-                    
-                    Spacer()
                 }
-                .padding(.horizontal, 20)
                 
                 // MARK: - Image Capture Dim Overlay
                 if store.detail.mapImageURL == nil,
@@ -179,6 +177,8 @@ private extension RunningDetailView {
             
             TypographyText(text: "느림", style: .b2_700, color: .paceRed)
         }
+        .padding(.top, 8)
+        .padding(.bottom, 32)
     }
     
     func recordVerificationButton(action: @escaping () -> Void) -> some View {
