@@ -53,6 +53,7 @@ struct RunningFeature {
             case navigateToFriendProfile(userID: Int)
             case navigateBack
             case navigateToFeed
+            case feedUploadCompleted
         }
         case delegate(Delegate)
     }
@@ -197,7 +198,7 @@ struct RunningFeature {
                 
             case .runningDetail(.presented(.delegate(.feedUploadCompleted))):
                 state.runningDetail = nil
-                return .send(.delegate(.navigateToFeed))
+                return .send(.delegate(.feedUploadCompleted))
 
             default:
                 return .none

@@ -55,6 +55,7 @@ struct SessionDetailFeature {
         // Delegate
         enum Delegate: Equatable {
             case navigateToMyProfile
+            case feedUploadCompleted
         }
         case delegate(Delegate)
     }
@@ -137,6 +138,10 @@ struct SessionDetailFeature {
                 // 세션 상세에서 인증 게시물을 보고 있을 때 내 프로필을 탭하면 sheet dismiss + delegate 전달
                 state.myFeedDetail = nil
                 return .send(.delegate(.navigateToMyProfile))
+
+            case .createFeed(.presented(.delegate(.uploadCompleted))):
+                state.createFeed = nil
+                return .send(.delegate(.feedUploadCompleted))
 
             case .createFeed(.presented(.backButtonTapped)):
                 state.createFeed = nil

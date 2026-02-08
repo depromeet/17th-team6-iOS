@@ -5,6 +5,8 @@ struct AppFeature {
     @ObservableState
     struct State {
         var shouldShowInterstitialAd = false
+        enum AdSource { case feedSelectSession, runningDetail, sessionDetailFeed, sessionDetailMy }
+        var adSource: AdSource?
 
         var splash = SplashFeature.State()
         var showSplash = true
@@ -71,8 +73,27 @@ struct AppFeature {
             switch action {
             case .interstitialAdShown:
                 state.shouldShowInterstitialAd = false
-                state.feedPath.removeLast()
-                return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                let source = state.adSource
+                state.adSource = nil
+
+                switch source {
+                case .feedSelectSession:
+                    state.feedPath.removeLast()
+                    return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                case .runningDetail:
+                    state.selectedTab = .feed
+                    return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                case .sessionDetailFeed:
+                    state.feedPath.removeLast()
+                    state.selectedTab = .feed
+                    return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                case .sessionDetailMy:
+                    state.myPath.removeLast()
+                    state.selectedTab = .feed
+                    return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                case .none:
+                    return .send(.feed(.fetchSelfieFeeds(page: 0)))
+                }
 
             case .splash(.splashTimeoutEnded):
                 state.showSplash = false
@@ -142,6 +163,12 @@ struct AppFeature {
             // RunningDetail에서 뒤로가기 : Feed 탭 전환
             case .running(.delegate(.navigateToFeed)):
                 state.selectedTab = .feed
+                return .none
+
+            // RunningDetail에서 피드 업로드 완료 → 광고 표시
+            case .running(.delegate(.feedUploadCompleted)):
+                state.shouldShowInterstitialAd = true
+                state.adSource = .runningDetail
                 return .none
 
             // MARK: - Feed ↔ My 동기화
@@ -435,7 +462,14 @@ struct AppFeature {
 
             // 피드 → 세션 선택 → 피드 생성 → 피드 업로드 완료
             case .feedPath(.element(_, .selectSession(.delegate(.feedUploadCompleted)))):
-                state.shouldShowInterstitialAd = true // 광고 표시
+                state.shouldShowInterstitialAd = true
+                state.adSource = .feedSelectSession
+                return .none
+
+            // 피드 → 세션 상세 → 피드 업로드 완료 → 광고 표시
+            case .feedPath(.element(_, .mySessionDetail(.delegate(.feedUploadCompleted)))):
+                state.shouldShowInterstitialAd = true
+                state.adSource = .sessionDetailFeed
                 return .none
 
             // 피드 → 세션 상세 → 뒤로가기
@@ -495,6 +529,12 @@ struct AppFeature {
             // 마이 → 내 세션 상세 → 뒤로가기
             case .myPath(.element(id: _, action: .mySessionDetail(.backButtonTapped))):
                 state.myPath.removeLast()
+                return .none
+
+            // 마이 → 내 세션 상세 → 피드 업로드 완료 → 광고 표시
+            case .myPath(.element(_, .mySessionDetail(.delegate(.feedUploadCompleted)))):
+                state.shouldShowInterstitialAd = true
+                state.adSource = .sessionDetailMy
                 return .none
 
             // 마이 → 내 세션 상세 → 피드 상세 → 본인 프로필 : 세션 상세에서 뒤로가기로 처리(중복 push 방지)
