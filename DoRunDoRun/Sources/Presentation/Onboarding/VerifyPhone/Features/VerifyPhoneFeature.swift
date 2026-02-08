@@ -56,6 +56,7 @@ struct VerifyPhoneFeature {
         case signupButtonTapped
         case findAccountButtonTapped
         case backButtonTapped
+        case existingAccountPopupDismissed
     }
     
     var body: some ReducerOf<Self> {
@@ -213,7 +214,7 @@ struct VerifyPhoneFeature {
                     }
                 )
                 
-            case .testCompleted, .completed, .backButtonTapped:
+            case .testCompleted, .completed, .backButtonTapped, .existingAccountPopupDismissed:
                 return .cancel(id: TimerFeature.CancelID.timer)
                 
             default:
