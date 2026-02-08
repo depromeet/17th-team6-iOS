@@ -13,6 +13,12 @@ enum LocationServiceError: Error {
     case runtimeError(Error)
 }
 
+enum LocationAuthorizationStatus {
+    case notDetermined
+    case authorized
+    case denied
+}
+
 /// 사용자 위치 기반 데이터 수집 관련 인터페이스
 protocol LocationService: AnyObject {
     /// CoreLocation 업데이트 스트림을 시작하고 비동기 시퀀스를 반환
@@ -20,15 +26,22 @@ protocol LocationService: AnyObject {
     func stopTracking()
     /// 현재 위치 권한 상태 확인
     func hasLocationPermission() -> Bool
+    /// 현재 위치 권한 상태 반환 (notDetermined 포함)
+    func getAuthorizationStatus() -> LocationAuthorizationStatus
+    /// 위치 권한 요청 후 사용자 응답 대기
+    func requestLocationPermission() async -> Bool
 }
 
 /// LocationService 인터페이스 구현체
 final class LocationServiceImpl: NSObject, LocationService {
     // 해당 객체를 만들 스레드에서 델리게이트 메서드가 실행된다.
     private let manager = CLLocationManager()
-    
+
     private var continuation: AsyncThrowingStream<CLLocation, Error>.Continuation?
     private var isStreaming: Bool = false
+
+    /// 권한 요청 후 응답을 기다리기 위한 continuation
+    private var authorizationContinuation: CheckedContinuation<Bool, Never>?
     
     override init() {
         super.init()
@@ -64,6 +77,39 @@ final class LocationServiceImpl: NSObject, LocationService {
             return true
         default:
             return false
+        }
+    }
+
+    func getAuthorizationStatus() -> LocationAuthorizationStatus {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return .authorized
+        case .notDetermined:
+            return .notDetermined
+        case .denied, .restricted:
+            return .denied
+        @unknown default:
+            return .denied
+        }
+    }
+
+    func requestLocationPermission() async -> Bool {
+        // 이미 결정된 경우 바로 반환
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return true
+        case .denied, .restricted:
+            return false
+        case .notDetermined:
+            break
+        @unknown default:
+            return false
+        }
+
+        // 권한 요청 후 응답 대기
+        return await withCheckedContinuation { continuation in
+            self.authorizationContinuation = continuation
+            self.manager.requestWhenInUseAuthorization()
         }
     }
 
@@ -111,6 +157,27 @@ final class LocationServiceImpl: NSObject, LocationService {
 
 extension LocationServiceImpl: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // 권한 요청 대기 중인 continuation이 있으면 결과 전달
+        if let authContinuation = authorizationContinuation {
+            switch manager.authorizationStatus {
+            case .authorizedAlways, .authorizedWhenInUse:
+                authorizationContinuation = nil
+                authContinuation.resume(returning: true)
+                return
+            case .denied, .restricted:
+                authorizationContinuation = nil
+                authContinuation.resume(returning: false)
+                return
+            case .notDetermined:
+                // 아직 결정되지 않음 - 대기 유지
+                break
+            @unknown default:
+                authorizationContinuation = nil
+                authContinuation.resume(returning: false)
+                return
+            }
+        }
+
         switch manager.authorizationStatus {
         case .denied, .restricted:
             if isStreaming {

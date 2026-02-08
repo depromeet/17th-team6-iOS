@@ -12,6 +12,10 @@ protocol UserLocationUseCaseProtocol {
     func stopTracking() async
     /// 현재 위치 권한 상태 확인
     func hasLocationPermission() async -> Bool
+    /// 현재 위치 권한 상태 반환 (notDetermined 포함)
+    func getAuthorizationStatus() async -> LocationAuthorizationStatus
+    /// 위치 권한 요청 후 사용자 응답 대기
+    func requestLocationPermission() async -> Bool
 }
 
 final class UserLocationUseCase: UserLocationUseCaseProtocol {
@@ -31,5 +35,13 @@ final class UserLocationUseCase: UserLocationUseCaseProtocol {
 
     func hasLocationPermission() async -> Bool {
         return await repository.hasLocationPermission()
+    }
+
+    func getAuthorizationStatus() async -> LocationAuthorizationStatus {
+        return await repository.getAuthorizationStatus()
+    }
+
+    func requestLocationPermission() async -> Bool {
+        return await repository.requestLocationPermission()
     }
 }

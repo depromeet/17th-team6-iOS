@@ -122,6 +122,25 @@ struct RunningReadyFeature {
                 return .merge(
                     .send(.loadStatuses(page: 0)),
                     .run { [userLocationUseCase] send in
+                        // 먼저 권한 상태 확인
+                        let authStatus = await userLocationUseCase.getAuthorizationStatus()
+
+                        switch authStatus {
+                        case .notDetermined:
+                            // 권한이 결정되지 않은 경우, 권한 요청 후 응답 대기
+                            let granted = await userLocationUseCase.requestLocationPermission()
+                            if !granted {
+                                await send(.locationPermissionDenied)
+                                return
+                            }
+                        case .denied:
+                            await send(.locationPermissionDenied)
+                            return
+                        case .authorized:
+                            break
+                        }
+
+                        // 권한이 허용된 경우에만 위치 추적 시작
                         do {
                             let locationStream = try await userLocationUseCase.startTracking()
                             for try await coordinate in locationStream {
@@ -279,10 +298,19 @@ struct RunningReadyFeature {
             // MARK: GPS 버튼 - Following 모드 토글
             case .gpsButtonTapped:
                 return .run { [userLocationUseCase] send in
-                    let hasPermission = await userLocationUseCase.hasLocationPermission()
-                    if !hasPermission {
+                    let authStatus = await userLocationUseCase.getAuthorizationStatus()
+                    switch authStatus {
+                    case .notDetermined:
+                        // 권한이 결정되지 않은 경우, 권한 요청 후 응답 대기
+                        let granted = await userLocationUseCase.requestLocationPermission()
+                        if granted {
+                            await send(.toggleGpsFollowing)
+                        } else {
+                            await send(.locationPermissionDenied)
+                        }
+                    case .denied:
                         await send(.locationPermissionDenied)
-                    } else {
+                    case .authorized:
                         await send(.toggleGpsFollowing)
                     }
                 }
@@ -304,26 +332,29 @@ struct RunningReadyFeature {
                 }
 
                 return .run { [userLocationUseCase] send in
-                    let hasPermission = await userLocationUseCase.hasLocationPermission()
-                    if hasPermission {
-                        // 권한이 허용되었으면 위치 추적 재시작
-                        // 기존 스트림을 먼저 중지하고 다시 시작
-                        await userLocationUseCase.stopTracking()
+                    let authStatus = await userLocationUseCase.getAuthorizationStatus()
 
-                        do {
-                            let locationStream = try await userLocationUseCase.startTracking()
-                            for try await coordinate in locationStream {
-                                await send(.userLocationUpdated(coordinate))
-                            }
-                        } catch let error as LocationServiceError {
-                            if case .notAuthorized = error {
-                                // 권한이 다시 거부된 경우 (드문 경우)
-                                await send(.locationPermissionDenied)
-                            }
-                            print("[GPS] 위치 추적 재시작 실패: \(error)")
-                        } catch {
-                            print("[GPS] 위치 추적 재시작 실패: \(error)")
+                    // notDetermined 상태는 앱 활성화 시에는 권한 요청하지 않음
+                    // (onAppear에서 이미 처리됨)
+                    guard authStatus == .authorized else { return }
+
+                    // 권한이 허용되었으면 위치 추적 재시작
+                    // 기존 스트림을 먼저 중지하고 다시 시작
+                    await userLocationUseCase.stopTracking()
+
+                    do {
+                        let locationStream = try await userLocationUseCase.startTracking()
+                        for try await coordinate in locationStream {
+                            await send(.userLocationUpdated(coordinate))
                         }
+                    } catch let error as LocationServiceError {
+                        if case .notAuthorized = error {
+                            // 권한이 다시 거부된 경우 (드문 경우)
+                            await send(.locationPermissionDenied)
+                        }
+                        print("[GPS] 위치 추적 재시작 실패: \(error)")
+                    } catch {
+                        print("[GPS] 위치 추적 재시작 실패: \(error)")
                     }
                 }
 
