@@ -198,8 +198,13 @@ private extension VerifyPhoneView {
                 Color.dimLight
                     .ignoresSafeArea()
                     .onTapGesture {
-                        focusedField = .verificationCode
+                        let action = store.popup.action
                         store.send(.popup(.hide))
+                        if action == .findAccount {
+                            store.send(.existingAccountPopupDismissed)
+                        } else {
+                            focusedField = .verificationCode
+                        }
                     }
 
                 ActionPopupView(
@@ -221,8 +226,13 @@ private extension VerifyPhoneView {
                         }
                     },
                     onCancel: {
-                        focusedField = .verificationCode
+                        let action = store.popup.action
                         store.send(.popup(.hide))
+                        if action == .findAccount {
+                            store.send(.existingAccountPopupDismissed)
+                        } else {
+                            focusedField = .verificationCode
+                        }
                     }
                 )
             }

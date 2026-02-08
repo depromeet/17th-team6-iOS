@@ -144,8 +144,13 @@ struct OnboardingFeature {
                 return .none
                 
             case .path(.element(id: _, action: .phoneAuth(.findAccountButtonTapped))):
-                // 로그인 화면에서 계정찾기 버튼 → 계정찾기 화면으로 이동
+                // 계정찾기 버튼 → 계정찾기 화면으로 이동
                 state.path.append(.findAccount(FindAccountFeature.State()))
+                return .none
+
+            case .path(.element(id: _, action: .phoneAuth(.existingAccountPopupDismissed))):
+                // 이미 가입된 번호 팝업에서 닫기 → 온보딩 첫 화면으로 돌아감
+                state.path.removeAll()
                 return .none
                 
             case let .path(.element(id: id, action: .phoneAuth(.backButtonTapped))):
