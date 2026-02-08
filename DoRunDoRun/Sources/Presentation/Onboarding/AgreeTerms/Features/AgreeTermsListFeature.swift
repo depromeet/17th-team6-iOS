@@ -27,14 +27,19 @@ struct AgreeTermsListFeature {
     enum Action: Equatable {
         // 하위 피처
         case agreeTermsRows(IdentifiedActionOf<AgreeTermsRowFeature>)
-        
+
         // 내부 동작
         case toggleAllAgreements(Bool)
-        
+        case setAllRowsAgreement(Bool)
+
         enum Delegate: Equatable {
             case openWebView(String)
         }
         case delegate(Delegate)
+    }
+
+    private enum CancelID {
+        case toggleAll
     }
 
     var body: some ReducerOf<Self> {
@@ -43,6 +48,13 @@ struct AgreeTermsListFeature {
                 
             case let .toggleAllAgreements(isOn):
                 state.isAllAgreed = isOn
+                return .run { send in
+                    try await Task.sleep(for: .milliseconds(100))
+                    await send(.setAllRowsAgreement(isOn))
+                }
+                .cancellable(id: CancelID.toggleAll, cancelInFlight: true)
+
+            case let .setAllRowsAgreement(isOn):
                 for id in state.agreeTermsRows.ids {
                     state.agreeTermsRows[id: id]?.isOn = isOn
                 }
