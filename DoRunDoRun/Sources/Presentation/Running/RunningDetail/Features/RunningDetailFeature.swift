@@ -13,6 +13,8 @@ import ComposableArchitecture
 struct RunningDetailFeature {
     @Dependency(\.runningSessionCompleter) var sessionCompleter
     @Dependency(\.selfieUploadableUseCase) var selfieUploadableUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     @ObservableState
     struct State: Equatable {
@@ -41,6 +43,8 @@ struct RunningDetailFeature {
 
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
+        
+        case onAppear
 
         case backButtonTapped
         case recordVerificationButtonTapped
@@ -83,6 +87,12 @@ struct RunningDetailFeature {
         BindingReducer()
         Reduce { state, action in
             switch action {
+                
+            case .onAppear:
+                // event
+                analytics.track(.screenViewed(.runningDetail))
+                return .send(.checkUploadable)
+
             case .backButtonTapped:
                 return .send(.delegate(.backButtonTapped))
                 
@@ -110,10 +120,16 @@ struct RunningDetailFeature {
                 guard let uploadable = state.selfieUploadable else {
                     return .none
                 }
-
+                // event
+                analytics.track(
+                    .feed(.createFeedCtaClicked(
+                        source: .runningDetail,
+                        runningID: state.detail.sessionId.map(String.init)
+                    ))
+                )
                 if uploadable.isUploadable {
                     let summary = RunningDetailViewStateMapper.map(from: state.detail)
-                    state.createFeed = CreateFeedFeature.State(session: summary)
+                    state.createFeed = CreateFeedFeature.State(entryPoint: .runningDetailAfterRun, session: summary)
                 }
                 return .none
                 
@@ -208,6 +224,12 @@ struct RunningDetailFeature {
                 if let urlString = mapImageURL, let url = URL(string: urlString) {
                     state.detail.mapImageURL = url
                 }
+                // event
+                analytics.track(
+                    .running(.runRecorded(
+                            runningID: String(state.detail.sessionId ?? 0)
+                        ))
+                )
                 print("✅ Session completed successfully, mapImageURL: \(mapImageURL ?? "nil")")
                 return .none
 

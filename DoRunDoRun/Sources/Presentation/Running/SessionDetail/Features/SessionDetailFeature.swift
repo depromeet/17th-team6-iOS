@@ -12,6 +12,8 @@ import ComposableArchitecture
 struct SessionDetailFeature {
     @Dependency(\.runSessionDetailUseCase) var runSessionDetailUseCase
     @Dependency(\.selfieUploadableUseCase) var selfieUploadableUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     @ObservableState
     struct State: Equatable {
@@ -66,6 +68,8 @@ struct SessionDetailFeature {
 
             // MARK: - onAppear → 2가지 요청 병렬 실행
             case .onAppear:
+                // event
+                analytics.track(.screenViewed(.sessionDetail))
                 return .merge(
                     .send(.fetchDetail),
                     .send(.fetchUploadable)
@@ -115,7 +119,14 @@ struct SessionDetailFeature {
                 return .none
 
             case .verificationPossibleButtonTapped:
-                state.createFeed = CreateFeedFeature.State(session: state.session)
+                // event
+                analytics.track(
+                    .feed(.createFeedCtaClicked(
+                        source: .sessionDetail,
+                        runningID: String(state.sessionId)
+                    ))
+                )
+                state.createFeed = CreateFeedFeature.State(entryPoint: .runningDetailFromMy, session: state.session)
                 return .none
                 
             case .myFeedDetail(.presented(.backButtonTapped)):

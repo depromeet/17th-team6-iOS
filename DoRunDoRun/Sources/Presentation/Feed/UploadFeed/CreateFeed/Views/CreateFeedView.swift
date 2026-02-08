@@ -21,6 +21,7 @@ struct CreateFeedView: View {
                 mainSection
                 networkErrorPopupSection
             }
+            .onAppear { store.send(.onAppear) }
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -254,27 +255,4 @@ private extension CreateFeedView {
             .zIndex(10)
         }
     }
-}
-
-// MARK: - Preview
-#Preview {
-    CreateFeedView(
-        store: .init(
-            initialState: CreateFeedFeature.State(
-                session: RunningSessionSummaryViewState(
-                    id: 1,
-                    date: Date(),
-                    dateText: "2025.11.12 (수)",
-                    timeText: "오전 9:15",
-                    distanceText: "5.24km",
-                    durationText: "00:32:10",
-                    paceText: "6'08\"",
-                    spmText: "174 spm",
-                    tagStatus: .possible,
-                    mapImageURL: nil
-                )
-            ),
-            reducer: { CreateFeedFeature() }
-        )
-    )
 }

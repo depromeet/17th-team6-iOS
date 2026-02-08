@@ -11,6 +11,8 @@ struct FeedFeature {
     @Dependency(\.selfieFeedsUseCase) var selfieFeedsUseCase
     @Dependency(\.selfieFeedReactionUseCase) var selfieFeedReactionUseCase
     @Dependency(\.selfieFeedDeleteUseCase) var selfieFeedDeleteUseCase
+    
+    @Dependency(\.analyticsTracker) var analytics
 
     // MARK: - State
     @ObservableState
@@ -167,6 +169,9 @@ struct FeedFeature {
                 
             // MARK: - 초기 로드
             case .onAppear:
+                // event
+                analytics.track(.screenViewed(.feed))
+                
                 if state.weekDates.isEmpty { updateWeekDates(for: Date(), in: &state) }
                 
                 guard let start = state.weekDates.first, let end = state.weekDates.last else { return .none }
@@ -507,6 +512,14 @@ struct FeedFeature {
               
             // MARK: - 피드 업로드 버튼 탭
             case .uploadButtonTapped:
+                // event
+                // Entry / Upload / Result 이벤트는 CreateFeedFeature에서 처리
+                analytics.track(
+                    .feed(.createFeedCtaClicked(
+                        source: .feedFab,
+                        runningID: nil
+                    ))
+                )
                 return .send(.delegate(.navigateToSelectSession))
                 
             // MARK: - 실패한 로직 저장
