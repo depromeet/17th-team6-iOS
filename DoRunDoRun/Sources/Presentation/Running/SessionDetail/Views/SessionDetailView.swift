@@ -21,6 +21,7 @@ struct SessionDetailView: View {
             }
             .onAppear { store.send(.onAppear) }
             .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button { store.send(.backButtonTapped) } label: {

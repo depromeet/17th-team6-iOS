@@ -100,6 +100,7 @@ struct RunningDetailView: View {
             .onAppear { store.send(.onAppear) }
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {

@@ -57,6 +57,7 @@ struct FeedDetailView: View {
                 }
             }
             .navigationBarBackButtonHidden()
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {

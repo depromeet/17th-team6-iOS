@@ -24,6 +24,7 @@ struct SettingView: View {
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
