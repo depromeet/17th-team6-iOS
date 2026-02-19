@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - 버튼 스타일
 enum AppButtonStyle {
     case primary
+    case primaryInverse
     case secondary
     case destructive
     case disabled
@@ -141,6 +142,8 @@ struct AppButton: View {
         switch style {
         case .primary:
             return .blue600
+        case .primaryInverse:
+            return .gray0
         case .secondary:
             switch size {
             case .fullWidth:
@@ -163,6 +166,8 @@ struct AppButton: View {
         switch style {
         case .primary:
             return .gray0
+        case .primaryInverse:
+            return .blue600
         case .secondary:
             switch size {
             case .fullWidth:

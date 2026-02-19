@@ -9,43 +9,8 @@ struct RunningView: View {
     var body: some View {
         WithPerceptionTracking {
             ZStack(alignment: .bottom) {
-                // 공통 지도 View
-                RunningMapView(
-                    phase: store.phase,
-                    statuses: store.ready.statuses,
-                    focusedFriendID: store.ready.focusedFriendID,
-                    isFollowingLocation: store.phase == .ready
-                        ? store.ready.isFollowingUserLocation
-                        : store.active.isFollowingLocation,
-                    onMapGestureDetected: {
-                        if store.phase == .ready {
-                            store.send(.ready(.mapGestureDetected))
-                        } else {
-                            store.send(.active(.mapGestureDetected))
-                        }
-                    },
-                    userLocation: store.ready.userLocation,
-                    runningCoordinates: store.active.routeCoordinates
-                )
-                .ignoresSafeArea(
-                    edges: store.phase == .ready ? .top : [.top, .bottom]
-                )
-                
-                // Phase별 전환
-                switch store.phase {
-                case .ready:
-                    RunningReadyView(store: store.scope(state: \.ready, action: \.ready))
-                    
-                case .countdown:
-                    RunningCountdownView(store: store.scope(state: \.countdown, action: \.countdown))
-                        .ignoresSafeArea()
-                        .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-                    
-                case .active:
-                    RunningActiveView(store: store.scope(state: \.active, action: \.active))
-                        .ignoresSafeArea()
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
+                phaseBackground
+                phaseContent
             }
             .overlay {
                 if store.active.isShowingStopConfirm {
@@ -67,6 +32,54 @@ struct RunningView: View {
             ) { runningDetailStore in
                     RunningDetailView(store: runningDetailStore)
             }
+        }
+    }
+}
+
+private extension RunningView {
+    @ViewBuilder
+    var phaseBackground: some View {
+        switch store.phase {
+        case .ready:
+            RunningMapView(
+                phase: store.phase,
+                statuses: store.ready.statuses,
+                focusedFriendID: store.ready.focusedFriendID,
+                isFollowingLocation: store.ready.isFollowingUserLocation,
+                onMapGestureDetected: {
+                    store.send(.ready(.mapGestureDetected))
+                },
+                userLocation: store.ready.userLocation,
+                runningCoordinates: []
+            )
+            .ignoresSafeArea(edges: .top)
+        case .countdown:
+            Color.blue600
+                .ignoresSafeArea()
+        case .active:
+            if store.active.isRunningPaused {
+                Color.gray0
+                    .ignoresSafeArea()
+            } else {
+                Color.blue600
+                    .ignoresSafeArea()
+            }
+        }
+    }
+
+    @ViewBuilder
+    var phaseContent: some View {
+        switch store.phase {
+        case .ready:
+            RunningReadyView(store: store.scope(state: \.ready, action: \.ready))
+        case .countdown:
+            RunningCountdownView(store: store.scope(state: \.countdown, action: \.countdown))
+                .ignoresSafeArea()
+                .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+        case .active:
+            RunningActiveView(store: store.scope(state: \.active, action: \.active))
+                .toolbar(.hidden, for: .tabBar)
+                .transition(.opacity.animation(.easeInOut(duration: 0.3)))
         }
     }
 }

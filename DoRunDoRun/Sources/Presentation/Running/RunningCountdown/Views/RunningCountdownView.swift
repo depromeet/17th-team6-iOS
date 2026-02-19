@@ -31,9 +31,9 @@ struct RunningCountdownView: View {
 }
 
 private extension RunningCountdownView {
-    /// 반투명 배경
+    /// 투명 배경 (RunningView에서 파란 배경 제공)
     var backgroundLayer: some View {
-        Color.black.opacity(0.73)
+        Color.clear
             .ignoresSafeArea()
     }
 
@@ -51,8 +51,6 @@ private extension RunningCountdownView {
     /// 숫자 카운트다운 표시
     func countdownContent(_ count: Int) -> some View {
         VStack(spacing: 32) {
-            TypographyText(text: "잠시 후 러닝 시작", style: .h4_700, color: .gray0)
-
             ZStack {
                 Circle()
                     .stroke(Color(hex: 0xD9D9D9).opacity(0.25), style: StrokeStyle(lineWidth: 10, lineCap: .square))
@@ -66,6 +64,13 @@ private extension RunningCountdownView {
             }
             .onAppear(perform: restartAnimation)
             .onChange(of: count) { _ in restartAnimation() }
+            
+            Button {
+                store.send(.skipCountdown)
+            } label: {
+                TypographyText(text: "카운트다운 건너뛰기", style: .t1_700, color: .gray0)
+            }
+
         }
         .padding(.horizontal, 30)
     }

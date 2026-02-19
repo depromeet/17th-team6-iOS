@@ -2,6 +2,7 @@ import SwiftUI
 
 enum TypographyStyle: CaseIterable {
     case countdown_700
+    case distance_700
     
     // MARK: - Headline
     case h1_700, h1_500
@@ -23,6 +24,8 @@ enum TypographyStyle: CaseIterable {
         switch self {
         case .countdown_700:
             return .init(size: 96, lineHeight: 106, letterSpacing: -0.2, weight: .bold, textStyle: .largeTitle)
+        case .distance_700:
+            return .init(size: 68, lineHeight: 50, letterSpacing: -0.2, weight: .bold, textStyle: .largeTitle)
         // MARK: - Headline
         case .h1_700:
             return .init(size: 28, lineHeight: 38, letterSpacing: -0.2, weight: .bold, textStyle: .largeTitle)

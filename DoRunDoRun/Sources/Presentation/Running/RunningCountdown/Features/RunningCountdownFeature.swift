@@ -22,7 +22,10 @@ struct RunningCountdownFeature {
         case onAppear
         case updateCountdown(Int?)
         case countdownCompleted
+        case skipCountdown
     }
+
+    private enum CancelID { case countdown }
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -40,6 +43,7 @@ struct RunningCountdownFeature {
                     try await Task.sleep(for: .seconds(1))
                     await send(.countdownCompleted)
                 }
+                .cancellable(id: CancelID.countdown)
 
             case let .updateCountdown(value):
                 state.count = value
@@ -50,6 +54,12 @@ struct RunningCountdownFeature {
                 state.count = nil
                 state.isPreparing = false
                 return .none
+
+            case .skipCountdown:
+                return .concatenate(
+                    .cancel(id: CancelID.countdown),
+                    .send(.countdownCompleted)
+                )
             }
         }
     }
