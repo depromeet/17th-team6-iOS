@@ -42,4 +42,19 @@ enum GraphicStyle: String {
     
     // MARK: - Friend
     case friendMarker = "graphic_friend_marker"
+    
+    // MARK: - Upload Template
+    case uploadTemplate1 = "graphic_upload_template_1"
+    case uploadTemplate2 = "graphic_upload_template_2"
+    case uploadTemplate3 = "graphic_upload_template_3"
+    case uploadTemplate4 = "graphic_upload_template_4"
+}
+
+extension GraphicStyle {
+    static let uploadTemplates: [GraphicStyle] = [
+        .uploadTemplate1,
+        .uploadTemplate2,
+        .uploadTemplate3,
+        .uploadTemplate4
+    ]
 }
