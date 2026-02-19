@@ -64,6 +64,13 @@ private extension RunningCountdownView {
             }
             .onAppear(perform: restartAnimation)
             .onChange(of: count) { _ in restartAnimation() }
+            
+            Button {
+                store.send(.skipCountdown)
+            } label: {
+                TypographyText(text: "카운트다운 건너뛰기", style: .t1_700, color: .gray0)
+            }
+
         }
         .padding(.horizontal, 30)
     }
