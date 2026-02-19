@@ -99,6 +99,15 @@ final class RunningSessionRepositoryImpl: RunningSessionRepository {
             RunningAPI.sessionDetail(sessionId: sessionId),
             responseType: RunningSessionDetailResponseDTO.self
         )
+
+        return response.data.toDomain()
+    }
+
+    func createManualSession(request: ManualSessionRequestDTO) async throws -> RunningSessionSummary {
+        let response = try await apiClient.request(
+            RunningAPI.manualComplete(request: request),
+            responseType: ManualSessionResponseDTO.self
+        )
         
         return response.data.toDomain()
     }

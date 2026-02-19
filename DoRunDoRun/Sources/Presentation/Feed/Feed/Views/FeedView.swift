@@ -12,6 +12,7 @@ struct FeedView: View {
                 floatingUploadButtonSection
                 toastSection
                 popupSection
+                certificationCompletedPopupSection
                 networkErrorPopupSection
             }
             .onAppear { store.send(.onAppear) }
@@ -186,33 +187,74 @@ private extension FeedView {
 // MARK: - Floating Upload Button Section
 private extension FeedView {
     /// Floating Upload Button Section
-    var floatingUploadButtonSection: some View {
-        HStack {
-            Spacer()
-            Button {
-                store.send(.uploadButtonTapped)
-            } label: {
-                Image(.add, size: .medium)
-                    .renderingMode(.template)
-                    .foregroundStyle(Color.gray0)
-                    .frame(width: 52, height: 52)
-                    .background(
-                        Circle()
-                            .fill(Color.blue600)
-                            .shadow(
-                                color: Color.gray900.opacity(0.15),
-                                radius: 12,
-                                x: 0,
-                                y: 2
-                            )
-                    )
+    private var floatingUploadButtonSection: some View {
+        ZStack {
+            // 배경 dim
+            if store.isFabExpanded {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        store.send(.dismissFab)
+                    }
+                    .transition(.opacity)
             }
+
+            VStack(alignment: .trailing, spacing: 12) {
+                if store.isFabExpanded {
+                    VStack(alignment: .leading, spacing: 8) {
+                        fabActionButton(
+                            title: "기록 불러오기",
+                        ) {
+                            store.send(.entryMenuSelectSessionTapped)
+                        }
+                        
+                        fabActionButton(
+                            title: "직접 기록 입력하기",
+                        ) {
+                            store.send(.entryMenuEnterManualSessionTapped)
+                        }
+
+                    }
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray0)
+                    )
+                }
+
+                // 메인 FAB
+                Button {
+                    store.send(.fabTapped)
+                } label: {
+                    Image(.add, size: .medium)
+                        .renderingMode(.template)
+                        .foregroundColor(store.isFabExpanded ? Color.gray600 : Color.gray0)
+                        .frame(width: 52, height: 52)
+                        .background(Circle().fill(store.isFabExpanded ? Color.gray0 : Color.blue600))
+                        .shadow(radius: 8)
+                        .rotationEffect(.degrees(store.isFabExpanded ? 45 : 0))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7),
+                                   value: store.isFabExpanded)
+                }
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .transition(.scale.combined(with: .opacity))
-        .animation(.spring(response: 0.3, dampingFraction: 0.8),
-                   value: store.isReactionDetailPresented || store.isReactionPickerPresented)
+    }
+    
+    private func fabActionButton(
+        title: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                TypographyText(text: title, style: .b1_500, color: .gray700)
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+        }
+        .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 }
 
@@ -266,6 +308,33 @@ private extension FeedView {
             }
             .transition(.opacity.combined(with: .scale))
             .zIndex(20)
+        }
+    }
+}
+
+// MARK: - Certification Completed Popup Section
+private extension FeedView {
+    @ViewBuilder
+    var certificationCompletedPopupSection: some View {
+        if store.isCertificationCompletedPopupVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                    .onTapGesture { store.send(.dismissCertificationCompletedPopup) }
+
+                ActionPopupView(
+                    image: Image(.certificationCompleted),
+                    title: "오늘은 이미 기록을 인증했어요!",
+                    message: "인증은 하루에 1회 진행할 수 있어요.\n내일도 함께 달려요!",
+                    actionTitle: "확인",
+                    cancelTitle: nil,
+                    style: .actionOnly,
+                    onAction: { store.send(.dismissCertificationCompletedPopup) },
+                    onCancel: nil
+                )
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(15)
         }
     }
 }

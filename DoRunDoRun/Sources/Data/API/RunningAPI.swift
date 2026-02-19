@@ -15,6 +15,7 @@ enum RunningAPI {
     case complete(sessionId: Int, data: RunningCompleteRequestDTO, mapImage: Data?)
     case sessions(isSelfied: Bool?, startDateTime: String?, endDateTime: String?)
     case sessionDetail(sessionId: Int)
+    case manualComplete(request: ManualSessionRequestDTO)
 }
 
 extension RunningAPI: TargetType {
@@ -32,12 +33,14 @@ extension RunningAPI: TargetType {
             return "/api/runs/sessions"
         case .sessionDetail(let sessionId):
             return "/api/runs/sessions/\(sessionId)"
+        case .manualComplete:
+            return "/api/runs/sessions/manual/complete"
         }
     }
 
     var method: Moya.Method {
         switch self {
-        case .start, .saveSegments, .complete:
+        case .start, .saveSegments, .complete, .manualComplete:
             return .post
         case .sessions, .sessionDetail:
             return .get
@@ -103,6 +106,9 @@ extension RunningAPI: TargetType {
         case .sessionDetail:
             // Path parameter만 사용
             return .requestPlain
+
+        case let .manualComplete(request):
+            return .requestJSONEncodable(request)
         }
     }
 

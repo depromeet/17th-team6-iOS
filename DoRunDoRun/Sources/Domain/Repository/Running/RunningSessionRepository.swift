@@ -55,4 +55,11 @@ protocol RunningSessionRepository: AnyObject {
     /// - Parameter sessionId: 세션 ID
     /// - Returns: 러닝 상세 정보
     func fetchSessionDetail(sessionId: Int) async throws -> RunningDetail
+
+    /// 수기 러닝 세션 생성
+    /// - Parameter request: 수기 세션 요청 데이터
+    /// - Returns: 러닝 세션 요약 목록
+    func createManualSession(
+        request: ManualSessionRequestDTO
+    ) async throws -> RunningSessionSummary
 }

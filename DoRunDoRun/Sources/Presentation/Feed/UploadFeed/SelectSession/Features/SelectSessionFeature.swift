@@ -87,7 +87,8 @@ struct SelectSessionFeature {
                         )
                         
                         // 전체 컨텍스트 기반으로 ViewState 생성
-                        let mapped = RunningSessionSummaryViewStateMapper.map(from: entities)
+                        let mapper = RunningSessionSummaryViewStateMapper()
+                        let mapped = mapper.map(from: entities)
                         
                         // 인증 가능한 세션만 필터링
                         let available = mapped.filter { $0.tagStatus == .possible }

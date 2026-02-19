@@ -10,7 +10,7 @@ import Foundation
 import Dependencies
 
 struct RunningSessionSummaryViewStateMapper {
-    static func map(
+    func map(
         from entities: [RunningSessionSummary],
         currentDate: Date = Date()
     ) -> [RunningSessionSummaryViewState] {

@@ -255,7 +255,8 @@ struct MyProfileFeature {
                 }
 
             case let .fetchSessionsSuccess(sessions):
-                state.sessions = RunningSessionSummaryViewStateMapper.map(
+                let mapper = RunningSessionSummaryViewStateMapper()
+                state.sessions = mapper.map(
                     from: sessions,
                     currentDate: Date() 
                 )

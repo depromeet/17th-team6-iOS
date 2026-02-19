@@ -60,4 +60,9 @@ final class RunningSessionRepositoryMock: RunningSessionRepository {
         // Mock 상세 정보 반환
         return RunningDetail.mock
     }
+
+    func createManualSession(request: ManualSessionRequestDTO) async throws -> RunningSessionSummary {
+        // Mock 세션 반환
+        return RunningSessionSummary.mock
+    }
 }

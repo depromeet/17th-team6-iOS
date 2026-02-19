@@ -59,6 +59,10 @@ struct FeedFeature {
         func extraReactionCount(for feed: SelfieFeedItem) -> Int {
             max(0, feed.reactions.count - 3)
         }
+        
+        var isFabExpanded = false
+        var isTodayCertified = false
+        var isCertificationCompletedPopupVisible = false
     }
 
     // MARK: - Action
@@ -118,7 +122,11 @@ struct FeedFeature {
         case showReportPopup(Int)
         case confirmReport(Int)
         
-        case uploadButtonTapped
+        case fabTapped
+        case dismissFab
+        case entryMenuSelectSessionTapped
+        case entryMenuEnterManualSessionTapped
+        case dismissCertificationCompletedPopup
         
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
@@ -140,6 +148,7 @@ struct FeedFeature {
             case navigateToFeedDetail(feedID: Int, feed: SelfieFeedItem)
             case navigateToEditFeed(feed: SelfieFeedItem)
             case navigateToSelectSession
+            case navigateToEnterManualSession
             case navigateBack
         }
         case delegate(Delegate)
@@ -271,7 +280,11 @@ struct FeedFeature {
             // 조회 성공
             case let .fetchSelfieUsersSuccess(users):
                 state.isLoadingUsers = false
-                state.selfieUsers = SelfieUserViewStateMapper.mapList(from: users)
+                let mapped = SelfieUserViewStateMapper.mapList(from: users)
+                state.selfieUsers = mapped
+                if calendar.isDateInToday(state.selectedDate) {
+                    state.isTodayCertified = mapped.contains { $0.isMe }
+                }
                 return .none
                 
             // 조회 실패
@@ -511,7 +524,23 @@ struct FeedFeature {
                 return .none
               
             // MARK: - 피드 업로드 버튼 탭
-            case .uploadButtonTapped:
+            case .fabTapped:
+                if !state.isFabExpanded && state.isTodayCertified {
+                    state.isCertificationCompletedPopupVisible = true
+                } else {
+                    state.isFabExpanded.toggle()
+                }
+                return .none
+
+            case .dismissFab:
+                state.isFabExpanded = false
+                return .none
+
+            case .dismissCertificationCompletedPopup:
+                state.isCertificationCompletedPopupVisible = false
+                return .none
+                
+            case .entryMenuSelectSessionTapped:
                 // event
                 // Entry / Upload / Result 이벤트는 CreateFeedFeature에서 처리
                 analytics.track(
@@ -521,6 +550,17 @@ struct FeedFeature {
                     ))
                 )
                 return .send(.delegate(.navigateToSelectSession))
+
+            case .entryMenuEnterManualSessionTapped:
+                // event
+                // Entry / Upload / Result 이벤트는 CreateFeedFeature에서 처리
+                analytics.track(
+                    .feed(.createFeedCtaClicked(
+                        source: .feedFab,
+                        runningID: nil
+                    ))
+                )
+                return .send(.delegate(.navigateToEnterManualSession))
                 
             // MARK: - 실패한 로직 저장
             case let .setLastFailedRequest(request):
