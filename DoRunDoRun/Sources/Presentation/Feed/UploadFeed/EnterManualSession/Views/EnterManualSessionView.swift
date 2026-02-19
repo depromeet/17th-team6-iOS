@@ -78,6 +78,18 @@ struct EnterManualSessionView: View {
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle("직접 기록")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
             .safeAreaInset(edge: .bottom) {
                 AppButton(
                     title: "추가하기",

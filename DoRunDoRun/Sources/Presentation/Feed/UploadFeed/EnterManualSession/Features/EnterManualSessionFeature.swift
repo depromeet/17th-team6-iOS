@@ -37,6 +37,7 @@ struct EnterManualSessionFeature {
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case addButtonTapped
+        case backButtonTapped
     }
 
     // MARK: - Reducer
@@ -48,6 +49,9 @@ struct EnterManualSessionFeature {
             switch action {
                 
             case .addButtonTapped:
+                return .none
+                
+            case .backButtonTapped:
                 return .none
 
             case .binding:

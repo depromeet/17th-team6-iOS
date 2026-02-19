@@ -245,6 +245,12 @@ struct AppFeature {
             case .feed(.delegate(.navigateToSelectSession)):
                 state.feedPath.append(.selectSession(SelectSessionFeature.State()))
                 return .none
+                
+            // 직접 기록 입력 (플로팅 버튼 탭 시)
+            case .feed(.delegate(.navigateToEnterManualSession)):
+                state.feedPath.append(.enterManualSession(EnterManualSessionFeature.State()))
+                return .none
+
 
             // 뒤로가기
             case .feed(.delegate(.navigateBack)):
@@ -465,6 +471,10 @@ struct AppFeature {
                 state.shouldShowInterstitialAd = true
                 state.adSource = .feedSelectSession
                 return .none
+                
+            case .feedPath(.element(id: _, action: .enterManualSession(.backButtonTapped))):
+                state.feedPath.removeLast()
+                return .none
 
             // 피드 → 세션 상세 → 피드 업로드 완료 → 광고 표시
             case .feedPath(.element(_, .mySessionDetail(.delegate(.feedUploadCompleted)))):
@@ -588,6 +598,7 @@ struct AppFeature {
         case feedDetail(FeedDetailFeature)                          // 피드 상세
         case editMyFeedDetail(EditFeedDetailFeature)                // 피드 수정
         case selectSession(SelectSessionFeature)                    // 세션 선택 (피드 업로드)
+        case enterManualSession(EnterManualSessionFeature)          // 세션 직접 기록 (피드 업로드)
         case mySessionDetail(SessionDetailFeature)                  // 내 세션 상세
     }
 
