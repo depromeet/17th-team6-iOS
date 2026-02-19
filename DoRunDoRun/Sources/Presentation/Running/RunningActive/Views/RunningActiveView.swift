@@ -2,10 +2,9 @@
 //  RunningActiveViewpe.swift
 //  DoRunDoRun
 //
-//  Created by zaehorang on 10/20/25.
+//  Created by Jaehui Yu on 10/20/25.
 
 import SwiftUI
-
 import ComposableArchitecture
 
 struct RunningActiveView: View {
@@ -13,22 +12,31 @@ struct RunningActiveView: View {
     
     var body: some View {
         WithPerceptionTracking {
-            ZStack(alignment: .bottom) {
+            ZStack {
+                backgroundColor
+                    .ignoresSafeArea()
                 
-                VStack(alignment: .trailing, spacing: 16) {
-                    gpsButton(isFollowing: store.isFollowingLocation) { store.send(.gpsButtonTapped) }
-                        .padding(.horizontal, 20)
+                VStack(alignment: .leading, spacing: 42) {
+                    Spacer()
                     
-                    bottomSheet(
-                        distanceText: store.distanceText,
-                        paceText: store.paceText,
-                        durationText: store.durationText,
-                        cadenceText: store.cadenceText,
-                        isPaused: store.isRunningPaused,
-                        onPause: { store.send(.pauseButtonTapped) },
-                        onResume: { store.send(.resumeButtonTapped) },
-                        onStop: { store.send(.stopButtonTapped) }
+                    // MARK: - Distance
+                    RunningStatView(
+                        title: "거리",
+                        value: store.distanceText,
+                        titleStyle: .b1_500,
+                        valueStyle: .distance_700,
+                        color: primaryTextColor
                     )
+                    
+                    // MARK: - Stats Card
+                    statsCard
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .safeAreaInset(edge: .bottom) {
+                    bottomButtons
+                        .padding(.horizontal, 20)
                 }
             }
             .onAppear { store.send(.onAppear) }
@@ -37,99 +45,113 @@ struct RunningActiveView: View {
     }
 }
 
-// MARK: - Subviews
-extension RunningActiveView {
-    private func gpsButton(isFollowing: Bool, onTap: @escaping () -> Void) -> some View {
-        Button {
-            onTap()
-        } label: {
-            Image("ic_gps_m")
-                .resizable()
-                .renderingMode(.template)
-                .foregroundStyle(isFollowing ? Color.blue600 : Color.gray800)
-                .frame(width: 24, height: 24)
-                .padding(10)
-                .background(Color.gray0)
-                .clipShape(Circle())
-        }
+// MARK: - Style
+private extension RunningActiveView {
+    var primaryTextColor: Color {
+        store.isRunningPaused ? .gray900 : .gray0
     }
-    
-    private func bottomSheet(
-        distanceText: String,
-        paceText: String,
-        durationText: String,
-        cadenceText: String,
-        isPaused: Bool,
-        onPause: @escaping () -> Void,
-        onResume: @escaping () -> Void,
-        onStop: @escaping () -> Void
-    ) -> some View {
-        VStack(spacing: .zero) {
+    var backgroundColor: Color {
+        store.isRunningPaused ? .gray0 : .blue600
+    }
+    var cardBackgroundColor: Color {
+        store.isRunningPaused ? .gray50 : .blue700
+    }
+}
+
+// MARK: - Stats Card
+private extension RunningActiveView {
+    var statsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            RunningStatView(title: "시간", value: store.durationText, color: primaryTextColor)
+            
             HStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: .zero) {
-                        TypographyText(text: "거리", style: .b2_500, color: .gray500)
-                        TypographyText(text: distanceText, style: .h3_700, color: .blue600)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: .zero) {
-                        TypographyText(text: "페이스", style: .b2_500, color: .gray500)
-                        TypographyText(text: paceText, style: .t1_700, color: .gray900)
-                    }
-                }
+                RunningStatView(title: "페이스", value: store.paceText, color: primaryTextColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: .zero) {
-                        TypographyText(text: "시간", style: .b2_500, color: .gray500)
-                        TypographyText(text: durationText, style: .h3_700, color: .gray900)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: .zero) {
-                        TypographyText(text: "케이던스", style: .b2_500, color: .gray500)
-                        TypographyText(text: cadenceText, style: .t1_700, color: .gray900)
-                    }
-                }
+
+                RunningStatView(title: "케이던스", value: store.cadenceText, color: primaryTextColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.bottom, 36)
-            
-            bottomButtons(
-                isPaused: isPaused,
-                onPause: onPause,
-                onResume: onResume,
-                onStop: onStop
-            )
         }
+        .padding(.vertical, 16)
         .padding(.horizontal, 20)
-        .padding(.top, 32)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.gray0)
-                .ignoresSafeArea(edges: .bottom)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(cardBackgroundColor)
         )
     }
-    
+}
+
+// MARK: - Bottom Buttons
+private extension RunningActiveView {
     @ViewBuilder
-    private func bottomButtons(
-        isPaused: Bool,
-        onPause: @escaping () -> Void,
-        onResume: @escaping () -> Void,
-        onStop: @escaping () -> Void
-    ) -> some View {
-        if isPaused {
+    var bottomButtons: some View {
+        if store.isRunningPaused {
             HStack(spacing: 12) {
                 AppButton(title: "기록 종료", style: .cancel) {
-                    onStop()
+                    store.send(.stopButtonTapped)
                 }
+                
                 AppButton(title: "계속 달리기") {
-                    onResume()
+                    store.send(.resumeButtonTapped)
                 }
             }
         } else {
-            AppButton(title: "기록정지") {
-                onPause()
+            AppButton(title: "기록정지", style: .primaryInverse) {
+                store.send(.pauseButtonTapped)
             }
+        }
+    }
+}
+
+// MARK: RunningStatView
+private struct RunningStatView: View {
+    let title: String
+    let value: String
+    let titleStyle: TypographyStyle
+    let valueStyle: TypographyStyle
+    let color: Color
+    
+    // 기본 스타일 (시간/페이스/케이던스용)
+    init(
+        title: String,
+        value: String,
+        color: Color
+    ) {
+        self.title = title
+        self.value = value
+        self.titleStyle = .c1_400
+        self.valueStyle = .h3_700
+        self.color = color
+    }
+    
+    // 커스텀 스타일 (거리용)
+    init(
+        title: String,
+        value: String,
+        titleStyle: TypographyStyle,
+        valueStyle: TypographyStyle,
+        color: Color
+    ) {
+        self.title = title
+        self.value = value
+        self.titleStyle = titleStyle
+        self.valueStyle = valueStyle
+        self.color = color
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TypographyText(
+                text: title,
+                style: titleStyle,
+                color: color
+            )
+            
+            TypographyText(
+                text: value,
+                style: valueStyle,
+                color: color
+            )
         }
     }
 }
