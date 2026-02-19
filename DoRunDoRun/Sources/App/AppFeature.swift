@@ -476,6 +476,12 @@ struct AppFeature {
                 state.feedPath.removeLast()
                 return .none
 
+            // 수기 기록 → 피드 생성 → 업로드 완료 → 광고 표시
+            case .feedPath(.element(_, .enterManualSession(.delegate(.feedUploadCompleted)))):
+                state.shouldShowInterstitialAd = true
+                state.adSource = .feedSelectSession
+                return .none
+
             // 피드 → 세션 상세 → 피드 업로드 완료 → 광고 표시
             case .feedPath(.element(_, .mySessionDetail(.delegate(.feedUploadCompleted)))):
                 state.shouldShowInterstitialAd = true

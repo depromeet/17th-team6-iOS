@@ -31,6 +31,12 @@ extension DependencyValues {
         get { self[RunningSessionCompleterKey.self] }
         set { self[RunningSessionCompleterKey.self] = newValue }
     }
+
+    // MARK: - 수기 세션 생성
+    var manualSessionCreator: ManualSessionCreatorProtocol {
+        get { self[ManualSessionCreatorKey.self] }
+        set { self[ManualSessionCreatorKey.self] = newValue }
+    }
 }
 
 // MARK: - Keys
@@ -82,4 +88,13 @@ private enum RunningSessionCompleterKey: DependencyKey {
     static let previewValue: RunningSessionCompleterProtocol = RunningSessionCompleter(
         sessionRepository: RunningSessionRepositoryMock()
     )
+}
+
+/// 수기 세션 생성
+private enum ManualSessionCreatorKey: DependencyKey {
+    static let liveValue: ManualSessionCreatorProtocol =
+        ManualSessionCreator(sessionRepository: RunningSessionRepositoryImpl())
+
+    static let testValue: ManualSessionCreatorProtocol =
+        ManualSessionCreator(sessionRepository: RunningSessionRepositoryMock())
 }

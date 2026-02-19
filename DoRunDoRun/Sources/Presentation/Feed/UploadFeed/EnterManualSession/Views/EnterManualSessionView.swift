@@ -14,6 +14,63 @@ struct EnterManualSessionView: View {
 
     var body: some View {
         WithPerceptionTracking {
+            ZStack {
+                serverErrorSection
+                mainSection
+                networkErrorPopupSection
+            }
+            .navigationTitle("직접 기록")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        store.send(.backButtonTapped)
+                    } label: {
+                        Image(.arrowLeft, size: .medium)
+                            .renderingMode(.template)
+                            .foregroundColor(.gray800)
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                AppButton(
+                    title: "추가하기",
+                    style: store.isRequiredFieldsFilled && !store.isLoading ? .primary : .disabled,
+                    size: .fullWidth
+                ) {
+                    store.send(.addButtonTapped)
+                }
+                .disabled(!store.isRequiredFieldsFilled || store.isLoading)
+                .padding(.horizontal, 20)
+            }
+            .navigationDestination(
+                item: $store.scope(state: \.createFeed, action: \.createFeed)
+            ) { store in
+                CreateFeedView(store: store)
+            }
+        }
+    }
+}
+
+// MARK: - Server Error Section
+private extension EnterManualSessionView {
+    @ViewBuilder
+    var serverErrorSection: some View {
+        if let serverErrorType = store.serverError.serverErrorType {
+            ServerErrorView(serverErrorType: serverErrorType) {
+                store.send(.serverError(.retryButtonTapped))
+            }
+        }
+    }
+}
+
+// MARK: - Main Section
+private extension EnterManualSessionView {
+    @ViewBuilder
+    var mainSection: some View {
+        if store.serverError.serverErrorType == nil {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 36) {
@@ -76,36 +133,29 @@ struct EnterManualSessionView: View {
                 }
             }
             .scrollDismissesKeyboard(.immediately)
-            .navigationTitle("직접 기록")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar(.hidden, for: .tabBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        store.send(.backButtonTapped)
-                    } label: {
-                        Image(.arrowLeft, size: .medium)
-                            .renderingMode(.template)
-                            .foregroundColor(.gray800)
-                    }
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                AppButton(
-                    title: "추가하기",
-                    style: store.isRequiredFieldsFilled ? .primary : .disabled,
-                    size: .fullWidth
-                ) {
-                    store.send(.addButtonTapped)
-                }
-                .disabled(!store.isRequiredFieldsFilled)
-                .padding(.horizontal, 20)
-            }
         }
     }
 }
 
+// MARK: - Network Error Popup Section
+private extension EnterManualSessionView {
+    @ViewBuilder
+    var networkErrorPopupSection: some View {
+        if store.networkErrorPopup.isVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                NetworkErrorPopupView {
+                    store.send(.networkErrorPopup(.retryButtonTapped))
+                }
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(10)
+        }
+    }
+}
+
+// MARK: - Preview
 #Preview {
     NavigationStack {
         EnterManualSessionView(
