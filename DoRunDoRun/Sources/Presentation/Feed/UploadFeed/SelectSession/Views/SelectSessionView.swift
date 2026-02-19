@@ -20,6 +20,7 @@ struct SelectSessionView: View {
             }
             .onAppear { store.send(.onAppear) }
             .navigationBarBackButtonHidden()
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
@@ -30,6 +31,16 @@ struct SelectSessionView: View {
                             .foregroundColor(.gray800)
                     }
                 }
+            }
+            .safeAreaInset(edge: .bottom) {
+                AppButton(
+                    title: "불러오기",
+                    style: store.selectedSessionID != nil ? .primary : .disabled,
+                    size: .fullWidth
+                ) {
+                    store.send(.loadButtonTapped)
+                }
+                .padding(.horizontal, 20)
             }
             .navigationDestination(
                 item: $store.scope(state: \.createFeed, action: \.createFeed)
@@ -69,7 +80,6 @@ private extension SelectSessionView {
                     todaySessionListSection
                 }
                 Spacer()
-                buttonSection
             }
             .padding(.horizontal, 20)
         }
@@ -129,17 +139,6 @@ private extension SelectSessionView {
                 }
             }
         }
-    }
-    
-    var buttonSection: some View {
-        AppButton(
-            title: "불러오기",
-            style: store.selectedSessionID != nil ? .primary : .disabled,
-            size: .fullWidth
-        ) {
-            store.send(.loadButtonTapped)
-        }
-        .padding(.bottom, 24)
     }
 }
 

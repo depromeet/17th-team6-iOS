@@ -79,6 +79,7 @@ struct EnterManualSessionView: View {
             .navigationTitle("직접 기록")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
