@@ -12,6 +12,7 @@ struct FeedView: View {
                 floatingUploadButtonSection
                 toastSection
                 popupSection
+                certificationCompletedPopupSection
                 networkErrorPopupSection
             }
             .onAppear { store.send(.onAppear) }
@@ -307,6 +308,33 @@ private extension FeedView {
             }
             .transition(.opacity.combined(with: .scale))
             .zIndex(20)
+        }
+    }
+}
+
+// MARK: - Certification Completed Popup Section
+private extension FeedView {
+    @ViewBuilder
+    var certificationCompletedPopupSection: some View {
+        if store.isCertificationCompletedPopupVisible {
+            ZStack {
+                Color.dimLight
+                    .ignoresSafeArea()
+                    .onTapGesture { store.send(.dismissCertificationCompletedPopup) }
+
+                ActionPopupView(
+                    image: Image(.certificationCompleted),
+                    title: "오늘은 이미 기록을 인증했어요!",
+                    message: "인증은 하루에 1회 진행할 수 있어요.\n내일도 함께 달려요!",
+                    actionTitle: "확인",
+                    cancelTitle: nil,
+                    style: .actionOnly,
+                    onAction: { store.send(.dismissCertificationCompletedPopup) },
+                    onCancel: nil
+                )
+            }
+            .transition(.opacity.combined(with: .scale))
+            .zIndex(15)
         }
     }
 }

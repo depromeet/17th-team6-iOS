@@ -14,6 +14,7 @@ struct ActionPopupView: View {
         case destructive       // 위험 액션 + 취소(닫기) 액션
     }
 
+    let image: Image?
     let title: String
     let message: String?
     let actionTitle: String
@@ -21,8 +22,9 @@ struct ActionPopupView: View {
     let style: PopupStyle
     let onAction: () -> Void
     let onCancel: (() -> Void)?
-    
+
     init(
+         image: Image? = nil,
          title: String,
          message: String?,
          actionTitle: String,
@@ -31,6 +33,7 @@ struct ActionPopupView: View {
          onAction: @escaping () -> Void,
          onCancel: (() -> Void)?
     ) {
+        self.image = image
         self.title = title
         self.message = message
         self.actionTitle = actionTitle
@@ -39,9 +42,15 @@ struct ActionPopupView: View {
         self.onAction = onAction
         self.onCancel = onCancel
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
+            if let image {
+                image
+                    .resizable()
+                    .frame(width: 120, height: 120)
+                    .padding(.bottom, 12)
+            }
             VStack(spacing: 4) {
                 TypographyText(text: title, style: .t2_700)
 

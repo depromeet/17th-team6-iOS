@@ -61,6 +61,8 @@ struct FeedFeature {
         }
         
         var isFabExpanded = false
+        var isTodayCertified = false
+        var isCertificationCompletedPopupVisible = false
     }
 
     // MARK: - Action
@@ -124,6 +126,7 @@ struct FeedFeature {
         case dismissFab
         case entryMenuSelectSessionTapped
         case entryMenuEnterManualSessionTapped
+        case dismissCertificationCompletedPopup
         
         case toast(ToastFeature.Action)
         case popup(PopupFeature.Action)
@@ -277,7 +280,11 @@ struct FeedFeature {
             // 조회 성공
             case let .fetchSelfieUsersSuccess(users):
                 state.isLoadingUsers = false
-                state.selfieUsers = SelfieUserViewStateMapper.mapList(from: users)
+                let mapped = SelfieUserViewStateMapper.mapList(from: users)
+                state.selfieUsers = mapped
+                if calendar.isDateInToday(state.selectedDate) {
+                    state.isTodayCertified = mapped.contains { $0.isMe }
+                }
                 return .none
                 
             // 조회 실패
@@ -518,11 +525,19 @@ struct FeedFeature {
               
             // MARK: - 피드 업로드 버튼 탭
             case .fabTapped:
-                state.isFabExpanded.toggle()
+                if !state.isFabExpanded && state.isTodayCertified {
+                    state.isCertificationCompletedPopupVisible = true
+                } else {
+                    state.isFabExpanded.toggle()
+                }
                 return .none
 
             case .dismissFab:
                 state.isFabExpanded = false
+                return .none
+
+            case .dismissCertificationCompletedPopup:
+                state.isCertificationCompletedPopupVisible = false
                 return .none
                 
             case .entryMenuSelectSessionTapped:
