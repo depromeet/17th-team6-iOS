@@ -16,6 +16,7 @@ struct ManualSessionResponseDTO: Decodable {
 
 struct ManualSessionDataDTO: Decodable, Equatable {
     let id: Int
+    let createdAt: String
     let finishedAt: String
     let durationTotal: Int
     let distanceTotal: Int
@@ -30,7 +31,7 @@ extension ManualSessionDataDTO {
         
         return RunningSessionSummary(
             sessionId: id,
-            createdAt: parser.isoDate(from: finishedAt) ?? Date(),
+            createdAt: parser.isoDate(from: createdAt) ?? Date(),
             finishedAt: parser.isoDate(from: finishedAt) ?? Date(),
             totalDistanceMeters: Double(distanceTotal),
             totalDurationSeconds: durationTotal,
