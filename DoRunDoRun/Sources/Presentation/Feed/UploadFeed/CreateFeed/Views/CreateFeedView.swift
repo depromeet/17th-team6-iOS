@@ -112,6 +112,17 @@ private extension CreateFeedView {
                     .cornerRadius(16)
                     .clipped()
 
+            // 기본 템플릿 이미지
+            } else if let template = store.randomTemplate {
+
+                Image(template.rawValue)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: UIScreen.main.bounds.width - 40,
+                           height: UIScreen.main.bounds.width - 40)
+                    .cornerRadius(16)
+                    .clipped()
+
             // 기본 회색 배경
             } else {
                 Rectangle()

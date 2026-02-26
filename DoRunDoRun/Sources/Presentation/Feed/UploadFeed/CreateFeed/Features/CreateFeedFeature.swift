@@ -23,6 +23,7 @@ struct CreateFeedFeature {
         let session: RunningSessionSummaryViewState
         var selectedImage: UIImage? = nil
         var selectedImageData: Data? = nil
+        var randomTemplate: GraphicStyle?
         var isUploading = false
         var toast = ToastFeature.State()
         var networkErrorPopup = NetworkErrorPopupFeature.State()
@@ -71,6 +72,10 @@ struct CreateFeedFeature {
                         entryPoint: state.entryPoint
                     ))
                 )
+                
+                if state.selectedImage == nil, state.selectedImageData == nil, state.session.mapImageURL == nil {
+                    state.randomTemplate = GraphicStyle.uploadTemplates.randomElement()
+                }
                 return .none
 
 
@@ -110,6 +115,7 @@ struct CreateFeedFeature {
 
                 let imageData = state.selectedImageData
                 let mapImageURL = state.session.mapImageURL
+                let template = state.randomTemplate
 
                 return .run { send in
                     do {
@@ -119,6 +125,9 @@ struct CreateFeedFeature {
                             uploadImageData = imageData
                         } else if let mapImageURL {
                             uploadImageData = try? Data(contentsOf: mapImageURL)
+                        } else if let template,
+                                  let image = UIImage(named: template.rawValue) {
+                            uploadImageData = image.jpegData(compressionQuality: 0.8)
                         } else {
                             uploadImageData = nil
                         }
