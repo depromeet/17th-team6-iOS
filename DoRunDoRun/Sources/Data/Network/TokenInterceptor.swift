@@ -98,27 +98,34 @@ final class TokenInterceptor: RequestInterceptor {
             #endif
             await refresher.setRefreshing(true)
 
-            let success = await refresher.tryRefresh()
+            let result = await refresher.tryRefresh()
 
             #if DEBUG
-            print("🟩 [TokenInterceptor.retry] refresh 결과: \(success ? "성공 ✅" : "실패 ❌")")
+            print("🟩 [TokenInterceptor.retry] refresh 결과: \(result)")
             #endif
 
             await refresher.setRefreshing(false)
 
-            if success {
+            switch result {
+            case .success:
                 #if DEBUG
                 print("🟦 [TokenInterceptor.retry] 모든 pending 요청 재시도")
                 #endif
                 await refresher.flushPending(retry: true)
                 completion(.retry)
-            } else {
+            case .serverRejected:
                 #if DEBUG
-                print("🟥 [TokenInterceptor.retry] refresh 실패 → 세션 만료 처리")
+                print("🟥 [TokenInterceptor.retry] 서버 거부 → 세션 만료 처리")
                 #endif
                 await refresher.flushPending(retry: false)
                 completion(.doNotRetry)
                 NotificationCenter.default.post(name: .sessionExpired, object: nil)
+            case .networkError:
+                #if DEBUG
+                print("🟧 [TokenInterceptor.retry] 네트워크 오류 → 세션 만료 처리 없이 재시도 안 함")
+                #endif
+                await refresher.flushPending(retry: false)
+                completion(.doNotRetry)
             }
         }
     }
