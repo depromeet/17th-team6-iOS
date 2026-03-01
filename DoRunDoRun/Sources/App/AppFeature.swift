@@ -45,7 +45,7 @@ struct AppFeature {
 
         case splash(SplashFeature.Action)
         case appStarted
-        case refreshTokenResponse(Bool) // refresh 결과 처리
+        case refreshTokenResponse(RefreshResult) // refresh 결과 처리
 
         // 로그인 전
         case onboarding(OnboardingFeature.Action)
@@ -122,14 +122,18 @@ struct AppFeature {
                     }
                 }
 
-            case let .refreshTokenResponse(success):
-                if success {
-                    print("자동 로그인 성공 (토큰 갱신 완료)")
+            case let .refreshTokenResponse(result):
+                switch result {
+                case .success:
+                    print("✅ 자동 로그인 성공 (토큰 갱신 완료)")
                     state.isLoggedIn = true
-                } else {
-                    print("자동 로그인 실패 → 온보딩 전환")
+                case .serverRejected:
+                    print("❌ 자동 로그인 실패 (서버 거부) → 온보딩 전환")
                     TokenManager.shared.clear()
                     state.isLoggedIn = false
+                case .networkError:
+                    print("⚠️ 자동 로그인 - 네트워크 오류, 토큰 유지 후 로그인 유지")
+                    state.isLoggedIn = true
                 }
                 return .none
                 

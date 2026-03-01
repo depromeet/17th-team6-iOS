@@ -9,6 +9,12 @@ import Foundation
 import Moya
 import Alamofire
 
+enum RefreshResult {
+    case success
+    case networkError    // 네트워크 오류 → 토큰 유지
+    case serverRejected  // 서버 거부 → 토큰 삭제
+}
+
 /// 여러 요청이 동시에 401을 받아도 한 번만 refresh 하도록 방지
 actor TokenRefresher {
     static let shared = TokenRefresher()
@@ -26,10 +32,10 @@ actor TokenRefresher {
     }
 
     // MARK: - Refresh Logic
-    func tryRefresh() async -> Bool {
+    func tryRefresh() async -> RefreshResult {
         guard let refreshToken = TokenManager.shared.refreshToken, !refreshToken.isEmpty else {
             print("❌ [TokenRefresher] No refresh token found.")
-            return false
+            return .serverRejected
         }
 
         isRefreshing = true
@@ -66,23 +72,29 @@ actor TokenRefresher {
             TokenManager.shared.refreshToken = decoded.data.refreshToken
             print("🔑 [TokenRefresher] Token updated successfully")
 
-            return true
+            return .success
 
+        } catch let moyaError as MoyaError {
+            print("❌ [TokenRefresher] Server rejected refresh:", moyaError)
+            return .serverRejected
         } catch let DecodingError.dataCorrupted(context) {
             print("❌ [TokenRefresher] Decoding error: dataCorrupted - \(context.debugDescription)")
-            return false
+            return .serverRejected
         } catch let DecodingError.keyNotFound(key, context) {
             print("❌ [TokenRefresher] Decoding error: key '\(key)' not found - \(context.debugDescription)")
-            return false
+            return .serverRejected
         } catch let DecodingError.valueNotFound(value, context) {
             print("❌ [TokenRefresher] Decoding error: value '\(value)' not found - \(context.debugDescription)")
-            return false
+            return .serverRejected
         } catch let DecodingError.typeMismatch(type, context) {
             print("❌ [TokenRefresher] Decoding error: type '\(type)' mismatch - \(context.debugDescription)")
-            return false
+            return .serverRejected
+        } catch let urlError as URLError {
+            print("❌ [TokenRefresher] Network error (URLError):", urlError)
+            return .networkError
         } catch {
             print("❌ [TokenRefresher] Unknown error:", error)
-            return false
+            return .networkError
         }
     }
 
