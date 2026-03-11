@@ -251,7 +251,7 @@ private extension FeedView {
             HStack(spacing: 0) {
                 TypographyText(text: title, style: .b1_500, color: .gray700)
             }
-            .frame(width: 152)
+            .frame(width: 152, alignment: .leading)
             .padding(.vertical, 4)
             .padding(.horizontal, 16)
         }
