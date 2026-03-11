@@ -114,7 +114,6 @@ private extension CreateFeedView {
 
             // 기본 템플릿 이미지
             } else if let template = store.randomTemplate {
-
                 Image(template.rawValue)
                     .resizable()
                     .scaledToFill()
@@ -132,7 +131,7 @@ private extension CreateFeedView {
                     .cornerRadius(16)
                     .overlay {
                         VStack(spacing: 8) {
-                            Image(.camera)
+                            Image(.camera, fill: .fill, size: .medium)
                                 .renderingMode(.template)
                                 .foregroundColor(.gray400)
                             TypographyText(text: "배경사진을 추가해보세요", style: .b2_400, color: .gray500)
@@ -143,7 +142,7 @@ private extension CreateFeedView {
             // 달리기 정보 오버레이
             runningInfoOverlay
         }
-        .padding(.top, 40)
+        .padding(.top, 32)
     }
 
     /// 달리기 정보 오버레이
