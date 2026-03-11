@@ -13,6 +13,7 @@ struct TextInputRow: View {
     var placeholder: String
     var unit: String? = nil
     var keyboardType: UIKeyboardType = .decimalPad
+    var maxLength: Int? = nil
 
     @Binding var text: String
 
@@ -26,7 +27,8 @@ struct TextInputRow: View {
                     placeholder: placeholder,
                     placeholderColor: UIColor(Color.gray300),
                     keyboardType: keyboardType,
-                    alignment: .left
+                    alignment: .left,
+                    maxLength: maxLength
                 )
 
                 if let unit {
