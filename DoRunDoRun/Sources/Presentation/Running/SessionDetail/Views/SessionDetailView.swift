@@ -69,8 +69,10 @@ private extension SessionDetailView {
                     VStack(alignment: .leading, spacing: 0) {
                         headerSection(detail)
                         summarySection(detail)
-                        mapSection(detail)
-                        paceColorBar
+                        if !detail.points.isEmpty {
+                            mapSection(detail)
+                            paceColorBar
+                        }
 
                         // MARK: CTA 조건
                         if detail.feed != nil {

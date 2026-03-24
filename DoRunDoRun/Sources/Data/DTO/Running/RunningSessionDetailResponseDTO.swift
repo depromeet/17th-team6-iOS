@@ -23,11 +23,11 @@ struct RunningSessionDetailDataDTO: Decodable {
     let distanceTotal: Int
     let durationTotal: Int
     let paceAvg: Int
-    let paceMax: Int
-    let paceMaxLatitude: Double
-    let paceMaxLongitude: Double
+    let paceMax: Int?
+    let paceMaxLatitude: Double?
+    let paceMaxLongitude: Double?
     let cadenceAvg: Int
-    let cadenceMax: Int
+    let cadenceMax: Int?
     let mapImage: String?
     let feed: FeedDTO?
     let segments: [[SegmentPointDTO]]
@@ -74,8 +74,8 @@ extension RunningSessionDetailDataDTO {
         let maxPacePoint = RunningPoint(
             timestamp: Date(),
             coordinate: RunningCoordinate(
-                latitude: paceMaxLatitude,
-                longitude: paceMaxLongitude
+                latitude: paceMaxLatitude ?? 0,
+                longitude: paceMaxLongitude ?? 0
             ),
             altitude: 0.0,
             speedMps: 0.0
@@ -100,8 +100,8 @@ extension RunningSessionDetailDataDTO {
             elapsed: .seconds(durationTotal),
             avgPaceSecPerKm: Double(paceAvg),
             avgCadenceSpm: Double(cadenceAvg),
-            maxCadenceSpm: Double(cadenceMax),
-            fastestPaceSecPerKm: Double(paceMax),
+            maxCadenceSpm: Double(cadenceMax ?? 0),
+            fastestPaceSecPerKm: Double(paceMax ?? 0),
             coordinateAtmaxPace: maxPacePoint,
             coordinates: allCoordinates,
             mapImageData: nil,

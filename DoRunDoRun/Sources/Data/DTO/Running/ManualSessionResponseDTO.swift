@@ -16,11 +16,11 @@ struct ManualSessionResponseDTO: Decodable {
 
 struct ManualSessionDataDTO: Decodable, Equatable {
     let id: Int
-    let createdAt: String
+    let startedAt: String
     let finishedAt: String
     let durationTotal: Int
     let distanceTotal: Int
-    let paceAvg: Int
+    let paceAvg: Double
     let cadenceAvg: Int
 }
 
@@ -28,14 +28,14 @@ struct ManualSessionDataDTO: Decodable, Equatable {
 extension ManualSessionDataDTO {
     func toDomain() -> RunningSessionSummary {
         let parser = DateFormatterManager.shared
-        
+
         return RunningSessionSummary(
             sessionId: id,
-            createdAt: parser.isoDate(from: createdAt) ?? Date(),
+            createdAt: parser.isoDate(from: startedAt) ?? Date(),
             finishedAt: parser.isoDate(from: finishedAt) ?? Date(),
             totalDistanceMeters: Double(distanceTotal),
             totalDurationSeconds: durationTotal,
-            avgPaceSecPerKm: Double(paceAvg),
+            avgPaceSecPerKm: paceAvg,
             avgCadenceSpm: Double(cadenceAvg),
             isSelfied: false,
             mapImageURL: nil

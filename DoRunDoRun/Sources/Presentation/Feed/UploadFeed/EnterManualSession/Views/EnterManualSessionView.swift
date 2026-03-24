@@ -123,6 +123,8 @@ private extension EnterManualSessionView {
                                 title: "케이던스",
                                 placeholder: "케이던스 입력(선택)",
                                 unit: store.cadence.isEmpty ? nil : "spm",
+                                keyboardType: .numberPad,
+                                maxLength: 3,
                                 text: $store.cadence
                             )
                         }
