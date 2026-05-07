@@ -2,7 +2,7 @@
 //  ManualSessionResponseDTO.swift
 //  DoRunDoRun
 //
-//  Created by Claude on 2/19/26.
+//  Created by Jaehui Yu 2/19/26.
 //
 
 import Foundation

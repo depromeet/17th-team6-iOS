@@ -2,7 +2,7 @@
 //  ManualSessionCreator.swift
 //  DoRunDoRun
 //
-//  Created by Claude on 2/19/26.
+//  Created by Jaehui Yu on 2/19/26.
 //
 
 import Foundation
