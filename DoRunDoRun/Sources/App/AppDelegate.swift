@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AppTrackingTransparency
 import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
@@ -18,11 +19,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) -> Bool {
         // Firebase 설정
         FirebaseApp.configure()
-        
-        // AdMob 초기화
-        MobileAds.shared.start(completionHandler: nil)
-        InterstitialAdManager.shared.loadAd()
-        
+
+        // ATT 권한 요청 후 AdMob 초기화 (Apple 가이드라인: 데이터 수집 전 권한 획득)
+        ATTrackingManager.requestTrackingAuthorization { _ in
+            DispatchQueue.main.async {
+                MobileAds.shared.start(completionHandler: nil)
+                InterstitialAdManager.shared.loadAd()
+            }
+        }
+
         // 앱 실행 시 사용자에게 알림 허용 권한을 받음
         UNUserNotificationCenter.current().delegate = self
         
