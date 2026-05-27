@@ -22,35 +22,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         // 앱 실행 시 사용자에게 알림 허용 권한을 받음
         UNUserNotificationCenter.current().delegate = self
-        
-        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound] // 필요한 알림 권한을 설정
-        UNUserNotificationCenter.current().requestAuthorization(
-            options: authOptions,
-            completionHandler: { _, _ in }
-        )
-        
-        // UNUserNotificationCenterDelegate를 구현한 메서드를 실행시킴
         application.registerForRemoteNotifications()
-        
-        // Firebase Meesaging 설정
-        Messaging.messaging().delegate = self
-        
-        return true
-    }
 
-    // 앱이 active 상태가 된 후 ATT 요청 — didFinishLaunching은 아직 inactive 상태라 iOS 26에서 다이얼로그가 표시되지 않음
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
-            MobileAds.shared.start(completionHandler: nil)
-            InterstitialAdManager.shared.loadAd()
-            return
-        }
-        ATTrackingManager.requestTrackingAuthorization { _ in
-            DispatchQueue.main.async {
-                MobileAds.shared.start(completionHandler: nil)
-                InterstitialAdManager.shared.loadAd()
+        // Firebase Messaging 설정
+        Messaging.messaging().delegate = self
+
+        // 앱 실행 직후에는 window가 준비되지 않아 ATT 다이얼로그가 무시됨 — 1초 지연 후 요청
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            ATTrackingManager.requestTrackingAuthorization { _ in
+                DispatchQueue.main.async {
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
+                    MobileAds.shared.start(completionHandler: nil)
+                    InterstitialAdManager.shared.loadAd()
+                }
             }
         }
+
+        return true
     }
 
     // 백그라운드에서 푸시 알림을 탭했을 때 실행
